@@ -1,25 +1,23 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import NavBar from "./Navbar";
 import { FooterSection } from "../Section/FooterSection";
 
 const Layout = ({ children }: React.PropsWithChildren<{}>) => {
-    const [chainId, setChainId] = React.useState('0');
-    const handleOpen = () => {
-        window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: "0x89" }],
-        });
+  const [chainId, setChainId] = React.useState("0");
+  //const handleOpen = () => {
+  //    (window as any).ethereum.request({
+  //        method: "wallet_switchEthereumChain",
+  //        params: [{ chainId: "0x89" }],
+  //    });
+  //}
+  useEffect(() => {
+    if ((window as any)?.ethereum) {
+      setChainId((window as any).ethereum.chainId);
+      (window as any).ethereum.on("chainChanged", (chainId: any) => {
+        setChainId(chainId);
+      });
     }
-    useEffect(() => {
-        if (window?.ethereum) {
-            setChainId(window.ethereum.chainId);
-            window.ethereum.on("chainChanged", (chainId) => {
-                setChainId(chainId);
-            });
-        }
-
-    },[typeof window != 'undefined'])
-  // console.log(window.ethereum.chainId)
+  }, [chainId]);
   return (
     <>
       <div className="">

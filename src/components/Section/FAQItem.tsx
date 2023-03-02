@@ -7,10 +7,10 @@ import {
 } from "@chakra-ui/react";
 import { MinusIcon, AddIcon } from "@chakra-ui/icons";
 
-const FAQItem = ({ title, body }) => (
+const FAQItem = ({ title, body }: any) => (
   <AccordionItem
     // bgGradient={"linear(to-r, #303030 0%, #1B1B1B 100%)"}
-    background={'#DEEFE7'}
+    background={"#DEEFE7"}
     borderRadius="16px"
     border={"none"}
     px={5}
@@ -21,7 +21,7 @@ const FAQItem = ({ title, body }) => (
   >
     {({ isExpanded }) => (
       <>
-        <AccordionButton _hover="none">
+        <AccordionButton>
           <Box
             flex="1"
             textAlign="left"
