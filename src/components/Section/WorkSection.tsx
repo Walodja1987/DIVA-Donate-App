@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export const WorkSection = () => (
   <div className="flex flex-col">
-    <div className="mx-auto py-12 px-4 sm:px-6 text-center divide-y divide-slate-700">
+    <div className="mx-auto px-4 sm:px-6 text-center divide-y divide-slate-700">
       <h1 className="font-semibold text-6xl leading-[4.75rem]  text-[#042940]  ">
         How it works
       </h1>
