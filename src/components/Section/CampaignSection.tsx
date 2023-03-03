@@ -139,7 +139,7 @@ export const CampaignSection = () => {
         </div>
         <div className="flex flex-row gap-10 justify-center ">
           <div className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md ">
-            <a href="/campaign">
+            <Link href="/campaign">
               <Image
                 className="w-full rounded-t-[16px] object-cover"
                 width="800"
@@ -154,7 +154,7 @@ export const CampaignSection = () => {
                   </span>
                 </div>
               </div>
-            </a>
+            </Link>
             <div className="p-5">
               <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 text-[#042940]">
                 Fortune DIVA
