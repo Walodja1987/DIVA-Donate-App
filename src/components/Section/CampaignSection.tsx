@@ -40,11 +40,13 @@ export const CampaignSection = () => {
     });
   };
   useEffect(() => {
-    setChainId((window as any).ethereum.chainId);
-    (window as any).ethereum.on("chainChanged", (chainId: string) => {
-      setChainId(chainId);
-    });
-  }, []);
+    if (typeof window != "undefined" && typeof window?.ethereum != "undefined") {
+      setChainId((window as any).ethereum.chainId);
+      (window as any).ethereum.on("chainChanged", (chainId: string) => {
+        setChainId(chainId);
+      });
+    }
+  }, [typeof window != "undefined" && typeof window?.ethereum != "undefined"]);
 
   const handleAddMetaMask = async () => {
     const provider = new ethers.providers.Web3Provider(
