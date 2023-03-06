@@ -3,9 +3,10 @@ import type { AppProps } from 'next/app'
 import '@rainbow-me/rainbowkit/styles.css'
 import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { configureChains, createClient, WagmiConfig } from 'wagmi'
-import { mainnet, polygon, optimism, arbitrum } from 'wagmi/chains'
+import { polygon } from 'wagmi/chains'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { ChakraProvider } from '@chakra-ui/react'
+import CustomAvatar from '../components/CustomAvatar'
 
 const { chains, provider } = configureChains(
 	[polygon],
@@ -26,7 +27,7 @@ export default function App({ Component, pageProps }: AppProps) {
 	return (
 		<ChakraProvider>
 			<WagmiConfig client={wagmiClient}>
-				<RainbowKitProvider chains={chains}>
+				<RainbowKitProvider chains={chains} avatar={CustomAvatar}>
 					<Component {...pageProps} />
 				</RainbowKitProvider>
 			</WagmiConfig>
