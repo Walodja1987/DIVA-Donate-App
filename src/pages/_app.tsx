@@ -8,7 +8,7 @@ import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { ChakraProvider } from '@chakra-ui/react'
 
 const { chains, provider } = configureChains(
-	[polygon, mainnet, optimism, arbitrum],
+	[polygon],
 	[alchemyProvider({ apiKey: 'p3-IGmZPQrd-ri5AGlGm4cVm8k1uhCXx' })]
 )
 
