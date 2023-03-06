@@ -8,6 +8,7 @@ import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 
 export const CampaignSection = () => {
 	const [goal, setGoal] = useState<number>(0)
@@ -18,10 +19,11 @@ export const CampaignSection = () => {
 	const [longToken, setLongToken] = useState<string>('')
 	const [decimals, setDecimals] = useState()
 	const divaContractAddress = '0xFf7d52432B19521276962B67FFB432eCcA609148'
-	const { address: activeAddress } = useAccount()
+	const { address: activeAddress, isConnected, connector } = useAccount()
 	const collateralTokenAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
+	const { openConnectModal } = useConnectModal()
 
 	const { switchNetwork } = useSwitchNetwork()
 
@@ -192,33 +194,52 @@ export const CampaignSection = () => {
 							{/*</div>*/}
 							{/*</div>*/}
 
-							{chainId === '0x89' ? (
-								<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
-									<div className="flex flex-col items-center justify-center">
-										<dt className="mb-2 font-medium text-xl text-[#042940]">
-											Goal
-										</dt>
-										<dd className="font-normal text-base text-[#042940] ">
-											${goal}
-										</dd>
-									</div>
-									<div className="flex flex-col items-center justify-center">
-										<dt className="mb-2 font-medium text-xl text-[#042940]">
-											Raised
-										</dt>
-										<dd className="font-normal text-base text-[#042940] ">
-											${raised}
-										</dd>
-									</div>
-									<div className="flex flex-col items-center justify-center">
-										<dt className="mb-2 font-medium text-xl text-[#042940]">
-											To go
-										</dt>
-										<dd className="font-normal text-base text-[#042940] ">
-											${toGo}
-										</dd>
-									</div>
-								</div>
+							{isConnected ? (
+								<>
+									{chainId === '0x89' ? (
+										<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
+											<div className="flex flex-col items-center justify-center">
+												<dt className="mb-2 font-medium text-xl text-[#042940]">
+													Goal
+												</dt>
+												<dd className="font-normal text-base text-[#042940] ">
+													${goal}
+												</dd>
+											</div>
+											<div className="flex flex-col items-center justify-center">
+												<dt className="mb-2 font-medium text-xl text-[#042940]">
+													Raised
+												</dt>
+												<dd className="font-normal text-base text-[#042940] ">
+													${raised}
+												</dd>
+											</div>
+											<div className="flex flex-col items-center justify-center">
+												<dt className="mb-2 font-medium text-xl text-[#042940]">
+													To go
+												</dt>
+												<dd className="font-normal text-base text-[#042940] ">
+													${toGo}
+												</dd>
+											</div>
+										</div>
+									) : (
+										<div className="mb-10 flex flex-col items-center justify-center ">
+											<div className=" flex items-center justify-center">
+												Please{' '}
+												<span>
+													<button
+														className="p-2 text-blue-600"
+														onClick={handleOpen}>
+														{' '}
+														connect
+													</button>
+												</span>{' '}
+												to the Polygon network.
+											</div>
+										</div>
+									)}
+								</>
 							) : (
 								<div className="mb-10 flex flex-col items-center justify-center ">
 									<div className=" flex items-center justify-center">
@@ -226,15 +247,15 @@ export const CampaignSection = () => {
 										<span>
 											<button
 												className="p-2 text-blue-600"
-												onClick={handleOpen}>
-												{' '}
+												onClick={openConnectModal}>
 												connect
 											</button>
 										</span>{' '}
-										to the Polygon network.
+										Wallet.
 									</div>
 								</div>
 							)}
+
 							<Link href="/campaign">
 								<button
 									type="button"

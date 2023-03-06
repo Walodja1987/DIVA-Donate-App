@@ -52,12 +52,12 @@ export default function NavBar() {
 						}`}>
 						<NavbarLinks activePath={pathname} />
 						<div className="mt-3 space-y-2 lg:hidden md:inline-block">
-							<ConnectButton accountStatus="avatar" />
+							<ConnectButton accountStatus="address" chainStatus="icon" />
 						</div>
 					</div>
 				</div>
 				<div className="hidden space-x-2 md:hidden lg:inline-block">
-					<ConnectButton accountStatus="avatar" />
+					<ConnectButton accountStatus="address" chainStatus="icon" />
 				</div>
 			</div>
 		</nav>
