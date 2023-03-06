@@ -11,6 +11,7 @@ class MyDocument extends Document {
     return (
       <Html>
         <Head>
+          <title>DIVA Donate</title>
           <link
             href="https://fonts.googleapis.com/css2?family=Lora:wght@600&family=Open+Sans&display=swap"
             rel="stylesheet"
