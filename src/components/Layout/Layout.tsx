@@ -25,8 +25,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
 				<title>DIVA Donate</title>
 				<meta
 					name="description"
-					content="A novel donation model enabled by blockchain technology
-							Powered by DIVA Protocol"
+					content="A novel donation model enabled by blockchain technology and powered by DIVA Protocol"
 				/>
 
 				{/* <!-- Facebook Meta Tags --> */}
@@ -35,8 +34,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
 				<meta property="og:title" content="DIVA Donate" />
 				<meta
 					property="og:description"
-					content="A novel donation model enabled by blockchain technology
-						Powered by DIVA Protocol"
+					content="A novel donation model enabled by blockchain technology and powered by DIVA Protocol"
 				/>
 				<meta
 					property="og:image"
@@ -48,8 +46,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
 				<meta name="twitter:title" content="DIVA Donate" />
 				<meta
 					name="twitter:description"
-					content="A novel donation model enabled by blockchain technology
-							Powered by DIVA Protocol"
+					content="A novel donation model enabled by blockchain technology and powered by DIVA Protocol"
 				/>
 				<meta
 					name="twitter:image"
