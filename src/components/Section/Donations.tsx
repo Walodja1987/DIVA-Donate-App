@@ -156,7 +156,7 @@ export default function Donations() {
 		setPercentage(percentage)
 	}, [donated, balance])
 
-	const handleRedeem = () => {
+	const handleRedeem = async () => {
 		const provider = new ethers.providers.Web3Provider(
 			(window as any as any).ethereum
 		)
@@ -165,9 +165,18 @@ export default function Donations() {
 			DivaABI,
 			provider.getSigner()
 		)
+
+		const longTokenContract = new ethers.Contract(
+			longToken,
+			ERC20ABI,
+			provider.getSigner()
+		)
+
+		const longTokenBalance = await longTokenContract.balanceOf(activeAddress)
+
 		setRedeemLoading(true)
 		diva
-			.redeemPositionToken(longToken, 1)
+			.redeemPositionToken(longToken, longTokenBalance)
 			.then((tx: any) => {
 				tx.wait()
 					.then(() => {
@@ -184,7 +193,6 @@ export default function Donations() {
 				console.log(err)
 			})
 	}
-	console.log(chainId)
 
 	return (
 		<div className=" pt-[5rem] pb-[200px] sm:pt-[8rem] md:pt-[8rem] my-auto mx-auto px-4">
