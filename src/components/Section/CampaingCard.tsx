@@ -11,7 +11,7 @@ const DonationExpiredInfo = () => {
 	return (
 		<div className="h-[600px] justify-evenly p-[60px] flex items-center">
 			<div className="text-2xl font-bold font-['lora'] text-center opacity-70">
-				This campaign has Expired, Stayed tuned for the next one.
+				This campaign has expired. Stayed tuned for the next one.
 			</div>
 		</div>
 	)
