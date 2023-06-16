@@ -100,8 +100,8 @@ export default function Donations() {
 					setClaimEnabled(false)
 				}
 			}
-		}	
-		checkBalance();	
+		}
+		checkBalance()
 	}, [chainId, activeAddress, longToken])
 
 	useEffect(() => {
@@ -126,12 +126,10 @@ export default function Donations() {
 				DivaABI,
 				provider.getSigner()
 			)
-			
-			
 
 			divaContract.getPoolParameters(poolId).then((res: any) => {
 				// @todo Revisit this if condition
-				// Replaced `res.statusFinalReferenceValue === 3` condition with `res.payoutLong.gt(0)` because for some reason, 
+				// Replaced `res.statusFinalReferenceValue === 3` condition with `res.payoutLong.gt(0)` because for some reason,
 				// `res.statusFinalReferenceValue` was always showing 0 for some reason, although the pool was confirmed.
 				if (res.payoutLong.gt(0)) {
 					setClaimEnabled(true)
@@ -296,10 +294,10 @@ export default function Donations() {
 								</div>
 							</div>
 							{redeemLoading ? (
-								<div style={{ width: '50%' }} role="status">
+								<div role="status" className="flex justify-center mt-4">
 									<svg
 										aria-hidden="true"
-										className="w-9 h-9 ml-20 mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+										className="w-9 h-9 text-gray-200 animate-spin dark:text-gray-600 fill-green-700"
 										viewBox="0 0 100 101"
 										fill="none"
 										xmlns="http://www.w3.org/2000/svg">
