@@ -90,11 +90,18 @@ export default function Donations() {
 					formatUnits(result?.balance, result?.decimals)
 				)
 				setBalance(tokenAmount)
+				return result
 			}
 		}
-		if (chainId === '0x89' && activeAddress != null) {
-			getBalance()
+		const checkBalance = async () => {
+			if (chainId === '0x89' && activeAddress != null) {
+				const res = await getBalance()
+				if (res?.balance && res?.balance.eq(0)) {
+					setClaimEnabled(false)
+				}
+			}
 		}
+		checkBalance()
 	}, [chainId, activeAddress, longToken])
 
 	useEffect(() => {
@@ -119,17 +126,16 @@ export default function Donations() {
 				DivaABI,
 				provider.getSigner()
 			)
+
 			divaContract.getPoolParameters(poolId).then((res: any) => {
-				if (res.statusFinalReferenceValue === 3) {
+				// @todo Revisit this if condition
+				// Replaced `res.statusFinalReferenceValue === 3` condition with `res.payoutLong.gt(0)` because for some reason,
+				// `res.statusFinalReferenceValue` was always showing 0 for some reason, although the pool was confirmed.
+				if (res.payoutLong.gt(0)) {
 					setClaimEnabled(true)
 				}
 				setLongToken(res.longToken)
 				console.log(res)
-				console.log(
-					formatUnits(
-						res.payoutShort.mul(parseUnits(balance.toString(), decimals))
-					)
-				)
 				setDonated(
 					formatUnits(
 						res.payoutShort.mul(parseUnits(balance.toString(), decimals))
@@ -156,7 +162,7 @@ export default function Donations() {
 		setPercentage(percentage)
 	}, [donated, balance])
 
-	const handleRedeem = () => {
+	const handleRedeem = async () => {
 		const provider = new ethers.providers.Web3Provider(
 			(window as any as any).ethereum
 		)
@@ -165,9 +171,18 @@ export default function Donations() {
 			DivaABI,
 			provider.getSigner()
 		)
+
+		const longTokenContract = new ethers.Contract(
+			longToken,
+			ERC20ABI,
+			provider.getSigner()
+		)
+
+		const longTokenBalance = await longTokenContract.balanceOf(activeAddress)
+
 		setRedeemLoading(true)
 		diva
-			.redeemPositionToken(longToken, 1)
+			.redeemPositionToken(longToken, longTokenBalance)
 			.then((tx: any) => {
 				tx.wait()
 					.then(() => {
@@ -184,7 +199,6 @@ export default function Donations() {
 				console.log(err)
 			})
 	}
-	console.log(chainId)
 
 	return (
 		<div className=" pt-[5rem] pb-[200px] sm:pt-[8rem] md:pt-[8rem] my-auto mx-auto px-4">
@@ -280,10 +294,10 @@ export default function Donations() {
 								</div>
 							</div>
 							{redeemLoading ? (
-								<div style={{ width: '50%' }} role="status">
+								<div role="status" className="flex justify-center mt-4">
 									<svg
 										aria-hidden="true"
-										className="w-9 h-9 ml-20 mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+										className="w-9 h-9 text-gray-200 animate-spin dark:text-gray-600 fill-green-700"
 										viewBox="0 0 100 101"
 										fill="none"
 										xmlns="http://www.w3.org/2000/svg">
@@ -316,7 +330,7 @@ export default function Donations() {
 					<div className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
 						{' '}
 					</div>
-					<p className="mt-[140px]">{`You haven't made any donations yet`}</p>
+					<p className="mt-[140px]">{`You have already claimed your donations or you haven't made any donations yet`}</p>
 					<Link href="/campaign">
 						<button
 							type="button"
