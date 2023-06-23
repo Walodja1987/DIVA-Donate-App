@@ -34,7 +34,7 @@ const FortuneDiva = ({ expiryDate, poolConfig }: { expiryDate: string, poolConfi
 				 style={{backgroundImage: `url('${poolConfig?.img}')`}}
 			>
 				<div className="p-8 relative top-[28rem] text-[#DEEFE7] ">
-					<h5 className="font-semibold text-4xl font-['lora']">Fortune DIVA</h5>
+					<h5 className="font-semibold text-4xl font-['lora']">{poolConfig?.title}</h5>
 					<p className="card-text">
 						{poolConfig?.desc}
 					</p>
@@ -136,18 +136,18 @@ export const CampaingCard = ({poolId, collateralTokenAddress, divaContractAddres
 				setExpiryDate(new Date(Number(res.expiryTime) * 1000).toString())
 				setGoal(
 					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-						' unlimited' :
+						'Unlimited' :
 						Number(formatUnits(res.capacity, decimals)))
 				setRaised(Number(formatUnits(res.collateralBalance, decimals)))
 				setToGo(
 					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-						' unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
+						'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
 				)
 			})
 		}
 	}, [chainId, decimals, donateLoading, activeAddress, usdtTokenContract])
 	useEffect(() => {
-		setPercentage(goal === ' unlimited' ? 0 : (raised / goal) * 100)
+		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
 	}, [goal, raised, donateLoading])
 	const handleApprove = async () => {
 		setApproveLoading(true)
