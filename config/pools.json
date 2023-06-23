@@ -1,0 +1,14 @@
+[
+    {
+      "poolId": "8",
+      "beneficiarySide": "short",
+      "img": "/Images/pastrolists400pxVertical.png",
+      "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya to financially assist them in case of drought."
+    },
+    {
+      "poolId": "0xf9ea1671ddca4aaad1df33257cd2040c656064c9bb628102dd3c68431d1baaaf",
+      "beneficiarySide": "long",
+      "img": "/Images/joehotezrfk.png",
+      "desc": "The Peter Hotez vs. RFK Jr Covid vaccine debate occurs on the Joe Rogan podcast and is published prior to the specified observation time. The oracle will report a value greater than 0 (e.g., 1) if this condition is met, and 0 otherwise."
+    }
+]

@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef, useState} from "react";
 import Link from "next/link";
 
 type NavbarLinksProps = {
@@ -12,7 +12,7 @@ const links = [
   },
   {
     to: "/campaign",
-    name: "Pilot Campaign",
+    name: "Campaigns",
   },
   {
     to: "/donations",
@@ -27,22 +27,121 @@ const links = [
     name: "FAQs",
   },
 ];
-
-export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
+const Menu = () => {
   return (
-    <ul className="items-center justify-center space-y-8 md:flex md:space-x-6 md:space-y-0">
-      {links.map((link) => (
-        <li key={link.name}>
-          <Link
-            href={link.to}
-            className={`block py-2 pl-3 pr-4 text-base font-semibold  ${
-              activePath === link.to ? "text-[#9FC131] " : "text-[#042940]"
-            } rounded md:p-0`}
-          >
-            {link.name}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
+      <>
+        <div className="dropdown-menu">
+          <a href={"/"}>Current Campaign</a>
+          <a href={"/"}>Pilot Campaign</a>
+        </div>
+      </>
+  )
+}
+export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
+    const [isMenuDropDownOpen, setMenuDropDownOpen] = useState(false);
+    const [hoveredLink, setHoveredLink] = useState(null);
+    const dropdownRef = useRef(null);
+    const menuRef = useRef(null);
+
+    const handleMenuMouseEnter = () => {
+        setMenuDropDownOpen(true);
+    };
+
+    const handleDropDownMouseEnter = () => {
+        setMenuDropDownOpen(true);
+    };
+
+    const handleDropDownMouseLeave = () => {
+        setMenuDropDownOpen(false);
+    };
+
+    const handleLinkMouseEnter = (link) => {
+        setHoveredLink(link);
+    };
+
+    const handleLinkMouseLeave = () => {
+        setHoveredLink(null);
+    };
+
+    return (
+        <ul
+            ref={menuRef}
+            className="items-center justify-center space-y-8 md:flex md:space-x-6 md:space-y-0"
+            onMouseEnter={handleMenuMouseEnter}
+        >
+            {links.map((link) => (
+                <li key={link.name}>
+                    {link.name === 'Campaigns' ? (
+                        <div className="relative">
+                            <button
+                                className={`text-dark-grey-100 ${
+                                    activePath === link.to ? 'text-[#9FC131]' : ''
+                                }`}
+                                onMouseEnter={() => handleLinkMouseEnter(link.name)}
+                                onMouseLeave={handleLinkMouseLeave}
+                                onFocus={() => setMenuDropDownOpen(true)}
+                                onBlur={() => setMenuDropDownOpen(false)}
+                            >
+                                {link.name}
+                            </button>
+                            {isMenuDropDownOpen && (
+                                <div
+                                    ref={dropdownRef}
+                                    className="absolute top-0 right-0 mt-8 w-48 bg-white rounded shadow-md"
+                                    onMouseEnter={handleDropDownMouseEnter}
+                                    onMouseLeave={handleDropDownMouseLeave}
+                                >
+                                    {/* Dropdown menu content */}
+                                    <ul className="py-2">
+                                        <li>
+                                            <Link
+                                                href="/campaign/pastoralists"
+                                                className={`block px-4 py-2 text-base font-semibold ${
+                                                    hoveredLink === 'Link 1'
+                                                        ? 'text-[#9FC131]'
+                                                        : 'text-[#042940]'
+                                                }`}
+                                                onMouseEnter={() => handleLinkMouseEnter('Link 1')}
+                                                onMouseLeave={handleLinkMouseLeave}
+                                            >
+                                                Pastoralists in Kenya
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link
+                                                href="/campaign/hotrfk"
+                                                className={`block px-4 py-2 text-base font-semibold ${
+                                                    hoveredLink === 'Link 2'
+                                                        ? 'text-[#9FC131]'
+                                                        : 'text-[#042940]'
+                                                }`}
+                                                onMouseEnter={() => handleLinkMouseEnter('Link 2')}
+                                                onMouseLeave={handleLinkMouseLeave}
+                                            >
+                                                Hotez vs. RFK debate
+                                            </Link>
+                                        </li>
+                                        {/* Add more dropdown links as needed */}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <Link
+                            href={link.to}
+                            className={`block py-2 pl-3 pr-4 text-base font-semibold ${
+                                activePath === link.to ? 'text-[#9FC131]' : ''
+                            } ${
+                                hoveredLink === link.name ? 'text-[#9FC131]' : 'text-[#042940]'
+                            } rounded md:p-0`}
+                            onMouseEnter={() => handleLinkMouseEnter(link.name)}
+                            onMouseLeave={handleLinkMouseLeave}
+                        >
+                            {link.name}
+                        </Link>
+                    )}
+                </li>
+            ))}
+        </ul>
+    );
 };
