@@ -7,6 +7,7 @@ import { useAccount, useFeeData, useNetwork } from 'wagmi'
 import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import pools from '../../../config/pools.json'
+import Link from "next/link";
 const DonationExpiredInfo = () => {
 	return (
 		<div className="h-[600px] justify-evenly p-[60px] flex items-center">
@@ -399,6 +400,17 @@ export const CampaingCard = ({poolId, collateralTokenAddress, divaContractAddres
 															Available balance:&nbsp;{balance.toFixed(2)}
 														</p>
 													</div>
+													<div className="h-[60px] justify-evenly p-[60px]">
+														<div className="mb-10">
+															<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
+																{poolConfig?.donationRecipients[0].name} beneficiary address:
+															</p>
+															<Link href={poolConfig?.donationRecipients[0].url} className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
+																{poolConfig?.donationRecipients[0].address}
+															</Link>
+														</div>
+													</div>
+
 													<div className="flex flex-row justify-between border-spacing-x-8">
 														{approveLoading ? (
 															<div style={{ width: '50%' }} role="status">

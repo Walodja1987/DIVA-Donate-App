@@ -66,7 +66,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
     return (
         <ul
             ref={menuRef}
-            className="items-center justify-center space-y-8 md:flex md:space-x-6 md:space-y-0"
+            className="items-center justify-center flex space-x-6 space-y-0"
             onMouseEnter={handleMenuMouseEnter}
         >
             {links.map((link) => (
@@ -74,7 +74,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                     {link.name === 'Campaigns' ? (
                         <div className="relative">
                             <button
-                                className={`text-dark-grey-100 ${
+                                className={`font-semibold text-dark-grey-100 ${
                                     activePath === link.to ? 'text-[#9FC131]' : ''
                                 }`}
                                 onMouseEnter={() => handleLinkMouseEnter(link.name)}
@@ -87,7 +87,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                             {isMenuDropDownOpen && (
                                 <div
                                     ref={dropdownRef}
-                                    className="absolute top-0 right-0 mt-8 w-48 bg-white rounded shadow-md"
+                                    className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-8 w-48 bg-white rounded shadow-md"
                                     onMouseEnter={handleDropDownMouseEnter}
                                     onMouseLeave={handleDropDownMouseLeave}
                                 >
