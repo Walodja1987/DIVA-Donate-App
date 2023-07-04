@@ -20,7 +20,7 @@ export default function Donations() {
 	const [donated, setDonated] = useState<any>()
 	const [balance, setBalance] = useState<any>(null)
 	const [percentage, setPercentage] = useState<any[]>([])
-	const [expiryDate, setExpiryDate] = useState<any[]>([])
+	const [expiryDate, setExpiryDate] = useState<any>('')
 	const [decimals, setDecimals] = useState(8)
 	const [claimEnabled, setClaimEnabled] = useState()
 	const { address: activeAddress, isConnected } = useAccount()
@@ -64,7 +64,7 @@ export default function Donations() {
 	};
 
 	const updateExpiryDate = (poolId: string, date: any) => {
-		setExpiryDate((prevDate) => ({
+		setExpiryDate((prevDate: any) => ({
 			...prevDate,
 			[poolId]: date,
 		}));

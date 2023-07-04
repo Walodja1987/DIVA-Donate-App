@@ -55,7 +55,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
         setMenuDropDownOpen(false);
     };
 
-    const handleLinkMouseEnter = (link) => {
+    const handleLinkMouseEnter = (link: any) => {
         setHoveredLink(link);
     };
 
@@ -69,7 +69,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
             className="items-center justify-center flex space-x-6 space-y-0"
             onMouseEnter={handleMenuMouseEnter}
         >
-            {links.map((link) => (
+            {links.map((link: any) => (
                 <li key={link.name}>
                     {link.name === 'Campaigns' ? (
                         <div className="relative">

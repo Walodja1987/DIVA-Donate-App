@@ -49,7 +49,7 @@ export const HRLinkSection = () => (
             </h3>
           </div>
           <p className="text-[#042940] font-semibold text-base">
-            Vaccine Scientist Peter Hotez Says He Was 'Stalked' After Billionaires—And Joe Rogan—Urge Him To Debate RFK Jr
+            Vaccine Scientist Peter Hotez Says He Was &apos;Stalked&apos; After Billionaires—And Joe Rogan—Urge Him To Debate RFK Jr
           </p>
         </a>
       </div>
@@ -133,11 +133,11 @@ export const HRLinkSection = () => (
               </defs>
             </svg>
             <h3 className="text-[#005C53] font-['lora'] text-2xl font-semibold">
-              Joe's reaction to Hotez response
+              Joe&apos;s reaction to Hotez response
             </h3>
           </div>
           <p className="text-[#042940] font-semibold text-base">
-            How Joe reacted to Hotez's respnonse on twitter regarding the covid vaccine debate
+            How Joe reacted to Hotez&apos;s respnonse on twitter regarding the covid vaccine debate
           </p>
         </a>
       </div>

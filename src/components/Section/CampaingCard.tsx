@@ -47,28 +47,34 @@ const FortuneDiva = ({ expiryDate, poolConfig }: { expiryDate: string, poolConfi
 		</div>
 	)
 }
+interface CampaignCardProps {
+	poolId: any;
+	collateralTokenAddress: string;
+	divaContractAddress: string;
+	multisig: string;
+}
 
-export const CampaingCard = ({poolId, collateralTokenAddress, divaContractAddress, multisig: walletAddress}) => {
+
+export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractAddress, multisig: walletAddress}: CampaignCardProps) => {
 	const [balance, setBalance] = useState(0)
 	const { data } = useFeeData({ chainId: 137 })
 	const [amount, setAmount] = useState<any>()
-	const [goal, setGoal] = useState('')
-	const [raised, setRaised] = useState('')
-	const [toGo, setToGo] = useState('')
+	const [goal, setGoal] = useState<any>('')
+	const [raised, setRaised] = useState<any>('')
+	const [toGo, setToGo] = useState<any>('')
 	const [percentage, setPercentage] = useState<number>(0)
 	const [approveEnabled, setApproveEnabled] = useState<boolean>(false)
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [poolConfig, setPoolConfig] = useState()
+	const [poolConfig, setPoolConfig] = useState<any>()
 	const [expiryDate, setExpiryDate] = useState<string>('')
-	const { address: activeAddress, isConnected } = useAccount<any>({})
+	const { address: activeAddress, isConnected } = useAccount()
 	const [decimals, setDecimals] = useState()
 	const usdtTokenContract = useERC20Contract(collateralTokenAddress)
 	const [chainId, setChainId] = React.useState('0')
 	const { chain } = useNetwork()
 	const { openConnectModal } = useConnectModal()
-	const config = pools
 
 	const handleOpen = () => {
 		;(window as any).ethereum.request({
@@ -105,11 +111,11 @@ export const CampaingCard = ({poolId, collateralTokenAddress, divaContractAddres
 		if (chainId === '0x89' && activeAddress != null) {
 			checkAllowance()
 		}
-		for (let pool in config){
-			if (config[pool].poolId == poolId){
-				setPoolConfig(config[pool])
+		pools.forEach((pool: any) => {
+			if (pool.poolId == poolId){
+				setPoolConfig(pool)
 			}
-		}
+		})
 	}, [activeAddress, amount, decimals, chainId, usdtTokenContract])
 	useEffect(() => {
 		const getDecimals = async () => {
