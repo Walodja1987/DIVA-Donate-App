@@ -20,8 +20,10 @@ export default function HeroSection() {
           </div>
 
           <div className="flex flex-col mt-6 space-y-4 sm:items-center sm:justify-center sm:flex-row sm:space-y-0 sm:space-x-4 lg:justify-start">
-            <Link href="/campaign">
-              <button className="font-['Open Sans'] rounded-lg bg-[#042940] justify-center text-white font-bold py-4 px-10 rounded inline-flex items-center">
+            {/*<Link href="/campaign">*/}
+              <button onClick={() => {
+                window.scrollBy(0 , 2600)
+              }} className="font-['Open Sans'] rounded-lg bg-[#042940] justify-center text-white font-bold py-4 px-10 rounded inline-flex items-center">
                 <Image
                   className="mr-3"
                   width="24"
@@ -31,7 +33,7 @@ export default function HeroSection() {
                 />
                 <span className="font-openSans">Donate</span>
             </button>
-            </Link>
+            {/*</Link>*/}
             <Link href="/faq">
               <button className="inline-block font-openSans rounded-lg px-10 py-4 text-base font-semibold text-[#042940] ring-1 ring-[#042940]">
                 Learn More

@@ -124,7 +124,7 @@ export default function Donations() {
 						updateClaimEnabled('8', false);
 					}
 					updateDonated('8', formatUnits(
-						res.payoutShort.mul(parseUnits(balance['8']?.toString(), decimals))
+						res.payoutShort.mul(balance['8'] ? parseUnits(balance['8']?.toString(), decimals) : parseUnits('0', decimals))
 					));
 					updateExpiryDate('8', new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
 						undefined,
