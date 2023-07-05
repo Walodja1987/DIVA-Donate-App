@@ -406,15 +406,12 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 															Available balance:&nbsp;{balance.toFixed(2)}
 														</p>
 													</div>
-													<div className="h-[120px] justify-evenly p-[20px]">
-														<div className="mb-30">
-															<p className="mt-5 mb-3 font-normal font-['Open_Sans'] text-base text-left text-[#042940] ">
-																Beneficiary address:
-															</p>
-															<Link href={poolConfig?.donationRecipients[0].url} className="pl-[120px] mb-3 font-normal font-['Open_Sans']   text-[#042940]">
+													<div className="pt-50 mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940] h-[120px] justify-evenly">
+														Beneficiary address:{" "}
+															<Link target="_blank" href={poolConfig?.donationRecipients[0].url} className=" mb-3 font-normal font-['Open_Sans']  text-[#042940]">
 																{poolConfig?.donationRecipients[0].address}
 															</Link>
-														</div>
+
 													</div>
 
 													<div className="flex flex-row justify-between border-spacing-x-8">

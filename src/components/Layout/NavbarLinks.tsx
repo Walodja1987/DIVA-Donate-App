@@ -39,6 +39,7 @@ const Menu = () => {
 }
 export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
     const [isMenuOpen, setMenuOpen] = useState(false);
+    const [hoveredLink, setHoveredLink] = useState(null);
 
     const handleMenuToggle = () => {
         setMenuOpen(!isMenuOpen);
@@ -46,6 +47,14 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
 
     const handleMenuClose = () => {
         setMenuOpen(false);
+    };
+
+    const handleLinkMouseEnter = (link) => {
+        setHoveredLink(link);
+    };
+
+    const handleLinkMouseLeave = () => {
+        setHoveredLink(null);
     };
 
     return (
@@ -70,15 +79,18 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2">
                                     <ul
                                         onMouseLeave={handleMenuClose}
-                                        className="w-48 bg-white rounded shadow-md">
+                                        className="w-48 bg-white rounded shadow-md"
+                                    >
                                         <li>
                                             <Link
                                                 href="/campaign/pastoralists"
                                                 className={`block px-4 py-2 text-base font-semibold ${
-                                                    activePath === '/campaign/pastoralists'
+                                                    hoveredLink === '/campaign/pastoralists'
                                                         ? 'text-[#9FC131]'
                                                         : 'text-[#042940]'
                                                 }`}
+                                                onMouseEnter={() => handleLinkMouseEnter('/campaign/pastoralists')}
+                                                onMouseLeave={handleLinkMouseLeave}
                                             >
                                                 Pastoralists in Kenya
                                             </Link>
@@ -87,10 +99,10 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                                             <Link
                                                 href="/campaign/hotrfk"
                                                 className={`block px-4 py-2 text-base font-semibold ${
-                                                    activePath === '/campaign/hotrfk'
-                                                        ? 'text-[#9FC131]'
-                                                        : 'text-[#042940]'
+                                                    hoveredLink === '/campaign/hotrfk' ? 'text-[#9FC131]' : 'text-[#042940]'
                                                 }`}
+                                                onMouseEnter={() => handleLinkMouseEnter('/campaign/hotrfk')}
+                                                onMouseLeave={handleLinkMouseLeave}
                                             >
                                                 Hotez vs. RFK debate
                                             </Link>
