@@ -118,7 +118,6 @@ export default function Donations() {
 
 			if (balance != null) {
 				divaContractOld.getPoolParameters(8).then((res: any) => {
-					console.log(res.payoutLong)
 					if (res.payoutLong.gt(0)) {
 						updateClaimEnabled('8', true);
 					} else {
@@ -215,7 +214,6 @@ export default function Donations() {
 											const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
 											const decimal = await token.decimals()
 											const symbol = await token.symbol()
-											console.log(pool.positionToken, decimal, symbol)
 											try {
 												await (window as any).ethereum.request({
 													method: 'wallet_watchAsset',
