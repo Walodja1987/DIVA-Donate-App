@@ -215,7 +215,7 @@ export const CampaignSection = () => {
 															params: {
 																type: 'ERC20',
 																options: {
-																	address: activeAddress,
+																	address: pool.positionToken,
 																	symbol: symbol,
 																	decimals: decimal,
 																	image:

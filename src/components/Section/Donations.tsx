@@ -215,17 +215,16 @@ export default function Donations() {
 											const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
 											const decimal = await token.decimals()
 											const symbol = await token.symbol()
+											console.log(pool.positionToken, decimal, symbol)
 											try {
 												await (window as any).ethereum.request({
 													method: 'wallet_watchAsset',
 													params: {
 														type: 'ERC20',
 														options: {
-															address: activeAddress,
+															address: pool.positionToken,
 															symbol: symbol,
 															decimals: decimal,
-															image:
-																'https://res.cloudinary.com/dphrdrgmd/image/upload/v1641730802/image_vanmig.png',
 														},
 													} as any,
 												})
