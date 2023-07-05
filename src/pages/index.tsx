@@ -15,7 +15,7 @@ export default function Home() {
                 <HeroSection />
                 <InfoSection />
                 <FeatureSection />
-                <CampaignSection id={'cmp'} />
+                <CampaignSection />
                 <WorkSection />
               </Layout>
           </div>
