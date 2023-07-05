@@ -172,12 +172,13 @@ export default function Donations() {
 
 	return (
 		<div className="pt-[5rem] pb-[200px] sm:pt-[8rem] md:pt-[8rem] my-auto mx-auto px-4">
-			<div className="pb-10 flex flex-col items-center justify-center">
+			{chainId === '0x89' && isConnected && (<div className="pb-10 flex flex-col items-center justify-center">
 				<h1 className="font-lora text-[60px]">My Donations</h1>
-				<div className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
+				<div
+					className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
 					{' '}
 				</div>
-			</div>
+			</div>)}
 			<div className="flex flex-row gap-10 justify-center">
 			{pools.map((pool) => {
 				if (balance != undefined && balance[pool.poolId] > 0) {
