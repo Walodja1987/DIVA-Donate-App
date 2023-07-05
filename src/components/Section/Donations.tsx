@@ -109,6 +109,8 @@ export default function Donations() {
 						);
 						if (tokenAmount === 0) {
 							updateClaimEnabled(pool.poolId, false);
+						} else {
+							updateClaimEnabled(pool.poolId, true);
 						}
 						updateBalance(pool.poolId, tokenAmount);
 					});
@@ -116,8 +118,11 @@ export default function Donations() {
 
 			if (balance != null) {
 				divaContractOld.getPoolParameters(8).then((res: any) => {
+					console.log(res.payoutLong)
 					if (res.payoutLong.gt(0)) {
 						updateClaimEnabled('8', true);
+					} else {
+						updateClaimEnabled('8', false);
 					}
 					updateDonated('8', formatUnits(
 						res.payoutShort.mul(parseUnits(balance['8']?.toString(), decimals))
@@ -140,6 +145,8 @@ export default function Donations() {
 						divaContract.getPoolParameters(pool.poolId).then((res: any) => {
 							if (res.payoutLong.gt(0)) {
 								updateClaimEnabled(pool.poolId, true);
+							} else {
+								updateClaimEnabled(pool.poolId, false);
 							}
 							updateDonated(pool.poolId, formatUnits(
 								res.payoutShort.mul(parseUnits(balance[pool.poolId]?.toString(), decimals))
@@ -206,6 +213,7 @@ export default function Donations() {
 											const provider = new ethers.providers.Web3Provider((window as any).ethereum)
 											const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
 											const decimal = await token.decimals()
+											const symbol = await token.symbol()
 											try {
 												await (window as any).ethereum.request({
 													method: 'wallet_watchAsset',
@@ -213,7 +221,7 @@ export default function Donations() {
 														type: 'ERC20',
 														options: {
 															address: activeAddress,
-															symbol: 'L-' + getShortenedAddress(pool.poolId).slice(0, 4), // A ticker symbol or shorthand, up to 5 chars.
+															symbol: symbol,
 															decimals: decimal,
 															image:
 																'https://res.cloudinary.com/dphrdrgmd/image/upload/v1641730802/image_vanmig.png',

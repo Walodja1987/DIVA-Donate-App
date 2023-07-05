@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
-import {DivaABI, DivaABIold} from '../../abi'
+import {DivaABI, DivaABIold, ERC20ABI} from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
 import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
@@ -204,9 +204,10 @@ export const CampaignSection = () => {
 										<div
 											onClick={
 												async () => {
-													const token = await fetchToken({
-														address: pool.positionToken as any,
-													})
+													const provider = new ethers.providers.Web3Provider((window as any).ethereum)
+													const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
+													const decimal = await token.decimals()
+													const symbol = await token.symbol()
 
 													try {
 														await (window as any).ethereum.request({
@@ -215,8 +216,8 @@ export const CampaignSection = () => {
 																type: 'ERC20',
 																options: {
 																	address: activeAddress,
-																	symbol: 'L-' + getShortenedAddress(pool.poolId).slice(0, 4), // A ticker symbol or shorthand, up to 5 chars.
-																	decimals: token.decimals,
+																	symbol: symbol,
+																	decimals: decimal,
 																	image:
 																		'https://res.cloudinary.com/dphrdrgmd/image/upload/v1641730802/image_vanmig.png',
 																},

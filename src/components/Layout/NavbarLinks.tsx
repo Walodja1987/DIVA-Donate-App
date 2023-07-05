@@ -1,4 +1,4 @@
-import React, {useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Link from "next/link";
 
 type NavbarLinksProps = {
@@ -38,38 +38,19 @@ const Menu = () => {
   )
 }
 export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
-    const [isMenuDropDownOpen, setMenuDropDownOpen] = useState(false);
-    const [hoveredLink, setHoveredLink] = useState(null);
-    const dropdownRef = useRef(null);
-    const menuRef = useRef(null);
+    const [isMenuOpen, setMenuOpen] = useState(false);
 
-    const handleMenuMouseEnter = () => {
-        setMenuDropDownOpen(true);
+    const handleMenuToggle = () => {
+        setMenuOpen(!isMenuOpen);
     };
 
-    const handleDropDownMouseEnter = () => {
-        setMenuDropDownOpen(true);
-    };
-
-    const handleDropDownMouseLeave = () => {
-        setMenuDropDownOpen(false);
-    };
-
-    const handleLinkMouseEnter = (link: any) => {
-        setHoveredLink(link);
-    };
-
-    const handleLinkMouseLeave = () => {
-        setHoveredLink(null);
+    const handleMenuClose = () => {
+        setMenuOpen(false);
     };
 
     return (
-        <ul
-            ref={menuRef}
-            className="items-center justify-center flex space-x-6 space-y-0"
-            onMouseEnter={handleMenuMouseEnter}
-        >
-            {links.map((link: any) => (
+        <ul className="items-center justify-center flex space-x-6 space-y-0">
+            {links.map((link) => (
                 <li key={link.name}>
                     {link.name === 'Campaigns' ? (
                         <div className="relative">
@@ -77,32 +58,27 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                                 className={`font-semibold text-dark-grey-100 ${
                                     activePath === link.to ? 'text-[#9FC131]' : ''
                                 }`}
-                                onMouseEnter={() => handleLinkMouseEnter(link.name)}
-                                onMouseLeave={handleLinkMouseLeave}
-                                onFocus={() => setMenuDropDownOpen(true)}
-                                onBlur={() => setMenuDropDownOpen(false)}
+                                // onMouseLeave={handleMenuClose}
+                                onFocus={handleMenuToggle}
+                                onBlur={handleMenuToggle}
+                                onClick={handleMenuToggle}
+                                onMouseEnter={handleMenuToggle}
                             >
                                 {link.name}
                             </button>
-                            {isMenuDropDownOpen && (
-                                <div
-                                    ref={dropdownRef}
-                                    className="absolute top-0 left-1/2 transform -translate-x-1/2 mt-8 w-48 bg-white rounded shadow-md"
-                                    onMouseEnter={handleDropDownMouseEnter}
-                                    onMouseLeave={handleDropDownMouseLeave}
-                                >
-                                    {/* Dropdown menu content */}
-                                    <ul className="py-2">
+                            {isMenuOpen && (
+                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2">
+                                    <ul
+                                        onMouseLeave={handleMenuClose}
+                                        className="w-48 bg-white rounded shadow-md">
                                         <li>
                                             <Link
                                                 href="/campaign/pastoralists"
                                                 className={`block px-4 py-2 text-base font-semibold ${
-                                                    hoveredLink === 'Link 1'
+                                                    activePath === '/campaign/pastoralists'
                                                         ? 'text-[#9FC131]'
                                                         : 'text-[#042940]'
                                                 }`}
-                                                onMouseEnter={() => handleLinkMouseEnter('Link 1')}
-                                                onMouseLeave={handleLinkMouseLeave}
                                             >
                                                 Pastoralists in Kenya
                                             </Link>
@@ -111,12 +87,10 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                                             <Link
                                                 href="/campaign/hotrfk"
                                                 className={`block px-4 py-2 text-base font-semibold ${
-                                                    hoveredLink === 'Link 2'
+                                                    activePath === '/campaign/hotrfk'
                                                         ? 'text-[#9FC131]'
                                                         : 'text-[#042940]'
                                                 }`}
-                                                onMouseEnter={() => handleLinkMouseEnter('Link 2')}
-                                                onMouseLeave={handleLinkMouseLeave}
                                             >
                                                 Hotez vs. RFK debate
                                             </Link>
@@ -129,13 +103,11 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                     ) : (
                         <Link
                             href={link.to}
+                            onMouseEnter={handleMenuClose}
+                            onMouseLeave={handleMenuClose}
                             className={`block py-2 pl-3 pr-4 text-base font-semibold ${
                                 activePath === link.to ? 'text-[#9FC131]' : ''
-                            } ${
-                                hoveredLink === link.name ? 'text-[#9FC131]' : 'text-[#042940]'
-                            } rounded md:p-0`}
-                            onMouseEnter={() => handleLinkMouseEnter(link.name)}
-                            onMouseLeave={handleLinkMouseLeave}
+                            }`}
                         >
                             {link.name}
                         </Link>
