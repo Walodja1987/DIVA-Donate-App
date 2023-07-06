@@ -49,7 +49,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
         setMenuOpen(false);
     };
 
-    const handleLinkMouseEnter = (link) => {
+    const handleLinkMouseEnter = (link: any) => {
         setHoveredLink(link);
     };
 
