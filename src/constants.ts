@@ -6,6 +6,6 @@ export const divaContractAddress = '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
 
 export const chainConfig = {
       name: 'Polygon',
-      chainId: '137',
-      chainIdHex: '0x89',
+      chainId: 137,
+      chainIdHex: 0x89,
 }

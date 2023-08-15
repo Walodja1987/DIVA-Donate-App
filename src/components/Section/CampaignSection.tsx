@@ -9,9 +9,11 @@ import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import pools from '../../../config/pools.json'
+import pools from '../../../config/pools.json' // @todo remove when migrated to campaigns.json
+import campaigns from '../../../config/campaigns.json'
 import {getShortenedAddress} from "../../utils/general";
-import { divaContractAddressOld, divaContractAddress } from "../../constants";
+import { divaContractAddressOld, divaContractAddress } from "../../constants"; // @todo remove when migrated to campaigns.json
+import { chainConfig } from "../../constants";
 
 /**
  * @notice Campaign section on the Home page
@@ -33,9 +35,9 @@ export const CampaignSection = () => {
 	const { switchNetwork } = useSwitchNetwork()
 
 	const usdtTokenContract = useERC20Contract(collateralTokenAddress)
-	const [chainId, setChainId] = React.useState<string>('0')
+	const [chainId, setChainId] = React.useState<number>(0)
 	const handleOpen = () => {
-		switchNetwork?.(0x89)
+		switchNetwork?.(chainConfig.chainId)
 	}
 	const updateRaised = (poolId: string, tokenAmount: any) => {
 		setRaised((prev: any) => ({
@@ -72,19 +74,20 @@ export const CampaignSection = () => {
 
 	useEffect(() => {
 		if (chain) {
-			setChainId(ethers.utils.hexlify(chain.id))
+			setChainId(chain.id)
 		}
 	}, [chain])
 
 	useEffect(() => {
 		const getDecimals = async () => {
-			if (chainId === '0x89' && usdtTokenContract != null) {
+			if (chainId === chainConfig.chainId && usdtTokenContract != null) {
 				const decimals = await usdtTokenContract.decimals()
 				setDecimals(decimals)
 			}
 		}
 		getDecimals()
-		if (chainId === '0x89' &&
+
+		if (chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
@@ -259,7 +262,7 @@ export const CampaignSection = () => {
 											</p>
 										</div>
 
-										{chainId === '0x89' ? (
+										{chainId === chainConfig.chainId ? (
 											<Progress
 												className=" mb-3 rounded-[15px]"
 												style={{ background: '#D6D58E' }}
@@ -274,7 +277,7 @@ export const CampaignSection = () => {
 
 										{isConnected ? (
 											<>
-												{chainId === '0x89' ? (
+												{chainId === chainConfig.chainId ? (
 													<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
