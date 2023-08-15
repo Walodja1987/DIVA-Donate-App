@@ -4,23 +4,26 @@ import React, { useEffect, useState } from 'react'
 import { ethers } from 'ethers'
 import {DivaABI, DivaABIold, ERC20ABI} from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
+import { useAccount, useSwitchNetwork, useProvider, useNetwork, useBalance } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import pools from '../../../config/pools.json'
 import {getShortenedAddress} from "../../utils/general";
+import { divaContractAddressOld, divaContractAddress } from "../../constants";
 
+/**
+ * @notice Campaign section on the Home page
+ */
 export const CampaignSection = () => {
-	const [goal, setGoal] = useState<any>([])
-	const [raised, setRaised] = useState<any>([])
-	const [toGo, setToGo] = useState<any>([])
-	const [percentage, setPercentage] = useState<any>([])
+	const [goal, setGoal] = useState<any>({})
+	const [raised, setRaised] = useState<any>({})
+	const [toGo, setToGo] = useState<any>({})
+	const [percentage, setPercentage] = useState<any>({})
 	const [expiryDate, setExpiryDate] = useState<any>('')
 
 	const [decimals, setDecimals] = useState(6)
-	const divaContractAddress = '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
 	const { address: activeAddress, isConnected, connector } = useAccount()
 	const collateralTokenAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
 	const { chain } = useNetwork()
@@ -37,13 +40,13 @@ export const CampaignSection = () => {
 	const updateRaised = (poolId: string, tokenAmount: any) => {
 		setRaised((prev: any) => ({
 			...prev,
-			[poolId]: tokenAmount,
+			[poolId]: tokenAmount.toFixed(0),
 		}))
 	}
-	const updateToGo = (poolId: string, tokenAmount: any) => {
+	const updateToGo = (poolId: string, tokenAmount: number | string) => {
 		setToGo((prev: any) => ({
 			...prev,
-			[poolId]: tokenAmount,
+			[poolId]: typeof tokenAmount === 'number' ? tokenAmount.toFixed(0) : tokenAmount,
 		}))
 	}
 	const updateGoal = (poolId: string, tokenAmount: any) => {
@@ -92,7 +95,7 @@ export const CampaignSection = () => {
 				signerOrProvider: wagmiProvider,
 			})
 			const divaContractOld = getContract({
-				address: '0xFf7d52432B19521276962B67FFB432eCcA609148',
+				address: divaContractAddressOld,
 				abi: DivaABIold,
 				signerOrProvider: wagmiProvider,
 			})
@@ -153,11 +156,8 @@ export const CampaignSection = () => {
 							}
 						})
 					}
-
-
 				})
 			)
-
 		}
 	}, [chainId, decimals, wagmiProvider, pools])
 
@@ -179,7 +179,7 @@ export const CampaignSection = () => {
 						pools.map((pool, index) => {
 							return (
 								// eslint-disable-next-line react/jsx-key
-								<div className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md ">
+								<div className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md">
 									<Link href={pool.path}>
 										<Image
 											className="h-[300px] rounded-t-[16px] object-cover"
@@ -267,7 +267,7 @@ export const CampaignSection = () => {
 												height="22px"
 												value={percentage[pool.poolId]}>
 												<ProgressLabel className="text-2xl flex flex-start">
-													<Text fontSize="xs">{percentage[pool.poolId]?.toFixed(2)}%</Text>
+													<Text fontSize="xs">{percentage[pool.poolId]?.toFixed(1)}%</Text>
 												</ProgressLabel>
 											</Progress>
 										) : <div className="h-[30px]"></div>}
@@ -281,7 +281,7 @@ export const CampaignSection = () => {
 																Goal
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																${goal[pool.poolId]}
+																{goal[pool.poolId] === 'Unlimited' ? goal[pool.poolId] : '$' + goal[pool.poolId]}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
@@ -297,7 +297,7 @@ export const CampaignSection = () => {
 																To go
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																${toGo[pool.poolId]}
+																{toGo[pool.poolId] === 'Unlimited' ? toGo[pool.poolId] : '$' + toGo[pool.poolId]}
 															</dd>
 														</div>
 													</div>
