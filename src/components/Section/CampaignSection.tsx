@@ -34,41 +34,43 @@ export const CampaignSection = () => {
 
 	const { switchNetwork } = useSwitchNetwork()
 
+	const firstCampaign = campaigns.find(campaign => campaign.campaignId === "pastoralists_1");
+
 	const usdtTokenContract = useERC20Contract(collateralTokenAddress)
 	const [chainId, setChainId] = React.useState<number>(0)
 	const handleOpen = () => {
 		switchNetwork?.(chainConfig.chainId)
 	}
-	const updateRaised = (poolId: string, tokenAmount: any) => {
+	const updateRaised = (campaignId: string, tokenAmount: any) => {
 		setRaised((prev: any) => ({
 			...prev,
-			[poolId]: tokenAmount.toFixed(0),
+			[campaignId]: tokenAmount.toFixed(0),
 		}))
 	}
-	const updateToGo = (poolId: string, tokenAmount: number | string) => {
+	const updateToGo = (campaignId: string, tokenAmount: number | string) => {
 		setToGo((prev: any) => ({
 			...prev,
-			[poolId]: typeof tokenAmount === 'number' ? tokenAmount.toFixed(0) : tokenAmount,
+			[campaignId]: typeof tokenAmount === 'number' ? tokenAmount.toFixed(0) : tokenAmount,
 		}))
 	}
-	const updateGoal = (poolId: string, tokenAmount: any) => {
+	const updateGoal = (campaignId: string, tokenAmount: any) => {
 		setGoal((prev: any) => ({
 			...prev,
-			[poolId]: tokenAmount,
+			[campaignId]: tokenAmount,
 		}))
 	}
 
-	const updateExpiryDate = (poolId: string, expiryDate: any) => {
+	const updateExpiryDate = (campaignId: string, expiryDate: any) => {
 		setExpiryDate((prev: any) => ({
 			...prev,
-			[poolId]: expiryDate,
+			[campaignId]: expiryDate,
 		}))
 	}
 
-	const updatePercentage = (poolId: string, percentage: any) => {
+	const updatePercentage = (campaignId: string, percentage: any) => {
 		setPercentage((prev: any) => ({
 			...prev,
-			[poolId]: percentage,
+			[campaignId]: percentage,
 		}))
 	}
 
@@ -103,34 +105,36 @@ export const CampaignSection = () => {
 				signerOrProvider: wagmiProvider,
 			})
 
-			divaContractOld.getPoolParameters(8).then((res: any) => {
-				updateExpiryDate('8', new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
-					undefined,
-					{
-						day: 'numeric',
-						month: 'short',
-						year: 'numeric',
-						hour: '2-digit',
-						hour12: true,
-						timeZoneName: 'short',
-					}
-				))
-				updateGoal('8', res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
+			divaContractOld.getPoolParameters(firstCampaign?.pools[0].poolId).then((res: any) => {
+				if (firstCampaign) {
+					updateExpiryDate(firstCampaign.campaignId, new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
+						undefined,
+						{
+							day: 'numeric',
+							month: 'short',
+							year: 'numeric',
+							hour: '2-digit',
+							hour12: true,
+							timeZoneName: 'short',
+						}
+					))
+					updateGoal(firstCampaign.campaignId, res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
 					'Unlimited' :
 					Number(formatUnits(res.capacity, decimals)))
-				updateRaised('8', Number(formatUnits(res.collateralBalance, decimals)))
-				updateToGo('8', res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-					'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals)))
-				if (res.capacity._hex !== '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff') {
-					updatePercentage('8', (Number(formatUnits(res.collateralBalance, decimals)) / Number(formatUnits(res.capacity, decimals))) * 100)
-				} else {
-					updatePercentage('8', 0)
-				}
+					updateRaised(firstCampaign.campaignId, Number(formatUnits(res.collateralBalance, decimals)))
+					updateToGo(firstCampaign.campaignId, res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
+						'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals)))
+					if (res.capacity._hex !== '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff') {
+						updatePercentage(firstCampaign.campaignId, (Number(formatUnits(res.collateralBalance, decimals)) / Number(formatUnits(res.capacity, decimals))) * 100)
+					} else {
+						updatePercentage(firstCampaign.campaignId, 0)
+					}
+				}				
 			}).then(
-				pools.forEach((pool, index) => {
-					if (pool.poolId !== '8') {
-						return divaContract.getPoolParameters(pool.poolId).then((res: any) => {
-							updateExpiryDate(pool.poolId,
+				campaigns.forEach((campaign, index) => {
+					if (campaign.campaignId !== 'pastoralists_1') {
+						return divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => {
+							updateExpiryDate(campaign.campaignId,
 								new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
 									undefined,
 									{
@@ -143,26 +147,26 @@ export const CampaignSection = () => {
 									}
 								)
 							)
-							updateGoal(pool.poolId,
+							updateGoal(campaign.campaignId,
 								res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
 									'Unlimited' :
 									Number(formatUnits(res.capacity, decimals)))
-							updateRaised(pool.poolId, Number(formatUnits(res.collateralBalance, decimals)))
-							updateToGo(pool.poolId,
+							updateRaised(campaign.campaignId, Number(formatUnits(res.collateralBalance, decimals)))
+							updateToGo(campaign.campaignId,
 								res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
 									'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
 							)
 							if (res.capacity._hex !== '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff') {
-								updatePercentage(pool.poolId, (Number(formatUnits(res.collateralBalance, decimals)) / Number(formatUnits(res.capacity, decimals))) * 100)
+								updatePercentage(campaign.campaignId, (Number(formatUnits(res.collateralBalance, decimals)) / Number(formatUnits(res.capacity, decimals))) * 100)
 							} else {
-								updatePercentage(pool.poolId, 0)
+								updatePercentage(campaign.campaignId, 0)
 							}
 						})
 					}
 				})
 			)
 		}
-	}, [chainId, decimals, wagmiProvider, pools])
+	}, [chainId, decimals, wagmiProvider, campaigns])
 
 
 	return (
@@ -179,36 +183,36 @@ export const CampaignSection = () => {
 				</div>
 				<div className="flex flex-row gap-10 justify-center ">
 					{
-						pools.map((pool, index) => {
+						campaigns.map((campaign, index) => {
 							return (
 								// eslint-disable-next-line react/jsx-key
 								<div className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md">
-									<Link href={pool.path}>
+									<Link href={campaign.path}>
 										<Image
 											className="h-[300px] rounded-t-[16px] object-cover"
 											width="800"
 											height="800"
-											src={pool.img}
+											src={campaign.img}
 											alt="Modern building architecture"
 										/>
 										<div className="relative -mt-10">
 											<div className="text-2xs pt-1 pl-2 bg-[#DBF227] w-[320px] h-[40px] rounded-tr-[3.75rem] text-left text-green-[#042940]">
 									<span className="mt-1 inline-block align-middle">
-										<b>Expiry:</b> {expiryDate[pool.poolId]}
+										<b>Expiry:</b> {expiryDate[campaign.campaignId]}
 									</span>
 											</div>
 										</div>
 									</Link>
 									<div className="p-5">
 										<h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 text-[#042940]">
-											{pool.title}
+											{campaign.title}
 										</h5>
 
 										<div
 											onClick={
 												async () => {
 													const provider = new ethers.providers.Web3Provider((window as any).ethereum)
-													const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
+													const token = new ethers.Contract(campaign.pools[0].positionToken, ERC20ABI, provider.getSigner()) // @todo index hard-coded to 0. Change that.
 													const decimal = await token.decimals()
 													const symbol = await token.symbol()
 
@@ -218,7 +222,7 @@ export const CampaignSection = () => {
 															params: {
 																type: 'ERC20',
 																options: {
-																	address: pool.positionToken,
+																	address: campaign.pools[0].positionToken,
 																	symbol: symbol,
 																	decimals: decimal,
 																	image:
@@ -232,7 +236,8 @@ export const CampaignSection = () => {
 												}
 											}
 											className="text-indigo-600 flex items-center dark:text-indigo-400">
-											<span className="text-slate-400 font-normal">#{getShortenedAddress(pool.poolId)}</span>
+											<span className="text-slate-400 font-normal">#{getShortenedAddress(campaign.pools[0].poolId)}</span>
+											{/* @todo: Updated index which is currently hard-coded at 0 */}
 											<button>
 												<svg
 													width="16"
@@ -258,7 +263,7 @@ export const CampaignSection = () => {
 
 										<div className=" h-[100px] mb-5 border-b-2 border-[#9FC131]">
 											<p className="mb-3 font-normal text-[#000000]">
-												{pool.desc}
+												{campaign.desc}
 											</p>
 										</div>
 
@@ -268,9 +273,9 @@ export const CampaignSection = () => {
 												style={{ background: '#D6D58E' }}
 												colorScheme="green"
 												height="22px"
-												value={percentage[pool.poolId]}>
+												value={percentage[campaign.campaignId]}>
 												<ProgressLabel className="text-2xl flex flex-start">
-													<Text fontSize="xs">{percentage[pool.poolId]?.toFixed(1)}%</Text>
+													<Text fontSize="xs">{percentage[campaign.campaignId]?.toFixed(1)}%</Text>
 												</ProgressLabel>
 											</Progress>
 										) : <div className="h-[30px]"></div>}
@@ -284,7 +289,7 @@ export const CampaignSection = () => {
 																Goal
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																{goal[pool.poolId] === 'Unlimited' ? goal[pool.poolId] : '$' + goal[pool.poolId]}
+																{goal[campaign.campaignId] === 'Unlimited' ? goal[campaign.campaignId] : '$' + goal[campaign.campaignId]}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
@@ -292,7 +297,7 @@ export const CampaignSection = () => {
 																Raised
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																${raised[pool.poolId]}
+																${raised[campaign.campaignId]}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
@@ -300,7 +305,7 @@ export const CampaignSection = () => {
 																To go
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																{toGo[pool.poolId] === 'Unlimited' ? toGo[pool.poolId] : '$' + toGo[pool.poolId]}
+																{toGo[campaign.campaignId] === 'Unlimited' ? toGo[campaign.campaignId] : '$' + toGo[campaign.campaignId]}
 															</dd>
 														</div>
 													</div>
@@ -337,7 +342,7 @@ export const CampaignSection = () => {
 											</div>
 										)}
 
-										<Link href={pool.path}>
+										<Link href={campaign.path}>
 											<button
 												type="button"
 												className="text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
