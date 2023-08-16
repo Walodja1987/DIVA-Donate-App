@@ -7,7 +7,9 @@ import { useAccount, useFeeData, useNetwork } from 'wagmi'
 import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import pools from '../../../config/pools.json'
-import Link from "next/link";
+import Link from "next/link"
+import {getShortenedAddress} from "../../utils/general"
+
 const DonationExpiredInfo = () => {
 	return (
 		<div className="h-[600px] justify-evenly p-[60px] flex items-center">
@@ -55,7 +57,7 @@ interface CampaignCardProps {
 }
 
 
-export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractAddress, multisig: walletAddress}: CampaignCardProps) => {
+export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractAddress, multisig: walletAddress}: CampaignCardProps) => {
 	const [balance, setBalance] = useState(0)
 	const { data } = useFeeData({ chainId: 137 })
 	const [amount, setAmount] = useState<any>()
@@ -406,12 +408,15 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 															Available balance:&nbsp;{balance.toFixed(2)}
 														</p>
 													</div>
-													<div className="pt-50 mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940] h-[120px] justify-evenly">
-														Beneficiary address:{" "}
-															<Link target="_blank" href={poolConfig?.donationRecipients[0].url} className=" mb-3 font-normal font-['Open_Sans']  text-[#042940]">
-																{poolConfig?.donationRecipients[0].address}
-															</Link>
+													<div className="mt-4 mb-3 font-normal font-['Open_Sans'] text-base text-[#042940] flex justify-between items-center">
+														<span>Beneficiary address: </span>
+														<Link target="_blank" href={poolConfig?.donationRecipients[0].url} className="font-normal font-['Open_Sans'] text-[#042940] flex items-center">
+															{getShortenedAddress(poolConfig?.donationRecipients[0].address)}
+															<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-2">
+															<path fill-rule="evenodd" d="M15.75 2.25H21a.75.75 0 01.75.75v5.25a.75.75 0 01-1.5 0V4.81L8.03 17.03a.75.75 0 01-1.06-1.06L19.19 3.75h-3.44a.75.75 0 010-1.5zm-10.5 4.5a1.5 1.5 0 00-1.5 1.5v10.5a1.5 1.5 0 001.5 1.5h10.5a1.5 1.5 0 001.5-1.5V10.5a.75.75 0 011.5 0v8.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V8.25a3 3 0 013-3h8.25a.75.75 0 010 1.5H5.25z" clip-rule="evenodd" />
+															</svg>
 
+														</Link>
 													</div>
 
 													<div className="flex flex-row justify-between border-spacing-x-8">
