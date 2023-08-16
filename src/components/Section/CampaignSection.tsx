@@ -4,47 +4,48 @@ import React, { useEffect, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
 import {DivaABI, DivaABIold, ERC20ABI} from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchNetwork, useProvider, useNetwork, useBalance } from 'wagmi'
+import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld, divaContractAddress } from "../../constants"; // @todo remove when migrated to campaigns.json
+import { divaContractAddressOld } from "../../constants";
 import { chainConfig } from "../../constants";
-import { formatDate, isExpired } from '../../utils/general';
+import { formatDate, isExpired, isUnlimited } from '../../utils/general';
 
 /**
- * Some comments related to multiple pools linked to a campaign:
- * - Pools should not have mixed capacities (unlimited and limited)
- * - The weights between the pools are implied based on the capacity (relevant for batchAddLiquidity)
+ * Notes related to linking multiple pools to a campaign:
+ * - Pools should not have mixed capacities (unlimited and limited). Both should be either unlimited or limited.
+ * - The weights between the pools are implied based on the capacity (relevant for `batchAddLiquidity`)
  * - Raised and donated amount can be hard-coded in `campaigns.json` on **campaign level**
- * - All pools linked to a campaign should have the same expiry time
+ * - All pools linked to a campaign should have the same expiry time and use the same collateral token
  */
 
 /**
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
-	const [goal, setGoal] = useState<any>({}) // @todo move type up here from bottom
-	const [raised, setRaised] = useState<any>({})
-	const [toGo, setToGo] = useState<any>({})
-	const [donated, setDonated] = useState<any>({})
-	const [percentage, setPercentage] = useState<any>({})
-	const [expiryTime, setExpiryTime] = useState<any>('')
+	const [goal, setGoal] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
+	const [raised, setRaised] = useState<{ [campaignId: string]: number }>({})
+	const [toGo, setToGo] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
+	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
+	const [percentage, setPercentage] = useState<{ [campaignId: string]: number }>({})
+	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
 
-	const [decimals, setDecimals] = useState(6)
 	const { address: activeAddress, isConnected, connector } = useAccount()
-	const collateralTokenAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
 
 	const { switchNetwork } = useSwitchNetwork()
 
-	const usdtTokenContract = useERC20Contract(collateralTokenAddress) // @todo remove when sourced from campaigns.json
 	const [chainId, setChainId] = React.useState<number>(0)
+
+	// ----------------------------
+	// Event handlers
+	// ----------------------------
 	const handleOpen = () => {
 		switchNetwork?.(chainConfig.chainId)
 	}
@@ -95,7 +96,7 @@ export const CampaignSection = () => {
 			
 			for (const pool of campaign.pools) {
 				const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
-				const decimal = await token.decimals()
+				const decimals = await token.decimals()
 				const symbol = await token.symbol()													
 			
 				try {
@@ -106,7 +107,7 @@ export const CampaignSection = () => {
 							options: {
 								address: pool.positionToken,
 								symbol: symbol,
-								decimals: decimal,
+								decimals: decimals,
 								image:
 									'https://res.cloudinary.com/dphrdrgmd/image/upload/v1641730802/image_vanmig.png',
 							},
@@ -118,10 +119,6 @@ export const CampaignSection = () => {
 			}														
 	}
 
-	const isUnlimited = (amount: BigNumber): boolean => {
-		return amount.gte(ethers.constants.MaxUint256) // gte in case more than one pool is aggregated
-	}
-
 	useEffect(() => {
 		if (chain) {
 			setChainId(chain.id)
@@ -129,28 +126,21 @@ export const CampaignSection = () => {
 	}, [chain])
 
 	useEffect(() => {
-		// @todo Update to make it based on campaign
-		const getDecimals = async () => {
-			if (chainId === chainConfig.chainId && usdtTokenContract != null) {
-				const decimals = await usdtTokenContract.decimals()
-				setDecimals(decimals)
-			}
-		}
-		getDecimals()
-
 		if (chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
 		) {
-			// Update state variables for all campaigns
-
+			// Update state variables for all campaigns in `campaigns.json`
 			campaigns.forEach(campaign => {
 				let goalAmount: number | 'Unlimited' = 0
 				let toGoAmount: number | 'Unlimited' = 0
 				let raisedAmount: number = 0
 				let donatedAmount: number = 0
 				let percentage: number = 0
+
+				// More efficient to simply store the decimals in `campaigns.json` rather than doing many RPC requests
+				const decimals = campaign.decimals
 
 				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
 				// version of the DIVA Protocol contract. All subsequent campaigns are using the audited final version.
@@ -196,7 +186,7 @@ export const CampaignSection = () => {
 							goalAmount = Number(goalAmount) + Number(formatUnits(res.capacity, decimals))
 
 							// Log alert message if a campaign has pools with mixed capacities (unlimited and limited)
-							goal === 'Unlimited' && console.log('ALERT: The pools within a campaign have mixed capacities, consisting of both unlimited and limited capacities.')
+							goal[campaign.campaignId] === 'Unlimited' && console.log('ALERT: The pools within a campaign have mixed capacities, consisting of both unlimited and limited capacities.')
 							toGoAmount = Number(goalAmount) - raisedAmount
 							percentage = raisedAmount / goalAmount * 100
 						}
@@ -213,7 +203,7 @@ export const CampaignSection = () => {
 				});
 			})
 		}
-	}, [chainId, decimals, wagmiProvider, campaigns])
+	}, [chainId, wagmiProvider, campaigns])
 
 
 	return (

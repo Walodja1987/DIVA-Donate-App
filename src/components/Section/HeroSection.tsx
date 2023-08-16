@@ -22,7 +22,7 @@ export default function HeroSection() {
           <div className="flex flex-col mt-6 space-y-4 sm:items-center sm:justify-center sm:flex-row sm:space-y-0 sm:space-x-4 lg:justify-start">
             {/*<Link href="/campaign">*/}
               <button onClick={() => {
-                window.scrollBy(0 , 2600)
+                window.scrollBy(0 , 2750)
               }} className="font-['Open Sans'] rounded-lg bg-[#042940] justify-center text-white font-bold py-4 px-10 rounded inline-flex items-center">
                 <Image
                   className="mr-3"
