@@ -16,6 +16,14 @@ import { chainConfig } from "../../constants";
 import { formatDate, isExpired } from '../../utils/general';
 
 /**
+ * Some comments related to multiple pools linked to a campaign:
+ * - Pools should not have mixed capacities (unlimited and limited)
+ * - The weights between the pools are implied based on the capacity (relevant for batchAddLiquidity)
+ * - Raised and donated amount can be hard-coded in `campaigns.json` on **campaign level**
+ * - All pools linked to a campaign should have the same expiry time
+ */
+
+/**
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
@@ -35,9 +43,7 @@ export const CampaignSection = () => {
 
 	const { switchNetwork } = useSwitchNetwork()
 
-	const firstCampaign = campaigns.find(campaign => campaign.campaignId === "pastoralists_1");
-
-	const usdtTokenContract = useERC20Contract(collateralTokenAddress)
+	const usdtTokenContract = useERC20Contract(collateralTokenAddress) // @todo remove when sourced from campaigns.json
 	const [chainId, setChainId] = React.useState<number>(0)
 	const handleOpen = () => {
 		switchNetwork?.(chainConfig.chainId)
@@ -63,7 +69,7 @@ export const CampaignSection = () => {
 		}))
 	}
 
-	const updateExpiryDate = (campaignId: string, expiryTimeInMilliseconds: number) => {
+	const updateExpiryTime = (campaignId: string, expiryTimeInMilliseconds: number) => {
 		setExpiryTime((prev: any) => ({
 			...prev,
 			[campaignId]: expiryTimeInMilliseconds,
@@ -113,7 +119,7 @@ export const CampaignSection = () => {
 	}
 
 	const isUnlimited = (amount: BigNumber): boolean => {
-		return amount.eq(ethers.constants.MaxUint256)
+		return amount.gte(ethers.constants.MaxUint256) // gte in case more than one pool is aggregated
 	}
 
 	useEffect(() => {
@@ -123,6 +129,7 @@ export const CampaignSection = () => {
 	}, [chain])
 
 	useEffect(() => {
+		// @todo Update to make it based on campaign
 		const getDecimals = async () => {
 			if (chainId === chainConfig.chainId && usdtTokenContract != null) {
 				const decimals = await usdtTokenContract.decimals()
@@ -131,101 +138,79 @@ export const CampaignSection = () => {
 		}
 		getDecimals()
 
-		let goalAmount: number | 'Unlimited'
-		let toGoAmount: number | 'Unlimited'
-		let raisedAmount: number
-		let donatedAmount: number
-		let percentage: number
-
 		if (chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
 		) {
-			const divaContract = getContract({
-				address: divaContractAddress,
-				abi: DivaABI,
-				signerOrProvider: wagmiProvider,
-			})
-			const divaContractOld = getContract({
-				address: divaContractAddressOld,
-				abi: DivaABIold,
-				signerOrProvider: wagmiProvider,
-			})
-
 			// Update state variables for all campaigns
 
-			divaContractOld.getPoolParameters(firstCampaign?.pools[0].poolId).then((res: any) => {
-				if (firstCampaign) {
-					updateExpiryDate(firstCampaign.campaignId, Number(res.expiryTime) * 1000)
+			campaigns.forEach(campaign => {
+				let goalAmount: number | 'Unlimited' = 0
+				let toGoAmount: number | 'Unlimited' = 0
+				let raisedAmount: number = 0
+				let donatedAmount: number = 0
+				let percentage: number = 0
 
-							// Use overwrite if one exists in `campaigns.json`. `raised` is the only statistics
-							// that can be overwritten because `collateralBalance` is net of redemptions and will decrease
-							// when donors claim back their funds.
-							// @todo Using collateralBalance as the amount raised assumes that all the liquidity
-							// added will have the beneficiary as the position token recipient. However, as anyone can add
-							// liquidity with any other recipient, collateralBalance may not reflect the actual amount raised
-							// for the campaign. Use TheGraph to derive the correct value.
-							raisedAmount = firstCampaign.raised !== ""
-								? Number(firstCampaign.raised) : Number(formatUnits(res.collateralBalance, decimals))
-							updateRaised(firstCampaign.campaignId, raisedAmount)
-
-							// @todo Obtain data from pool parameters / the graph if not available
-							donatedAmount = firstCampaign.donated !== "" ? Number(firstCampaign.donated) : 0
-
-							// Set variables that depend on whether `res.capacity` is unlimited or not
-							if (isUnlimited(res.capacity)) {
-								goalAmount = 'Unlimited'
-								toGoAmount = 'Unlimited'
-								percentage = 0							
-							} else {
-								goalAmount = Number(formatUnits(res.capacity, decimals))
-								toGoAmount = goalAmount - raisedAmount
-								percentage = raisedAmount / goalAmount * 100
-							}
-							updateGoal(firstCampaign.campaignId, goalAmount)
-							updateToGo(firstCampaign.campaignId, toGoAmount)
-							updatePercentage(firstCampaign.campaignId, percentage)
-							updateDonated(firstCampaign.campaignId, donatedAmount)
-				}
-			}).then(
-				campaigns.forEach((campaign, index) => {
-					if (campaign.campaignId !== 'pastoralists_1') {
-						return divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => {
-							updateExpiryDate(campaign.campaignId, Number(res.expiryTime) * 1000)
-
-							// Use overwrite if one exists in `campaigns.json`. `raised` is the only statistics
-							// that can be overwritten because `collateralBalance` is net of redemptions and will decrease
-							// when donors claim back their funds.
-							// @todo Using collateralBalance as the amount raised assumes that all the liquidity
-							// added will have the beneficiary as the position token recipient. However, as anyone can add
-							// liquidity with any other recipient, collateralBalance may not reflect the actual amount raised
-							// for the campaign. Use TheGraph to derive the correct value.
-							raisedAmount = campaign.raised !== ""
-								? Number(campaign.raised) : Number(formatUnits(res.collateralBalance, decimals))
-							updateRaised(campaign.campaignId, raisedAmount)
-
-							// @todo Obtain data from pool parameters / the graph if not available
-							donatedAmount = campaign.donated !== "" ? Number(campaign.donated) : 0
-
-							// Set variables that depend on whether `res.capacity` is unlimited or not
-							if (isUnlimited(res.capacity)) {
-								goalAmount = 'Unlimited'
-								toGoAmount = 'Unlimited'
-								percentage = 0							
-							} else {
-								goalAmount = Number(formatUnits(res.capacity, decimals))
-								toGoAmount = goalAmount - raisedAmount
-								percentage = raisedAmount / goalAmount * 100
-							}
-							updateGoal(campaign.campaignId, goalAmount)
-							updateToGo(campaign.campaignId, toGoAmount)
-							updatePercentage(campaign.campaignId, percentage)
-							updateDonated(campaign.campaignId, donatedAmount)
-						})
-					}
+				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
+				// version of the DIVA Protocol contract. All subsequent campaigns are using the audited final version.
+				const divaContract = getContract({
+					address: campaign.divaContractAddress,
+					abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+					signerOrProvider: wagmiProvider,
 				})
-			)
+
+				// Iterate through each pool listed under each campaign's pools array and aggregate the statistics.
+				// Create an array to store promises for each getPoolParameters call.
+				const poolPromises = campaign.pools.map((pool, index) => {
+					return divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+						if (index === 0) {
+							// Update only once. This assumes that the expiry time is the same for all
+							// pools linked under the campaign. Could be improved further down the road.
+							updateExpiryTime(campaign.campaignId, Number(res.expiryTime) * 1000)
+						}
+			
+						// Use overwrite if one exists in `campaigns.json`. `raised` is the only statistics
+						// that can be overwritten because `collateralBalance` is net of redemptions and will decrease
+						// when donors claim back their funds.
+						// @todo Using collateralBalance as the amount raised assumes that all the liquidity
+						// added will have the beneficiary as the position token recipient. However, as anyone can add
+						// liquidity with any other recipient, collateralBalance may not reflect the actual amount raised
+						// for the campaign. Use TheGraph to derive the correct value.
+						raisedAmount = campaign.raised !== ""
+							? Number(campaign.raised) // Overwrite is defined on campaign level, hence no aggregation needed
+							: raisedAmount + Number(formatUnits(res.collateralBalance, decimals)) // Accumulate raisedAmount for each pool 
+			
+						// @todo Retrieve data from pool parameters / the graph if not available
+						donatedAmount = campaign.donated !== "" ? Number(campaign.donated) : 0  // Overwrite is defined on campaign level, hence no aggregation needed
+			
+						// Set variables that depend on whether `res.capacity` is unlimited or not
+						if (isUnlimited(res.capacity)) {
+							goalAmount = 'Unlimited'
+							toGoAmount = 'Unlimited'
+							percentage = 0
+						} else {
+							// Assumes that within a single campaign, the pools have either unlimited or limited
+							// capacity but not a mix.
+							goalAmount = Number(goalAmount) + Number(formatUnits(res.capacity, decimals))
+
+							// Log alert message if a campaign has pools with mixed capacities (unlimited and limited)
+							goal === 'Unlimited' && console.log('ALERT: The pools within a campaign have mixed capacities, consisting of both unlimited and limited capacities.')
+							toGoAmount = Number(goalAmount) - raisedAmount
+							percentage = raisedAmount / goalAmount * 100
+						}
+					});
+				});
+			
+				// Wait for all poolPromises to resolve and then update the state with aggregated values
+				Promise.all(poolPromises).then(() => {
+					updateRaised(campaign.campaignId, raisedAmount)
+					updateGoal(campaign.campaignId, goalAmount)
+					updateToGo(campaign.campaignId, toGoAmount)
+					updatePercentage(campaign.campaignId, percentage)
+					updateDonated(campaign.campaignId, donatedAmount)
+				});
+			})
 		}
 	}, [chainId, decimals, wagmiProvider, campaigns])
 
@@ -327,7 +312,7 @@ export const CampaignSection = () => {
 														{!isExpired(expiryTime[campaign.campaignId]) ? (
 															<div className="flex flex-col items-center justify-center">
 																<dt className="mb-2 font-medium text-xl text-[#042940]">
-																	To go
+																	To Go
 																</dt>
 																<dd className="font-normal text-base text-[#042940]">
 																	{toGo[campaign.campaignId] === 'Unlimited' ? toGo[campaign.campaignId] : '$' + toGo[campaign.campaignId]}
@@ -339,7 +324,7 @@ export const CampaignSection = () => {
 																	Donated
 																</dt>
 																<dd className="font-normal text-base text-[#042940]">
-																${0}
+																${donated[campaign.campaignId]}
 																</dd>
 															</div>
 														)}

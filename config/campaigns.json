@@ -5,10 +5,7 @@
         {
           "poolId": "8",
           "beneficiarySide": "short",
-          "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1",
-          "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
-          "chainId": "137",
-          "weight": "1"
+          "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1"
         }
       ],      
       "img": "/Images/pastrolists400pxVertical.png",
@@ -25,26 +22,24 @@
       "raised": "5367",
       "donated": "0",
       "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-      "decimals": "6"
+      "decimals": "6",
+      "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
+      "chainId": "137"
     },
     {
       "campaignId": "pastoralists_2",
       "pools": [
         {
           "poolId": "0xf9ea1671ddca4aaad1df33257cd2040c656064c9bb628102dd3c68431d1baaaf",
-          "beneficiarySide": "long",
-          "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
-          "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-          "chainId": "137",
-          "weight": "0.5"
+          "beneficiarySide": "short",
+          "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba"
         },
         {
           "poolId": "0xf9ea1671ddca4aaad1df33257cd2040c656064c9bb628102dd3c68431d1baaaf",
-          "beneficiarySide": "long",
+          "beneficiarySide": "short",
           "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
           "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-          "chainId": "137",
-          "weight": "0.5"
+          "chainId": "137"
         }
       ],
       "img": "/Images/pastoralists_2.jpg",
@@ -61,6 +56,8 @@
       "raised": "",
       "donated": "",
       "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-      "decimals": "6"
+      "decimals": "6",
+      "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+      "chainId": "137"
     }
 ]
