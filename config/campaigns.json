@@ -7,7 +7,7 @@
           "beneficiarySide": "short",
           "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1",
           "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
-          "chainId": "0x89",
+          "chainId": "137",
           "weight": "1"
         }
       ],      
@@ -22,9 +22,8 @@
           "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
         }
       ],
-      "goal": "15000",
       "raised": "5367",
-      "toGo": "9633",
+      "donated": "0",
       "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
       "decimals": "6"
     },
@@ -36,7 +35,7 @@
           "beneficiarySide": "long",
           "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
           "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-          "chainId": "0x89",
+          "chainId": "137",
           "weight": "0.5"
         },
         {
@@ -44,7 +43,7 @@
           "beneficiarySide": "long",
           "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
           "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-          "chainId": "0x89",
+          "chainId": "137",
           "weight": "0.5"
         }
       ],
@@ -59,9 +58,8 @@
           "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
         }
       ],
-      "goal": "",
       "raised": "",
-      "toGo": "",
+      "donated": "",
       "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
       "decimals": "6"
     }

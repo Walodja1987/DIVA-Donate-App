@@ -59,6 +59,7 @@ export const valueFormatter = (num: number, decimalPlaces: number) =>
   Number(
     Math.round(Number(num + "e" + decimalPlaces)) + "e" + decimalPlaces * -1
   );
+
 export const getShortenedAddress = (address: string) => {
   if (address != null) {
     const begin = address.slice(0, 6)
@@ -66,4 +67,29 @@ export const getShortenedAddress = (address: string) => {
 
     return `${begin}...${end}`
   } else return ''
+}
+
+export const formatDate = (timestampInMilliseconds: number): string => {
+  return new Date(timestampInMilliseconds).toLocaleDateString(
+    undefined,
+    {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      hour12: true,
+      timeZoneName: 'short',
+    }
+  )
+}
+
+export const isExpired = (timestampInMilliseconds: number) => {
+  if (!timestampInMilliseconds) {
+    return false; // If there's no expiry time, it's not expired
+  }
+  
+  const expiryTime = new Date(timestampInMilliseconds);
+  const currentTime = new Date();
+  
+  return expiryTime < currentTime;
 }

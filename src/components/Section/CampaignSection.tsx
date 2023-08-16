@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import { ethers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 import {DivaABI, DivaABIold, ERC20ABI} from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
 import { useAccount, useSwitchNetwork, useProvider, useNetwork, useBalance } from 'wagmi'
@@ -9,22 +9,22 @@ import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import pools from '../../../config/pools.json' // @todo remove when migrated to campaigns.json
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import campaigns from '../../../config/campaigns.json'
-import {getShortenedAddress} from "../../utils/general";
 import { divaContractAddressOld, divaContractAddress } from "../../constants"; // @todo remove when migrated to campaigns.json
 import { chainConfig } from "../../constants";
+import { formatDate, isExpired } from '../../utils/general';
 
 /**
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
-	const [goal, setGoal] = useState<any>({})
+	const [goal, setGoal] = useState<any>({}) // @todo move type up here from bottom
 	const [raised, setRaised] = useState<any>({})
 	const [toGo, setToGo] = useState<any>({})
+	const [donated, setDonated] = useState<any>({})
 	const [percentage, setPercentage] = useState<any>({})
-	const [expiryDate, setExpiryDate] = useState<any>('')
+	const [expiryTime, setExpiryTime] = useState<any>('')
 
 	const [decimals, setDecimals] = useState(6)
 	const { address: activeAddress, isConnected, connector } = useAccount()
@@ -42,12 +42,14 @@ export const CampaignSection = () => {
 	const handleOpen = () => {
 		switchNetwork?.(chainConfig.chainId)
 	}
-	const updateRaised = (campaignId: string, tokenAmount: any) => {
+
+	const updateRaised = (campaignId: string, tokenAmount: number) => {
 		setRaised((prev: any) => ({
 			...prev,
 			[campaignId]: tokenAmount.toFixed(0),
 		}))
 	}
+
 	const updateToGo = (campaignId: string, tokenAmount: number | string) => {
 		setToGo((prev: any) => ({
 			...prev,
@@ -61,19 +63,26 @@ export const CampaignSection = () => {
 		}))
 	}
 
-	const updateExpiryDate = (campaignId: string, expiryDate: any) => {
-		setExpiryDate((prev: any) => ({
+	const updateExpiryDate = (campaignId: string, expiryTimeInMilliseconds: number) => {
+		setExpiryTime((prev: any) => ({
 			...prev,
-			[campaignId]: expiryDate,
+			[campaignId]: expiryTimeInMilliseconds,
 		}))
 	}
+
+	const updateDonated = (campaignId: string, tokenAmount: number) => {
+		setDonated((prev: any) => ({
+			...prev,
+			[campaignId]: tokenAmount,
+		}))
+	} 
 
 	const updatePercentage = (campaignId: string, percentage: any) => {
 		setPercentage((prev: any) => ({
 			...prev,
 			[campaignId]: percentage,
 		}))
-	}
+	}	
 
 	const handleAddToMetamask = async (campaign: any) => {
 			const provider = new ethers.providers.Web3Provider((window as any).ethereum)
@@ -103,6 +112,10 @@ export const CampaignSection = () => {
 			}														
 	}
 
+	const isUnlimited = (amount: BigNumber): boolean => {
+		return amount.eq(ethers.constants.MaxUint256)
+	}
+
 	useEffect(() => {
 		if (chain) {
 			setChainId(chain.id)
@@ -117,6 +130,12 @@ export const CampaignSection = () => {
 			}
 		}
 		getDecimals()
+
+		let goalAmount: number | 'Unlimited'
+		let toGoAmount: number | 'Unlimited'
+		let raisedAmount: number
+		let donatedAmount: number
+		let percentage: number
 
 		if (chainId === chainConfig.chainId &&
 			activeAddress != null &&
@@ -134,62 +153,75 @@ export const CampaignSection = () => {
 				signerOrProvider: wagmiProvider,
 			})
 
+			// Update state variables for all campaigns
+
 			divaContractOld.getPoolParameters(firstCampaign?.pools[0].poolId).then((res: any) => {
 				if (firstCampaign) {
-					updateExpiryDate(firstCampaign.campaignId, new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
-						undefined,
-						{
-							day: 'numeric',
-							month: 'short',
-							year: 'numeric',
-							hour: '2-digit',
-							hour12: true,
-							timeZoneName: 'short',
-						}
-					))
-					updateGoal(firstCampaign.campaignId, res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-					'Unlimited' :
-					Number(formatUnits(res.capacity, decimals)))
-					updateRaised(firstCampaign.campaignId, Number(formatUnits(res.collateralBalance, decimals)))
-					updateToGo(firstCampaign.campaignId, res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-						'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals)))
-					if (res.capacity._hex !== '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff') {
-						updatePercentage(firstCampaign.campaignId, (Number(formatUnits(res.collateralBalance, decimals)) / Number(formatUnits(res.capacity, decimals))) * 100)
-					} else {
-						updatePercentage(firstCampaign.campaignId, 0)
-					}
-				}				
+					updateExpiryDate(firstCampaign.campaignId, Number(res.expiryTime) * 1000)
+
+							// Use overwrite if one exists in `campaigns.json`. `raised` is the only statistics
+							// that can be overwritten because `collateralBalance` is net of redemptions and will decrease
+							// when donors claim back their funds.
+							// @todo Using collateralBalance as the amount raised assumes that all the liquidity
+							// added will have the beneficiary as the position token recipient. However, as anyone can add
+							// liquidity with any other recipient, collateralBalance may not reflect the actual amount raised
+							// for the campaign. Use TheGraph to derive the correct value.
+							raisedAmount = firstCampaign.raised !== ""
+								? Number(firstCampaign.raised) : Number(formatUnits(res.collateralBalance, decimals))
+							updateRaised(firstCampaign.campaignId, raisedAmount)
+
+							// @todo Obtain data from pool parameters / the graph if not available
+							donatedAmount = firstCampaign.donated !== "" ? Number(firstCampaign.donated) : 0
+
+							// Set variables that depend on whether `res.capacity` is unlimited or not
+							if (isUnlimited(res.capacity)) {
+								goalAmount = 'Unlimited'
+								toGoAmount = 'Unlimited'
+								percentage = 0							
+							} else {
+								goalAmount = Number(formatUnits(res.capacity, decimals))
+								toGoAmount = goalAmount - raisedAmount
+								percentage = raisedAmount / goalAmount * 100
+							}
+							updateGoal(firstCampaign.campaignId, goalAmount)
+							updateToGo(firstCampaign.campaignId, toGoAmount)
+							updatePercentage(firstCampaign.campaignId, percentage)
+							updateDonated(firstCampaign.campaignId, donatedAmount)
+				}
 			}).then(
 				campaigns.forEach((campaign, index) => {
 					if (campaign.campaignId !== 'pastoralists_1') {
 						return divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => {
-							updateExpiryDate(campaign.campaignId,
-								new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
-									undefined,
-									{
-										day: 'numeric',
-										month: 'short',
-										year: 'numeric',
-										hour: '2-digit',
-										hour12: true,
-										timeZoneName: 'short',
-									}
-								)
-							)
-							updateGoal(campaign.campaignId,
-								res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-									'Unlimited' :
-									Number(formatUnits(res.capacity, decimals)))
-							updateRaised(campaign.campaignId, Number(formatUnits(res.collateralBalance, decimals)))
-							updateToGo(campaign.campaignId,
-								res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-									'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
-							)
-							if (res.capacity._hex !== '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff') {
-								updatePercentage(campaign.campaignId, (Number(formatUnits(res.collateralBalance, decimals)) / Number(formatUnits(res.capacity, decimals))) * 100)
+							updateExpiryDate(campaign.campaignId, Number(res.expiryTime) * 1000)
+
+							// Use overwrite if one exists in `campaigns.json`. `raised` is the only statistics
+							// that can be overwritten because `collateralBalance` is net of redemptions and will decrease
+							// when donors claim back their funds.
+							// @todo Using collateralBalance as the amount raised assumes that all the liquidity
+							// added will have the beneficiary as the position token recipient. However, as anyone can add
+							// liquidity with any other recipient, collateralBalance may not reflect the actual amount raised
+							// for the campaign. Use TheGraph to derive the correct value.
+							raisedAmount = campaign.raised !== ""
+								? Number(campaign.raised) : Number(formatUnits(res.collateralBalance, decimals))
+							updateRaised(campaign.campaignId, raisedAmount)
+
+							// @todo Obtain data from pool parameters / the graph if not available
+							donatedAmount = campaign.donated !== "" ? Number(campaign.donated) : 0
+
+							// Set variables that depend on whether `res.capacity` is unlimited or not
+							if (isUnlimited(res.capacity)) {
+								goalAmount = 'Unlimited'
+								toGoAmount = 'Unlimited'
+								percentage = 0							
 							} else {
-								updatePercentage(campaign.campaignId, 0)
+								goalAmount = Number(formatUnits(res.capacity, decimals))
+								toGoAmount = goalAmount - raisedAmount
+								percentage = raisedAmount / goalAmount * 100
 							}
+							updateGoal(campaign.campaignId, goalAmount)
+							updateToGo(campaign.campaignId, toGoAmount)
+							updatePercentage(campaign.campaignId, percentage)
+							updateDonated(campaign.campaignId, donatedAmount)
 						})
 					}
 				})
@@ -206,7 +238,7 @@ export const CampaignSection = () => {
 						Campaigns
 					</h1>
 					<p className="font-semibold font-openSans text-[15px] md:text-[20px] mt-6 text-[#005C53] ">
-						Small efforts make big change
+						Small contributions make a big impact
 					</p>
 					<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
 				</div>
@@ -225,10 +257,21 @@ export const CampaignSection = () => {
 											alt="Modern building architecture"
 										/>
 										<div className="relative -mt-10">
-											<div className="text-2xs pt-1 pl-2 bg-[#DBF227] w-[320px] h-[40px] rounded-tr-[3.75rem] text-left text-green-[#042940]">
-									<span className="mt-1 inline-block align-middle">
-										<b>Expiry:</b> {expiryDate[campaign.campaignId]}
-									</span>
+											<div
+											className={`
+												${expiryTime[campaign.campaignId] && isConnected ? '' : 'invisible'} // Add 'invisible' class conditionally
+												${isExpired(expiryTime[campaign.campaignId]) ? 'bg-[#005C53] text-white' : 'bg-[#DBF227] text-green-[#042940]'}
+												text-2xs pt-1 pl-2 w-[320px] h-[40px] rounded-tr-[3.75rem] text-left
+											`}
+											>
+											{expiryTime[campaign.campaignId] && (
+												<span className="mt-1 inline-block align-middle">
+												<b>{isExpired(expiryTime[campaign.campaignId]) ? 'Completed' : 'Expiry:'}</b>
+												{isExpired(expiryTime[campaign.campaignId])
+													? null
+													: ` ${formatDate(expiryTime[campaign.campaignId])}`}
+												</span>
+											)}
 											</div>
 										</div>
 									</Link>
@@ -253,7 +296,7 @@ export const CampaignSection = () => {
 												height="22px"
 												value={percentage[campaign.campaignId]}>
 												<ProgressLabel className="text-2xl flex flex-start">
-													<Text fontSize="xs">{percentage[campaign.campaignId]?.toFixed(1)}%</Text>
+													<Text fontSize="xs" marginLeft="0.5rem">{percentage[campaign.campaignId]?.toFixed(1)}%</Text>
 												</ProgressLabel>
 											</Progress>
 										) : <div className="h-[30px]"></div>}
@@ -261,12 +304,14 @@ export const CampaignSection = () => {
 										{isConnected ? (
 											<>
 												{chainId === chainConfig.chainId ? (
+													// Conditional rendering based on whether campaign is completed or not. If completed,
+													// only "Goal" and "Raised" will be shown. If on-going, then "To go" will also show.
 													<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
 																Goal
 															</dt>
-															<dd className="font-normal text-base text-[#042940] ">
+															<dd className="font-normal text-base text-[#042940]">
 																{goal[campaign.campaignId] === 'Unlimited' ? goal[campaign.campaignId] : '$' + goal[campaign.campaignId]}
 															</dd>
 														</div>
@@ -274,32 +319,43 @@ export const CampaignSection = () => {
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
 																Raised
 															</dt>
-															<dd className="font-normal text-base text-[#042940] ">
+															<dd className="font-normal text-base text-[#042940]">
 																${raised[campaign.campaignId]}
 															</dd>
 														</div>
-														<div className="flex flex-col items-center justify-center">
-															<dt className="mb-2 font-medium text-xl text-[#042940]">
-																To go
-															</dt>
-															<dd className="font-normal text-base text-[#042940] ">
-																{toGo[campaign.campaignId] === 'Unlimited' ? toGo[campaign.campaignId] : '$' + toGo[campaign.campaignId]}
-															</dd>
-														</div>
-													</div>
+														{/* Add "Donated" box  */}
+														{!isExpired(expiryTime[campaign.campaignId]) ? (
+															<div className="flex flex-col items-center justify-center">
+																<dt className="mb-2 font-medium text-xl text-[#042940]">
+																	To go
+																</dt>
+																<dd className="font-normal text-base text-[#042940]">
+																	{toGo[campaign.campaignId] === 'Unlimited' ? toGo[campaign.campaignId] : '$' + toGo[campaign.campaignId]}
+																</dd>
+															</div>
+														) : (
+															<div className="flex flex-col items-center justify-center">
+																<dt className="mb-2 font-medium text-xl text-[#042940]">
+																	Donated
+																</dt>
+																<dd className="font-normal text-base text-[#042940]">
+																${0}
+																</dd>
+															</div>
+														)}
+													</div>												  
 												) : (
 													<div className="mb-10 flex flex-col items-center justify-center ">
 														<div className=" flex items-center justify-center">
-															Please{' '}
+															Please
 															<span>
-													<button
-														className="p-2 text-blue-600"
-														onClick={handleOpen}>
-														{' '}
-														connect
-													</button>
-												</span>{' '}
-															to the Polygon network.
+																<button
+																	className="p-2 text-blue-600"
+																	onClick={handleOpen}>
+																	connect
+																</button>
+															</span>
+															{` to the ${chainConfig.name} network.`}															
 														</div>
 													</div>
 												)}
@@ -307,15 +363,15 @@ export const CampaignSection = () => {
 										) : (
 											<div className="mb-10 flex flex-col items-center justify-center ">
 												<div className=" flex items-center justify-center">
-													Please{' '}
+													Please
 													<span>
-											<button
-												className="p-2 text-blue-600"
-												onClick={openConnectModal}>
-												connect
-											</button>
-										</span>{' '}
-													Wallet.
+														<button
+															className="p-2 text-blue-600"
+															onClick={openConnectModal}>
+															connect
+														</button>
+													</span>
+													{` to the ${chainConfig.name} network.`}
 												</div>
 											</div>
 										)}
