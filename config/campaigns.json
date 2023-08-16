@@ -13,8 +13,8 @@
       ],      
       "img": "/Images/pastrolists400pxVertical.png",
       "path": "/campaign/pastoralists",
-      "title": "Fortune DIVA",
-      "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya to financially assist them in case of drought.",
+      "title": "Pastoralists 1.0",
+      "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya (Marsabit region) to financially assist them in case of drought.",
       "donationRecipients" : [
         {
           "name": "DIVA",
