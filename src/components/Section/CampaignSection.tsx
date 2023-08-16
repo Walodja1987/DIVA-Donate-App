@@ -191,7 +191,8 @@ export const CampaignSection = () => {
 							percentage = 0
 						} else {
 							// Assumes that within a single campaign, the pools have either unlimited or limited
-							// capacity but not a mix.
+							// capacity but not a mix. If it's mixed, then `Number(goalAmount)` will throw. Added
+							// alert below to make sure that this case is logged in the console.
 							goalAmount = Number(goalAmount) + Number(formatUnits(res.capacity, decimals))
 
 							// Log alert message if a campaign has pools with mixed capacities (unlimited and limited)
