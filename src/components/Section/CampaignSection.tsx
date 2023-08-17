@@ -27,10 +27,10 @@ import { formatDate, isExpired, isUnlimited } from '../../utils/general';
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
-	const [goal, setGoal] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
-	const [raised, setRaised] = useState<{ [campaignId: string]: number }>({})
-	const [toGo, setToGo] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
-	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
+	const [goal, setGoal] = useState<{ [campaignId: string]: string | 'Unlimited' }>({})
+	const [raised, setRaised] = useState<{ [campaignId: string]: string }>({})
+	const [toGo, setToGo] = useState<{ [campaignId: string]: string | 'Unlimited' }>({})
+	const [donated, setDonated] = useState<{ [campaignId: string]: string }>({})
 	const [percentage, setPercentage] = useState<{ [campaignId: string]: number }>({})
 	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
 
@@ -51,41 +51,41 @@ export const CampaignSection = () => {
 	}
 
 	const updateRaised = (campaignId: string, tokenAmount: number) => {
-		setRaised((prev: any) => ({
+		setRaised((prev) => ({
 			...prev,
 			[campaignId]: tokenAmount.toFixed(0),
 		}))
 	}
 
-	const updateToGo = (campaignId: string, tokenAmount: number | string) => {
-		setToGo((prev: any) => ({
+	const updateToGo = (campaignId: string, tokenAmount: number | 'Unlimited') => {
+		setToGo((prev) => ({
 			...prev,
 			[campaignId]: typeof tokenAmount === 'number' ? tokenAmount.toFixed(0) : tokenAmount,
 		}))
 	}
-	const updateGoal = (campaignId: string, tokenAmount: any) => {
-		setGoal((prev: any) => ({
+	const updateGoal = (campaignId: string, tokenAmount: number | 'Unlimited') => {
+		setGoal((prev) => ({
 			...prev,
-			[campaignId]: tokenAmount,
+			[campaignId]: typeof tokenAmount === 'number' ? tokenAmount.toFixed(0) : tokenAmount,
 		}))
 	}
 
 	const updateExpiryTime = (campaignId: string, expiryTimeInMilliseconds: number) => {
-		setExpiryTime((prev: any) => ({
+		setExpiryTime((prev) => ({
 			...prev,
 			[campaignId]: expiryTimeInMilliseconds,
 		}))
 	}
 
 	const updateDonated = (campaignId: string, tokenAmount: number) => {
-		setDonated((prev: any) => ({
+		setDonated((prev) => ({
 			...prev,
-			[campaignId]: tokenAmount,
+			[campaignId]: tokenAmount.toFixed(0),
 		}))
 	} 
 
-	const updatePercentage = (campaignId: string, percentage: any) => {
-		setPercentage((prev: any) => ({
+	const updatePercentage = (campaignId: string, percentage: number) => {
+		setPercentage((prev) => ({
 			...prev,
 			[campaignId]: percentage,
 		}))

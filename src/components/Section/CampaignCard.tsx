@@ -8,6 +8,7 @@ import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import pools from '../../../config/pools.json' // @todo remove after migration to `campaign.json`
 import campaigns from '../../../config/campaigns.json'
+import { Campaign } from '../../types/campaignTypes'
 import Link from "next/link"
 import {getShortenedAddress} from "../../utils/general"
 import { chainConfig } from "../../constants";
@@ -25,7 +26,7 @@ const DonationExpiredInfo = () => {
 
 // @todo at the bottom, align the Please connect to Polygon message with the component on the CampaignSection page
 
-const FortuneDiva = ({ expiryTime, campaign }: { expiryTime: string, campaign: any }) => {
+const FortuneDiva: React.FC<{ expiryTime: string, campaign: Campaign }> = ({ expiryTime, campaign }) => {
 	// changing the format to 11 Jun 2023, 11 pm GMT+5:30
 	expiryTime = new Date(expiryTime).toLocaleDateString(undefined, {
 		day: 'numeric',
@@ -55,13 +56,13 @@ const FortuneDiva = ({ expiryTime, campaign }: { expiryTime: string, campaign: a
 	)
 }
 
-export const CampaignCard: any = ({ campaign }: { campaign: any }) => {
+export const CampaignCard: React.FC<Campaign> = (campaign) => {
 	const [balance, setBalance] = useState(0)
 	const { data } = useFeeData({ chainId: chainConfig.chainId })
 	const [amount, setAmount] = useState<any>() // @todo update types
-	const [goal, setGoal] = useState<any>('')
-	const [raised, setRaised] = useState<any>('')
-	const [toGo, setToGo] = useState<any>('')
+	const [goal, setGoal] = useState<any>('') // @todo should be "string" when using toFixed
+	const [raised, setRaised] = useState<any>('') // @todo should be "string" when using toFixed
+	const [toGo, setToGo] = useState<any>('') // @todo should be "string" when using toFixed
 	const [percentage, setPercentage] = useState<number>(0)
 	const [approveEnabled, setApproveEnabled] = useState<boolean>(false)
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
@@ -116,7 +117,6 @@ export const CampaignCard: any = ({ campaign }: { campaign: any }) => {
 	}, [activeAddress, amount, decimals, chainId, usdtTokenContract])
 	
 	useEffect(() => {
-		console.log('Entered here')
 		const getDecimals = async () => {
 			if (chainId === chainConfig.chainId && usdtTokenContract != null) {
 				const decimals = await usdtTokenContract.decimals()

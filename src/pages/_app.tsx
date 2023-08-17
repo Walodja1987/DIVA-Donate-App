@@ -22,6 +22,7 @@ const wagmiClient = createClient({
 	connectors,
 	provider,
 })
+
 export default function App({ Component, pageProps }: AppProps) {
 	return (
 		<ChakraProvider>
