@@ -30,3 +30,7 @@ A campaign can link multiple pools. A few important notes when linking multiple 
 The `raised` and `donated` fields can be set to overwrite the values obtained from DIVA Protocol's `getPoolParameters` function as this function returns net values only. The hard-coded values apply on **campaign level**, representing an aggregate value across all linked pools . This is to remove the reliance on indexer's like The Graph.
 
 The overwrite is entered in decimal format. Example: `"donated": "5374"`. If it's empty `""`, then the value will be pulled from DIVA Protocol via `getPoolParameters`.
+
+### Caveats
+
+Although you could theoretically add multiple `donationRecipient`s, the app can currently only handle one `donationRecipient` per campaign.

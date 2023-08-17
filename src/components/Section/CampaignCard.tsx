@@ -55,7 +55,7 @@ const FortuneDiva: React.FC<{ expiryTimeInMilliseconds: number, campaign: Campai
 export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: string }> = ({ campaign, thankYouMessage }) => {
 	const [balance, setBalance] = useState<number>(0)
 	const { data } = useFeeData({ chainId: chainConfig.chainId })
-	const [amount, setAmount] = useState<number>()
+	const [amount, setAmount] = useState<string>('')
 	const [goal, setGoal] = useState<number | 'Unlimited'>(0)
 	const [raised, setRaised] = useState<number>(0)
 	const [toGo, setToGo] = useState<number | 'Unlimited'>(0)
@@ -93,7 +93,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 		const checkAllowance = async () => {
 			// Replace commas in the `amount` string with dots
 			const sanitized = amount?.replace(/,/g, '.')
-			if (sanitized > 0 && collateralTokenContract != null) {
+			if (Number(sanitized) > 0 && collateralTokenContract != null) {
 				const allowance = await collateralTokenContract.allowance(
 					activeAddress,
 					campaign.divaContractAddress
@@ -140,17 +140,9 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 			)
 			divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => { // @todo update hard-coded pools array index
 				setExpiryTime(Number(res.expiryTime) * 1000)
-				setGoal(
-					isUnlimited(res.capacity)
-						? 'Unlimited'
-						: Number(formatUnits(res.capacity, decimals))
-				)
+				setGoal(isUnlimited(res.capacity) ? 'Unlimited' : Number(formatUnits(res.capacity, decimals)))
 				setRaised(Number(formatUnits(res.collateralBalance, decimals)))
-				setToGo(
-					isUnlimited(res.capacity)
-						? 'Unlimited'
-						: Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
-				)
+				setToGo(isUnlimited(res.capacity) ? 'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals)))
 			})
 		}
 	}, [chainId, donateLoading, activeAddress, collateralTokenContract])
@@ -162,7 +154,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 	const handleApprove = async () => {
 		setApproveLoading(true)
 		collateralTokenContract
-			.approve(campaign.divaContractAddress, parseUnits(amount!.toString(), decimals), {
+			.approve(campaign.divaContractAddress, parseUnits(amount, decimals).add(10), { // small buffer added to ensure sufficient allowance
 				gasPrice: data?.gasPrice,
 			})
 			.then((tx: any) => {
@@ -193,29 +185,84 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 				provider.getSigner()
 			)
 			setDonateLoading(true)
-			// @todo replace with batchAddLiquidity
-			divaContract
-				.addLiquidity(
-					campaign.pools[0].poolId, // @todo update
-					parseUnits(amount!.toString(), decimals),
-					campaign.pools[0].beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address, // @todo update hard-coded index
-					campaign.pools[0].beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress, // @todo update hard-coded index
-					{ gasPrice: data?.maxFeePerGas }
+
+			// const sumCapacity = async () => {
+			// 	try {
+			// 	  const promises = campaign.pools.map(async (pool) => {
+			// 		const res = await divaContract.getPoolParameters(pool.poolId)
+			// 		return res.capacity;
+			// 	  })
+			  
+			// 	  const capacities = await Promise.all(promises);
+			// 	  const totalCapacity = capacities.reduce((total, capacity) => total + capacity, 0)
+			  
+			// 	  console.log('Total Capacity:', totalCapacity)
+			// 	} catch (error) {
+			// 	  console.error('Error fetching capacities:', error)
+			// 	}
+			// }
+			  
+			// @todo add weighting
+			// Calculate the sum of capacities
+			// let sumCapacity = 0
+			// let batchAddLiquidityArgs // @todo add typing
+			// Promise.all(
+			// 	campaign.pools.map(pool =>
+			// 		divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+			// 		sumCapacity += res.capacity;
+			// 		})
+			// )
+			// ).then(() => {
+			// 	batchAddLiquidityArgs = campaign.pools.map(pool => ({
+			// 		poolId: pool.poolId,
+			// 		collateralAmountIncr: parseUnits(amount.toString(), decimals),
+			// 		longRecipient: pool.beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address, // @todo update at a later stage to handle multiple donationRecipients
+			// 		shortRecipient: pool.beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress,
+			// 	}))
+			// })
+
+			// @todo test this
+			Promise.all(
+				campaign.pools.map(pool =>
+				  divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+					return res.capacity
+				  })
 				)
-				.then((tx: any) => {
-					tx.wait().then(() => {
-						setDonateLoading(false)
+			  ).then(capacities => {
+					const sumCapacity = capacities.reduce((acc, capacity) => acc.add(capacity), ethers.BigNumber.from(0))
+				
+					const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
+						const collateralAmountIncr = parseUnits(amount.toString(), decimals).mul(capacities[index]).div(sumCapacity)
+					
+						return {
+							poolId: pool.poolId,
+							collateralAmountIncr: collateralAmountIncr,
+							longRecipient: pool.beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address,
+							shortRecipient: pool.beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress,
+						}
 					})
-				})
-				.catch((err: any) => {
-					setDonateLoading(false)
-					console.log(err)
-				})
+					
+					divaContract
+						.batchAddLiquidity(
+							batchAddLiquidityArgs,
+							{ gasPrice: data?.maxFeePerGas }
+						)
+						.then((tx: any) => {
+							tx.wait().then(() => {
+								setDonateLoading(false)
+							})
+						})
+						.catch((err: any) => {
+							setDonateLoading(false)
+							console.log(err)
+						})
+				});		
 		}
 	}
+
 	const handleMax = () => {
 		if (balance != null) {
-			setAmount(balance)
+			setAmount(balance.toString())
 		}
 	}
 	const handleAmountChange = (e: any) => {
@@ -288,7 +335,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 														</div>
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
-																To go
+																To Go
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
 															{typeof toGo === 'number' ? `$${toGo.toFixed(0)}` : toGo}
@@ -474,16 +521,15 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 											) : (
 												<div className="flex flex-col items-center justify-center ">
 													<div className="pt-10 flex items-center justify-center">
-														Please{' '}
+														Please
 														<span>
 															<button
 																className="p-2 text-blue-600"
 																onClick={handleOpen}>
-																{' '}
 																connect
 															</button>
-														</span>{' '}
-														to the Polygon network.
+														</span>
+														{` to the ${chainConfig.name} network.`}
 													</div>
 												</div>
 											)}
@@ -491,15 +537,15 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 									) : (
 										<div className="mb-10 flex flex-col items-center justify-center ">
 											<div className=" flex items-center justify-center">
-												Please{' '}
+												Please
 												<span>
 													<button
 														className="p-2 text-blue-600"
 														onClick={openConnectModal}>
 														connect
 													</button>
-												</span>{' '}
-												Wallet.
+												</span>
+												{` to the ${chainConfig.name} network.`}
 											</div>
 										</div>
 									)}
