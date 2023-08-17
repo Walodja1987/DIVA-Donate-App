@@ -7,6 +7,7 @@ import campaigns from '../../../config/campaigns.json'
 
 
 export default function Pastoralists() {
+    // Specify the campaignId from `campaign.json` file that you want to display on the page
     const campaignId = "pastoralists_2"
     const campaign = campaigns.find(c => c.campaignId === campaignId);
 
@@ -16,7 +17,6 @@ export default function Pastoralists() {
     }
     
     // @todo 
-    // - Consider passing in campaign object rather than the id
     // - Consider adding another prop for Thank you message at the top of the donation widget
     return (
         <main className="h-full w-full relative">
@@ -24,6 +24,7 @@ export default function Pastoralists() {
                 <div className="bg-[#F3FDF8]">
                     <CampaignCard
                         campaign={campaign}
+                        thankYouMessage="Thank you for providing livestock insurance to pastoralists in Kenya..."
                     />
                 </div>
                 <HRLinkSection />

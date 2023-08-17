@@ -16,14 +16,6 @@ import { chainConfig } from "../../constants";
 import { formatDate, isExpired, isUnlimited } from '../../utils/general';
 
 /**
- * Notes related to linking multiple pools to a campaign:
- * - Pools should not have mixed capacities (unlimited and limited). Both should be either unlimited or limited.
- * - The weights between the pools are implied based on the capacity (relevant for `batchAddLiquidity`)
- * - Raised and donated amount can be hard-coded in `campaigns.json` on **campaign level**
- * - All pools linked to a campaign should have the same expiry time and use the same collateral token
- */
-
-/**
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
@@ -125,13 +117,13 @@ export const CampaignSection = () => {
 		}
 	}, [chain])
 
+	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
 		if (chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
-		) {
-			// Update state variables for all campaigns in `campaigns.json`
+		) {			
 			campaigns.forEach(campaign => {
 				let goalAmount: number | 'Unlimited' = 0
 				let toGoAmount: number | 'Unlimited' = 0
@@ -170,7 +162,10 @@ export const CampaignSection = () => {
 						raisedAmount = campaign.raised !== ""
 							? Number(campaign.raised) // Overwrite is defined on campaign level, hence no aggregation needed
 							: raisedAmount + Number(formatUnits(res.collateralBalance, decimals)) // Accumulate raisedAmount for each pool 
-			
+						
+						// @todo Consider adding an additional field called "Overwrites" in `campaign.json` where raised and donated are placed.
+						// Update campaignTypes.d.ts accordingly and the code in here.
+
 						// @todo Retrieve data from pool parameters / the graph if not available
 						donatedAmount = campaign.donated !== "" ? Number(campaign.donated) : 0  // Overwrite is defined on campaign level, hence no aggregation needed
 			

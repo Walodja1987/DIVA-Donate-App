@@ -15,7 +15,6 @@ export default function Pastoralists() {
 }
 
 // @todo 
-// - Consider passing in campaign object rather than the id
 // - Consider adding another prop for Thank you message at the top of the donation widget
   return (
     <main className="h-full w-full relative">
@@ -23,6 +22,7 @@ export default function Pastoralists() {
         <div className="bg-[#F3FDF8]">
           <CampaignCard
               campaign={campaign}
+              thankYouMessage="Thank you for providing livestock insurance to pastoralists in Kenya."
           />
         </div>
         <AboutSection />

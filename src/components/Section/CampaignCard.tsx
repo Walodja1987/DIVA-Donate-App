@@ -10,7 +10,7 @@ import pools from '../../../config/pools.json' // @todo remove after migration t
 import campaigns from '../../../config/campaigns.json'
 import { Campaign } from '../../types/campaignTypes'
 import Link from "next/link"
-import {getShortenedAddress} from "../../utils/general"
+import { getShortenedAddress, formatDate, isExpired } from "../../utils/general"
 import { chainConfig } from "../../constants";
 import { divaContractAddressOld } from "../../constants";
 
@@ -26,16 +26,9 @@ const DonationExpiredInfo = () => {
 
 // @todo at the bottom, align the Please connect to Polygon message with the component on the CampaignSection page
 
-const FortuneDiva: React.FC<{ expiryTime: string, campaign: Campaign }> = ({ expiryTime, campaign }) => {
+const FortuneDiva: React.FC<{ expiryTimeInMilliseconds: number, campaign: Campaign }> = ({ expiryTimeInMilliseconds, campaign }) => {
 	// changing the format to 11 Jun 2023, 11 pm GMT+5:30
-	expiryTime = new Date(expiryTime).toLocaleDateString(undefined, {
-		day: 'numeric',
-		month: 'short',
-		year: 'numeric',
-		hour: '2-digit',
-		hour12: true,
-		timeZoneName: 'short',
-	})
+	const expiryTime = formatDate(expiryTimeInMilliseconds)
 
 	return campaign && (
 		<div className="mx-auto lg:mt-0 lg:col-span-4 lg:flex ">
@@ -56,7 +49,10 @@ const FortuneDiva: React.FC<{ expiryTime: string, campaign: Campaign }> = ({ exp
 	)
 }
 
-export const CampaignCard: React.FC<Campaign> = (campaign) => {
+/**
+ * @notice The upper section including the donation widget on individual campaign pages
+ */
+export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: string }> = ({ campaign, thankYouMessage }) => {
 	const [balance, setBalance] = useState(0)
 	const { data } = useFeeData({ chainId: chainConfig.chainId })
 	const [amount, setAmount] = useState<any>() // @todo update types
@@ -68,10 +64,10 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [expiryTime, setExpiryTime] = useState<string>('')
+	const [expiryTime, setExpiryTime] = useState<number>(0)
 	const { address: activeAddress, isConnected } = useAccount()
-	const [decimals, setDecimals] = useState()
-	const usdtTokenContract = useERC20Contract(campaign.collateralToken) // @todo read from campaign.json
+	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
+	const decimals = campaign.decimals
 	const [chainId, setChainId] = React.useState<number>(0)
 	const { chain } = useNetwork()
 	const { openConnectModal } = useConnectModal()
@@ -91,11 +87,14 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 		}
 	}, [chain])
 
+	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	useEffect(() => {
+		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
 		const checkAllowance = async () => {
+			// Replace commas in the `amount` string with dots
 			const sanitized = amount?.replace(/,/g, '.')
-			if (sanitized > 0 && usdtTokenContract != null) {
-				const allowance = await usdtTokenContract.allowance(
+			if (sanitized > 0 && collateralTokenContract != null) {
+				const allowance = await collateralTokenContract.allowance(
 					activeAddress,
 					campaign.divaContractAddress
 				)
@@ -114,16 +113,17 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 		if (chainId === chainConfig.chainId && activeAddress != null) {
 			checkAllowance()
 		}
-	}, [activeAddress, amount, decimals, chainId, usdtTokenContract])
+	}, [
+		activeAddress,
+		amount,
+		chainId,
+		collateralTokenContract,
+		campaign.divaContractAddress,
+		decimals
+	])
 	
+	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
-		const getDecimals = async () => {
-			if (chainId === chainConfig.chainId && usdtTokenContract != null) {
-				const decimals = await usdtTokenContract.decimals()
-				setDecimals(decimals)
-			}
-		}
-		getDecimals()
 		if (
 			chainId === chainConfig.chainId &&
 			activeAddress != null &&
@@ -139,7 +139,7 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
 			)
 			divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => { // @todo update hard-coded pools array index
-				setExpiryTime(new Date(Number(res.expiryTime) * 1000).toString())
+				setExpiryTime(Number(res.expiryTime) * 1000)
 				setGoal(
 					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
 						'Unlimited' :
@@ -151,7 +151,7 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 				)
 			})
 		}
-	}, [chainId, decimals, donateLoading, activeAddress, usdtTokenContract])
+	}, [chainId, donateLoading, activeAddress, collateralTokenContract])
 
 	useEffect(() => {
 		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
@@ -159,7 +159,7 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 
 	const handleApprove = async () => {
 		setApproveLoading(true)
-		usdtTokenContract
+		collateralTokenContract
 			.approve(campaign.divaContractAddress, parseUnits(amount!.toString(), decimals), {
 				gasPrice: data?.gasPrice,
 			})
@@ -187,18 +187,17 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 			)
 			const divaContract = new ethers.Contract(
 				campaign.divaContractAddress,
-				campaign.campaignConfig.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
 				provider.getSigner()
 			)
-			const decimals = await usdtTokenContract.decimals()
 			setDonateLoading(true)
 			// @todo replace with batchAddLiquidity
 			divaContract
 				.addLiquidity(
 					campaign.pools[0].poolId, // @todo update
 					parseUnits(amount!.toString(), decimals),
-					campaign.beneficiarySide === 'short' ? activeAddress : campaign.beneficiaryAddress,
-					campaign.beneficiarySide === 'short' ? campaign.beneficiaryAddress : activeAddress,
+					campaign.pools[0].beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address, // @todo update hard-coded index
+					campaign.pools[0].beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress, // @todo update hard-coded index
 					{ gasPrice: data?.maxFeePerGas }
 				)
 				.then((tx: any) => {
@@ -224,7 +223,7 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 	useEffect(() => {
 		const getBalance = async () => {
 			if (activeAddress) {
-				const result = await getTokenBalance(usdtTokenContract, activeAddress)
+				const result = await getTokenBalance(collateralTokenContract, activeAddress)
 				const tokenAmount = Number(
 					formatUnits(result?.balance, result?.decimals)
 				)
@@ -234,37 +233,23 @@ export const CampaignCard: React.FC<Campaign> = (campaign) => {
 		if (chainId === chainConfig.chainId && activeAddress != null) {
 			getBalance()
 		}
-	}, [chainId, activeAddress, donateLoading, usdtTokenContract])
-
-	const isDonationExpired = useCallback(() => {
-		return new Date(expiryTime) < new Date() ? true : false
-	}, [expiryTime])
+	}, [chainId, activeAddress, donateLoading, collateralTokenContract])
 
 	return (
 		<div className="container relative pt-[5rem] sm:pt-[8rem] md:pt-[8rem]  mx-auto">
 			<div className="grid px-12 gap-[2rem] mx-auto lg:py-16 lg:grid-cols-9">
-				<FortuneDiva expiryTime={expiryTime} campaign={campaign}/>
+				<FortuneDiva expiryTimeInMilliseconds={expiryTime} campaign={campaign}/>
 				<div className="lg:col-span-5 mr-[6rem]">
 					<div className="flex-col">
 						<div className="mx-auto  pb-12 bg-[#FFFFFF] border border-gray-200 rounded-[26px] drop-shadow-xl">
-							{isDonationExpired() ? (
+							{isExpired(expiryTime) ? (
 								<DonationExpiredInfo />
 							) : (
 								<div className="h-[600px] justify-evenly p-[60px]">
 									<div className="mb-10">
-										{campaign.campaignId === 'pastoralists_1' && (
 											<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
-												Thank you for providing livestock insurance to
-												pastoralists in Kenya.
+												{thankYouMessage}
 											</p>
-										)
-											}
-											{/* @todo Needs improvement here to account for any campaign. Make the message dynamic based on data available in campaign.json */}
-										{campaign.campaignId === 'pastoralists_2' && (
-											<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
-												Thank you for your interest in Hotez vs RFK debate.
-											</p>
-										)}
 									</div>
 									{isConnected ? (
 										<>
