@@ -37,9 +37,7 @@
         {
           "poolId": "0xf9ea1671ddca4aaad1df33257cd2040c656064c9bb628102dd3c68431d1baaaf",
           "beneficiarySide": "short",
-          "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
-          "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-          "chainId": "137"
+          "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba"
         }
       ],
       "img": "/Images/pastoralists_2.jpg",

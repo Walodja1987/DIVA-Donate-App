@@ -3,17 +3,26 @@ import { CampaignCard } from "../../components/Section/CampaignCard";
 import { AboutSection } from "../../components/Section/AboutSection";
 import { DonationSection } from "../../components/Section/DonationSection";
 import { LinkSection } from "../../components/Section/LinkSection";
+import campaigns from '../../../config/campaigns.json'
 
 export default function Pastoralists() {
+  const campaignId = "pastoralists_1"
+  const campaign = campaigns.find(c => c.campaignId === campaignId)
+
+  // If campaign is undefined, return null to avoid rendering the component
+  if (!campaign) {
+    return null;
+}
+
+// @todo 
+// - Consider passing in campaign object rather than the id
+// - Consider adding another prop for Thank you message at the top of the donation widget
   return (
     <main className="h-full w-full relative">
       <Layout>
         <div className="bg-[#F3FDF8]">
           <CampaignCard
-              poolId={8}
-              collateralTokenAddress={'0xc2132D05D31c914a87C6611C10748AEb04B58e8F'}
-              divaContractAddress={'0xFf7d52432B19521276962B67FFB432eCcA609148'}
-              multisig={'0x2e33876D29BAC51e1FFD128659BF9D36ba13259D'}
+              campaign={campaign}
           />
         </div>
         <AboutSection />

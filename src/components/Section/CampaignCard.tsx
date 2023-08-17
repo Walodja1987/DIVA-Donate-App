@@ -6,9 +6,12 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useAccount, useFeeData, useNetwork } from 'wagmi'
 import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import pools from '../../../config/pools.json'
+import pools from '../../../config/pools.json' // @todo remove after migration to `campaign.json`
+import campaigns from '../../../config/campaigns.json'
 import Link from "next/link"
 import {getShortenedAddress} from "../../utils/general"
+import { chainConfig } from "../../constants";
+import { divaContractAddressOld } from "../../constants";
 
 const DonationExpiredInfo = () => {
 	return (
@@ -20,9 +23,11 @@ const DonationExpiredInfo = () => {
 	)
 }
 
-const FortuneDiva = ({ expiryDate, poolConfig }: { expiryDate: string, poolConfig: any }) => {
+// @todo at the bottom, align the Please connect to Polygon message with the component on the CampaignSection page
+
+const FortuneDiva = ({ expiryTime, campaign }: { expiryTime: string, campaign: any }) => {
 	// changing the format to 11 Jun 2023, 11 pm GMT+5:30
-	expiryDate = new Date(expiryDate).toLocaleDateString(undefined, {
+	expiryTime = new Date(expiryTime).toLocaleDateString(undefined, {
 		day: 'numeric',
 		month: 'short',
 		year: 'numeric',
@@ -31,36 +36,29 @@ const FortuneDiva = ({ expiryDate, poolConfig }: { expiryDate: string, poolConfi
 		timeZoneName: 'short',
 	})
 
-	return poolConfig && (
+	return campaign && (
 		<div className="mx-auto lg:mt-0 lg:col-span-4 lg:flex ">
 			<div className={` sm-bg-auto h-[648px] bg-cover bg-center bg-no-repeat rounded-[26px]`}
-				 style={{backgroundImage: `url('${poolConfig?.img}')`}}
+				 style={{backgroundImage: `url('${campaign?.img}')`}}
 			>
 				<div className="p-8 relative top-[28rem] text-[#DEEFE7] ">
-					<h5 className="font-semibold text-4xl font-['lora']">{poolConfig?.title}</h5>
+					<h5 className="font-semibold text-4xl font-['lora']">{campaign?.title}</h5>
 					<p className="card-text">
-						{poolConfig?.desc}
+						{campaign?.desc}
 					</p>
 					<span className="inline-block text-2xs text-[#DBF227] align-middle">
-						<b>Expiry:</b> {expiryDate}
+						<b>Expiry:</b> {expiryTime}
 					</span>
 				</div>
 			</div>
 		</div>
 	)
 }
-interface CampaignCardProps {
-	poolId: any;
-	collateralTokenAddress: string;
-	divaContractAddress: string;
-	multisig: string;
-}
 
-
-export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractAddress, multisig: walletAddress}: CampaignCardProps) => {
+export const CampaignCard: any = ({ campaign }: { campaign: any }) => {
 	const [balance, setBalance] = useState(0)
-	const { data } = useFeeData({ chainId: 137 })
-	const [amount, setAmount] = useState<any>()
+	const { data } = useFeeData({ chainId: chainConfig.chainId })
+	const [amount, setAmount] = useState<any>() // @todo update types
 	const [goal, setGoal] = useState<any>('')
 	const [raised, setRaised] = useState<any>('')
 	const [toGo, setToGo] = useState<any>('')
@@ -69,24 +67,26 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [poolConfig, setPoolConfig] = useState<any>()
-	const [expiryDate, setExpiryDate] = useState<string>('')
+	const [expiryTime, setExpiryTime] = useState<string>('')
 	const { address: activeAddress, isConnected } = useAccount()
 	const [decimals, setDecimals] = useState()
-	const usdtTokenContract = useERC20Contract(collateralTokenAddress)
-	const [chainId, setChainId] = React.useState('0')
+	const usdtTokenContract = useERC20Contract(campaign.collateralToken) // @todo read from campaign.json
+	const [chainId, setChainId] = React.useState<number>(0)
 	const { chain } = useNetwork()
 	const { openConnectModal } = useConnectModal()
 
+	// @todo needed in the presence of wagmi?
+	// Test the wallet connect feature if wallet is not connected
 	const handleOpen = () => {
 		;(window as any).ethereum.request({
 			method: 'wallet_switchEthereumChain',
-			params: [{ chainId: '0x89' }],
+			params: [{ chainId: chainConfig.chainId }],
 		})
 	}
+
 	useEffect(() => {
 		if (chain) {
-			setChainId(ethers.utils.hexlify(chain.id))
+			setChainId(chain.id)
 		}
 	}, [chain])
 
@@ -96,7 +96,7 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 			if (sanitized > 0 && usdtTokenContract != null) {
 				const allowance = await usdtTokenContract.allowance(
 					activeAddress,
-					divaContractAddress
+					campaign.divaContractAddress
 				)
 				if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
 					setApproveEnabled(false)
@@ -110,25 +110,22 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 				setDonateEnabled(false)
 			}
 		}
-		if (chainId === '0x89' && activeAddress != null) {
+		if (chainId === chainConfig.chainId && activeAddress != null) {
 			checkAllowance()
 		}
-		pools.forEach((pool: any) => {
-			if (pool.poolId == poolId){
-				setPoolConfig(pool)
-			}
-		})
 	}, [activeAddress, amount, decimals, chainId, usdtTokenContract])
+	
 	useEffect(() => {
+		console.log('Entered here')
 		const getDecimals = async () => {
-			if (chainId === '0x89' && usdtTokenContract != null) {
+			if (chainId === chainConfig.chainId && usdtTokenContract != null) {
 				const decimals = await usdtTokenContract.decimals()
 				setDecimals(decimals)
 			}
 		}
 		getDecimals()
 		if (
-			chainId === '0x89' &&
+			chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
@@ -137,12 +134,12 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 				(window as any).ethereum
 			)
 			const divaContract = new ethers.Contract(
-				divaContractAddress,
-				poolId === 8 ? DivaABIold : DivaABI,
-				provider.getSigner()
+				campaign.divaContractAddress,
+				campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
 			)
-			divaContract.getPoolParameters(poolId).then((res: any) => {
-				setExpiryDate(new Date(Number(res.expiryTime) * 1000).toString())
+			divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => { // @todo update hard-coded pools array index
+				setExpiryTime(new Date(Number(res.expiryTime) * 1000).toString())
 				setGoal(
 					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
 						'Unlimited' :
@@ -155,13 +152,15 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 			})
 		}
 	}, [chainId, decimals, donateLoading, activeAddress, usdtTokenContract])
+
 	useEffect(() => {
 		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
 	}, [goal, raised, donateLoading])
+
 	const handleApprove = async () => {
 		setApproveLoading(true)
 		usdtTokenContract
-			.approve(divaContractAddress, parseUnits(amount!.toString(), decimals), {
+			.approve(campaign.divaContractAddress, parseUnits(amount!.toString(), decimals), {
 				gasPrice: data?.gasPrice,
 			})
 			.then((tx: any) => {
@@ -187,18 +186,19 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 				(window as any).ethereum
 			)
 			const divaContract = new ethers.Contract(
-				divaContractAddress,
-				poolId === 8 ? DivaABIold : DivaABI,
+				campaign.divaContractAddress,
+				campaign.campaignConfig.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
 				provider.getSigner()
 			)
 			const decimals = await usdtTokenContract.decimals()
 			setDonateLoading(true)
+			// @todo replace with batchAddLiquidity
 			divaContract
 				.addLiquidity(
-					poolId,
+					campaign.pools[0].poolId, // @todo update
 					parseUnits(amount!.toString(), decimals),
-					poolConfig?.beneficiarySide === 'short' ? activeAddress : walletAddress,
-					poolConfig?.beneficiarySide === 'short' ? walletAddress : activeAddress,
+					campaign.beneficiarySide === 'short' ? activeAddress : campaign.beneficiaryAddress,
+					campaign.beneficiarySide === 'short' ? campaign.beneficiaryAddress : activeAddress,
 					{ gasPrice: data?.maxFeePerGas }
 				)
 				.then((tx: any) => {
@@ -231,18 +231,19 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 				setBalance(tokenAmount)
 			}
 		}
-		if (chainId === '0x89' && activeAddress != null) {
+		if (chainId === chainConfig.chainId && activeAddress != null) {
 			getBalance()
 		}
 	}, [chainId, activeAddress, donateLoading, usdtTokenContract])
 
 	const isDonationExpired = useCallback(() => {
-		return new Date(expiryDate) < new Date() ? true : false
-	}, [expiryDate])
+		return new Date(expiryTime) < new Date() ? true : false
+	}, [expiryTime])
+
 	return (
 		<div className="container relative pt-[5rem] sm:pt-[8rem] md:pt-[8rem]  mx-auto">
 			<div className="grid px-12 gap-[2rem] mx-auto lg:py-16 lg:grid-cols-9">
-				<FortuneDiva expiryDate={expiryDate} poolConfig={poolConfig}/>
+				<FortuneDiva expiryTime={expiryTime} campaign={campaign}/>
 				<div className="lg:col-span-5 mr-[6rem]">
 					<div className="flex-col">
 						<div className="mx-auto  pb-12 bg-[#FFFFFF] border border-gray-200 rounded-[26px] drop-shadow-xl">
@@ -251,14 +252,15 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 							) : (
 								<div className="h-[600px] justify-evenly p-[60px]">
 									<div className="mb-10">
-										{poolId === 8 && (
+										{campaign.campaignId === 'pastoralists_1' && (
 											<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
 												Thank you for providing livestock insurance to
 												pastoralists in Kenya.
 											</p>
 										)
 											}
-										{poolId === '0xf9ea1671ddca4aaad1df33257cd2040c656064c9bb628102dd3c68431d1baaaf' && (
+											{/* @todo Needs improvement here to account for any campaign. Make the message dynamic based on data available in campaign.json */}
+										{campaign.campaignId === 'pastoralists_2' && (
 											<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
 												Thank you for your interest in Hotez vs RFK debate.
 											</p>
@@ -266,7 +268,7 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 									</div>
 									{isConnected ? (
 										<>
-											{chainId === '0x89' ? (
+											{chainId === chainConfig.chainId ? (
 												<>
 													{percentage !== 0 && (
 														<div className="mb-10 w-full bg-[#D6D58E] rounded-[10px]">
@@ -410,8 +412,8 @@ export const CampaignCard: any = ({poolId, collateralTokenAddress, divaContractA
 													</div>
 													<div className="mt-4 mb-3 font-normal font-['Open_Sans'] text-base text-[#042940] flex justify-between items-center">
 														<span>Beneficiary address: </span>
-														<Link target="_blank" href={poolConfig?.donationRecipients[0].url} className="font-normal font-['Open_Sans'] text-[#042940] flex items-center">
-															{getShortenedAddress(poolConfig?.donationRecipients[0].address)}
+														<Link target="_blank" href={campaign?.donationRecipients[0].url} className="font-normal font-['Open_Sans'] text-[#042940] flex items-center">
+															{getShortenedAddress(campaign?.donationRecipients[0].address)}
 															<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-2">
 															<path fill-rule="evenodd" d="M15.75 2.25H21a.75.75 0 01.75.75v5.25a.75.75 0 01-1.5 0V4.81L8.03 17.03a.75.75 0 01-1.06-1.06L19.19 3.75h-3.44a.75.75 0 010-1.5zm-10.5 4.5a1.5 1.5 0 00-1.5 1.5v10.5a1.5 1.5 0 001.5 1.5h10.5a1.5 1.5 0 001.5-1.5V10.5a.75.75 0 011.5 0v8.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V8.25a3 3 0 013-3h8.25a.75.75 0 010 1.5H5.25z" clip-rule="evenodd" />
 															</svg>
