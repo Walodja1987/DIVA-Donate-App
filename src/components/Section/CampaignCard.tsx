@@ -10,7 +10,7 @@ import pools from '../../../config/pools.json' // @todo remove after migration t
 import campaigns from '../../../config/campaigns.json'
 import { Campaign } from '../../types/campaignTypes'
 import Link from "next/link"
-import { getShortenedAddress, formatDate, isExpired } from "../../utils/general"
+import { getShortenedAddress, formatDate, isExpired, isUnlimited } from "../../utils/general"
 import { chainConfig } from "../../constants";
 import { divaContractAddressOld } from "../../constants";
 
@@ -53,12 +53,12 @@ const FortuneDiva: React.FC<{ expiryTimeInMilliseconds: number, campaign: Campai
  * @notice The upper section including the donation widget on individual campaign pages
  */
 export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: string }> = ({ campaign, thankYouMessage }) => {
-	const [balance, setBalance] = useState(0)
+	const [balance, setBalance] = useState<number>(0)
 	const { data } = useFeeData({ chainId: chainConfig.chainId })
-	const [amount, setAmount] = useState<any>() // @todo update types
-	const [goal, setGoal] = useState<any>('') // @todo should be "string" when using toFixed
-	const [raised, setRaised] = useState<any>('') // @todo should be "string" when using toFixed
-	const [toGo, setToGo] = useState<any>('') // @todo should be "string" when using toFixed
+	const [amount, setAmount] = useState<number>()
+	const [goal, setGoal] = useState<number | 'Unlimited'>(0)
+	const [raised, setRaised] = useState<number>(0)
+	const [toGo, setToGo] = useState<number | 'Unlimited'>(0)
 	const [percentage, setPercentage] = useState<number>(0)
 	const [approveEnabled, setApproveEnabled] = useState<boolean>(false)
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
@@ -141,13 +141,15 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 			divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => { // @todo update hard-coded pools array index
 				setExpiryTime(Number(res.expiryTime) * 1000)
 				setGoal(
-					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-						'Unlimited' :
-						Number(formatUnits(res.capacity, decimals)))
+					isUnlimited(res.capacity)
+						? 'Unlimited'
+						: Number(formatUnits(res.capacity, decimals))
+				)
 				setRaised(Number(formatUnits(res.collateralBalance, decimals)))
 				setToGo(
-					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-						'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
+					isUnlimited(res.capacity)
+						? 'Unlimited'
+						: Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
 				)
 			})
 		}
@@ -273,7 +275,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 																Goal
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																{typeof goal !== 'string' && '$' } {goal}
+															{typeof goal === 'number' ? `$${goal.toFixed(0)}` : goal}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
@@ -281,7 +283,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 																Raised
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																${raised}
+																${raised.toFixed(0)}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
@@ -289,7 +291,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 																To go
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																{typeof goal !== 'string' && '$' }{toGo}
+															{typeof toGo === 'number' ? `$${toGo.toFixed(0)}` : toGo}
 															</dd>
 														</div>
 													</div>

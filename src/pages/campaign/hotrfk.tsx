@@ -24,7 +24,7 @@ export default function Pastoralists() {
                 <div className="bg-[#F3FDF8]">
                     <CampaignCard
                         campaign={campaign}
-                        thankYouMessage="Thank you for providing livestock insurance to pastoralists in Kenya..."
+                        thankYouMessage="Thank you for providing livestock insurance to pastoralists in Kenya."
                     />
                 </div>
                 <HRLinkSection />

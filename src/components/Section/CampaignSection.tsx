@@ -15,14 +15,18 @@ import { divaContractAddressOld } from "../../constants";
 import { chainConfig } from "../../constants";
 import { formatDate, isExpired, isUnlimited } from '../../utils/general';
 
+// @todo I think it would be better to use toFixed inside jsx only and not store the values
+// in that format. It's less of a problem if the values are not used for calculations, but if they are
+// used, then it's problematic. Consider adjusting.
+
 /**
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
-	const [goal, setGoal] = useState<{ [campaignId: string]: string | 'Unlimited' }>({})
-	const [raised, setRaised] = useState<{ [campaignId: string]: string }>({})
-	const [toGo, setToGo] = useState<{ [campaignId: string]: string | 'Unlimited' }>({})
-	const [donated, setDonated] = useState<{ [campaignId: string]: string }>({})
+	const [goal, setGoal] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
+	const [raised, setRaised] = useState<{ [campaignId: string]: number }>({})
+	const [toGo, setToGo] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
+	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
 	const [percentage, setPercentage] = useState<{ [campaignId: string]: number }>({})
 	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
 
@@ -45,20 +49,20 @@ export const CampaignSection = () => {
 	const updateRaised = (campaignId: string, tokenAmount: number) => {
 		setRaised((prev) => ({
 			...prev,
-			[campaignId]: tokenAmount.toFixed(0),
+			[campaignId]: tokenAmount,
 		}))
 	}
 
 	const updateToGo = (campaignId: string, tokenAmount: number | 'Unlimited') => {
 		setToGo((prev) => ({
 			...prev,
-			[campaignId]: typeof tokenAmount === 'number' ? tokenAmount.toFixed(0) : tokenAmount,
+			[campaignId]: tokenAmount,
 		}))
 	}
 	const updateGoal = (campaignId: string, tokenAmount: number | 'Unlimited') => {
 		setGoal((prev) => ({
 			...prev,
-			[campaignId]: typeof tokenAmount === 'number' ? tokenAmount.toFixed(0) : tokenAmount,
+			[campaignId]: tokenAmount,
 		}))
 	}
 
@@ -72,7 +76,7 @@ export const CampaignSection = () => {
 	const updateDonated = (campaignId: string, tokenAmount: number) => {
 		setDonated((prev) => ({
 			...prev,
-			[campaignId]: tokenAmount.toFixed(0),
+			[campaignId]: tokenAmount,
 		}))
 	} 
 
@@ -283,7 +287,7 @@ export const CampaignSection = () => {
 																Goal
 															</dt>
 															<dd className="font-normal text-base text-[#042940]">
-																{goal[campaign.campaignId] === 'Unlimited' ? goal[campaign.campaignId] : '$' + goal[campaign.campaignId]}
+																{goal[campaign.campaignId] === 'Unlimited' ? goal[campaign.campaignId] : `$${Number(goal[campaign.campaignId]).toFixed(0)}`}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
@@ -291,7 +295,7 @@ export const CampaignSection = () => {
 																Raised
 															</dt>
 															<dd className="font-normal text-base text-[#042940]">
-																${raised[campaign.campaignId]}
+																${Number(raised[campaign.campaignId]).toFixed(0)}
 															</dd>
 														</div>
 														{/* Add "Donated" box  */}
@@ -301,7 +305,7 @@ export const CampaignSection = () => {
 																	To Go
 																</dt>
 																<dd className="font-normal text-base text-[#042940]">
-																	{toGo[campaign.campaignId] === 'Unlimited' ? toGo[campaign.campaignId] : '$' + toGo[campaign.campaignId]}
+																	{toGo[campaign.campaignId] === 'Unlimited' ? toGo[campaign.campaignId] : `$${Number(toGo[campaign.campaignId]).toFixed(0)}`}
 																</dd>
 															</div>
 														) : (
@@ -310,7 +314,7 @@ export const CampaignSection = () => {
 																	Donated
 																</dt>
 																<dd className="font-normal text-base text-[#042940]">
-																${donated[campaign.campaignId]}
+																${donated[campaign.campaignId].toFixed(0)}
 																</dd>
 															</div>
 														)}
