@@ -83,13 +83,13 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                                     >
                                         <li>
                                             <Link
-                                                href="/campaign/pastoralists"
+                                                href="/campaign/pastoralists-1"
                                                 className={`block px-4 py-2 text-base font-semibold ${
-                                                    hoveredLink === '/campaign/pastoralists'
+                                                    hoveredLink === '/campaign/pastoralists-1'
                                                         ? 'text-[#9FC131]'
                                                         : 'text-[#042940]'
                                                 }`}
-                                                onMouseEnter={() => handleLinkMouseEnter('/campaign/pastoralists')}
+                                                onMouseEnter={() => handleLinkMouseEnter('/campaign/pastoralists-1')}
                                                 onMouseLeave={handleLinkMouseLeave}
                                             >
                                                 Pastoralists in Kenya 1.0
