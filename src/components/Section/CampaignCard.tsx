@@ -4,6 +4,7 @@ import { getTokenBalance } from '../../utils/general'
 import { ethers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { useAccount, useFeeData, useNetwork } from 'wagmi'
+import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import pools from '../../../config/pools.json' // @todo remove after migration to `campaign.json`
@@ -138,11 +139,45 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 				campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
 				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
 			)
-			divaContract.getPoolParameters(campaign.pools[0].poolId).then((res: any) => { // @todo update hard-coded pools array index
-				setExpiryTime(Number(res.expiryTime) * 1000)
-				setGoal(isUnlimited(res.capacity) ? 'Unlimited' : Number(formatUnits(res.capacity, decimals)))
-				setRaised(Number(formatUnits(res.collateralBalance, decimals)))
-				setToGo(isUnlimited(res.capacity) ? 'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals)))
+
+
+			Promise.all(				
+				campaign.pools.map(pool => 
+					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+						return {
+							collateralBalance: res.collateralBalance,
+							capacity: res.capacity
+						}
+					})
+				)
+			).then(poolData => {
+				// Assumes that `expiryTime` for all linked pools is the same.
+				setExpiryTime(Number(poolData[0].expiryTime) * 1000)
+
+				// Aggregate the raised amount across the pools linked to the campaign. Note that using
+				// `collateralBalance` may not equal to raised amount if users choose a different recipient
+				// address during add liquidity.
+				const sumRaisedPools = Number(formatUnits(poolData.reduce((acc, data) => acc.add(data.collateralBalance), ethers.BigNumber.from(0)), decimals))
+				setRaised(sumRaisedPools)
+
+				// Aggregate the total pool capacity
+				let sumCapacityPools: number | 'Unlimited'
+				if (isUnlimited(poolData[0].capacity)) {
+					sumCapacityPools = 'Unlimited'
+				} else {
+					sumCapacityPools = Number(formatUnits((poolData.reduce((acc, data) =>
+						acc.add(data.capacity), ethers.BigNumber.from(0))), decimals))
+				}								
+				setGoal(sumCapacityPools)
+				
+				// Derive ToGo from `sumCapacityPools` and `sumRaisedPools`
+				let sumToGoPools: number | 'Unlimited'
+				if (sumCapacityPools === 'Unlimited') {
+					sumToGoPools = 'Unlimited'
+				} else {
+					sumToGoPools = sumCapacityPools - sumRaisedPools
+				}								
+				setToGo(sumToGoPools)
 			})
 		}
 	}, [chainId, donateLoading, activeAddress, collateralTokenContract])
@@ -256,7 +291,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 							setDonateLoading(false)
 							console.log(err)
 						})
-				});		
+				});
 		}
 	}
 
@@ -304,7 +339,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 										<>
 											{chainId === chainConfig.chainId ? (
 												<>
-													{percentage !== 0 && (
+													{/* {percentage !== 0 && (
 														<div className="mb-10 w-full bg-[#D6D58E] rounded-[10px]">
 														<div
 															className="bg-[#005C53] text-xs font-medium text-blue-100 p-0.5 leading-none rounded-l-full"
@@ -314,8 +349,18 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 															</div>
 														</div>
 													</div>
-													)}
-
+													)} */}
+													{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
+													<Progress
+														className=" mb-3 rounded-[15px]"
+														style={{ background: '#D6D58E' }}
+														colorScheme="green"
+														height="22px"
+														value={percentage}>
+														<ProgressLabel className="text-2xl flex flex-start">
+															<Text fontSize="xs" marginLeft="0.5rem">{percentage.toFixed(1)}%</Text>
+														</ProgressLabel>
+													</Progress>
 													<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-10">
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">

@@ -263,7 +263,8 @@ export const CampaignSection = () => {
 											</p>
 										</div>
 
-										{chainId === chainConfig.chainId ? (
+										{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
+										{chainId === chainConfig.chainId ? (											
 											<Progress
 												className=" mb-3 rounded-[15px]"
 												style={{ background: '#D6D58E' }}

@@ -3,13 +3,13 @@ import type { AppProps } from 'next/app'
 import '@rainbow-me/rainbowkit/styles.css'
 import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
 import { configureChains, createClient, WagmiConfig } from 'wagmi'
-import { polygon } from 'wagmi/chains'
+import { polygon, polygonMumbai } from 'wagmi/chains'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { ChakraProvider } from '@chakra-ui/react'
 import CustomAvatar from '../components/CustomAvatar'
 
 const { chains, provider } = configureChains(
-	[polygon],
+	[polygonMumbai],
 	[alchemyProvider({ apiKey: 'p3-IGmZPQrd-ri5AGlGm4cVm8k1uhCXx' })]
 )
 
