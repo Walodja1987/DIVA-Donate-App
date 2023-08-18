@@ -1,3 +1,4 @@
+import React from 'react';
 import Layout from "../../components/Layout/Layout";
 import { CampaignCard } from "../../components/Section/CampaignCard";
 import { AboutSection } from "../../components/Section/AboutSection";

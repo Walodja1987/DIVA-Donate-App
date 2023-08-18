@@ -7,8 +7,6 @@ import { useAccount, useFeeData, useNetwork } from 'wagmi'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import pools from '../../../config/pools.json' // @todo remove after migration to `campaign.json`
-import campaigns from '../../../config/campaigns.json'
 import { Campaign } from '../../types/campaignTypes'
 import Link from "next/link"
 import { getShortenedAddress, formatDate, isExpired, isUnlimited } from "../../utils/general"
@@ -158,6 +156,10 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 				// Aggregate the raised amount across the pools linked to the campaign. Note that using
 				// `collateralBalance` may not equal to raised amount if users choose a different recipient
 				// address during add liquidity.
+				console.log('decimals', decimals)
+				console.log('poolData.collateralBalance', poolData[0].collateralBalance.toString())
+				console.log('poolData.capacity', poolData[0].capacity.toString())
+
 				const sumRaisedPools = Number(formatUnits(poolData.reduce((acc, data) => acc.add(data.collateralBalance), ethers.BigNumber.from(0)), decimals))
 				setRaised(sumRaisedPools)
 

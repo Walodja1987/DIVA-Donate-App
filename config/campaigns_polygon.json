@@ -9,7 +9,7 @@
         }
       ],      
       "img": "/Images/pastrolists400pxVertical.png",
-      "path": "/campaign/pastoralists",
+      "path": "/campaign/pastoralists-1",
       "title": "Pastoralists 1.0",
       "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya (Marsabit region) to financially assist them in case of drought.",
       "donationRecipients" : [
@@ -41,7 +41,7 @@
         }
       ],
       "img": "/Images/pastrolists400pxVertical.png",
-      "path": "/campaign/hotrfk",
+      "path": "/campaign/pastoralists-2",
       "title": "Pastoralists 2.0",
       "desc": "A conditional donation campaign to provide livestock insurance to 500 pastoralists in Kenya (Kajiado and Laikipia region) to financially assist them in the event of drought.",
       "donationRecipients" : [
