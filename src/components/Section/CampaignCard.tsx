@@ -28,7 +28,7 @@ const DonationExpiredInfo = () => {
 // @todo at the bottom, align the Please connect to Polygon message with the component on the CampaignSection page
 
 const FortuneDiva: React.FC<{ expiryTimeInMilliseconds: number, campaign: Campaign }> = ({ expiryTimeInMilliseconds, campaign }) => {
-	// changing the format to 11 Jun 2023, 11 pm GMT+5:30
+	// Set the date format to "Jun 10, 2023, 11 PM GMT + 1"
 	const expiryTime = formatDate(expiryTimeInMilliseconds)
 
 	return campaign && (
@@ -146,7 +146,8 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
 						return {
 							collateralBalance: res.collateralBalance,
-							capacity: res.capacity
+							capacity: res.capacity,
+							expiryTime: res.expiryTime
 						}
 					})
 				)
@@ -220,41 +221,6 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 				provider.getSigner()
 			)
 			setDonateLoading(true)
-
-			// const sumCapacity = async () => {
-			// 	try {
-			// 	  const promises = campaign.pools.map(async (pool) => {
-			// 		const res = await divaContract.getPoolParameters(pool.poolId)
-			// 		return res.capacity;
-			// 	  })
-			  
-			// 	  const capacities = await Promise.all(promises);
-			// 	  const totalCapacity = capacities.reduce((total, capacity) => total + capacity, 0)
-			  
-			// 	  console.log('Total Capacity:', totalCapacity)
-			// 	} catch (error) {
-			// 	  console.error('Error fetching capacities:', error)
-			// 	}
-			// }
-			  
-			// @todo add weighting
-			// Calculate the sum of capacities
-			// let sumCapacity = 0
-			// let batchAddLiquidityArgs // @todo add typing
-			// Promise.all(
-			// 	campaign.pools.map(pool =>
-			// 		divaContract.getPoolParameters(pool.poolId).then((res: any) => {
-			// 		sumCapacity += res.capacity;
-			// 		})
-			// )
-			// ).then(() => {
-			// 	batchAddLiquidityArgs = campaign.pools.map(pool => ({
-			// 		poolId: pool.poolId,
-			// 		collateralAmountIncr: parseUnits(amount.toString(), decimals),
-			// 		longRecipient: pool.beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address, // @todo update at a later stage to handle multiple donationRecipients
-			// 		shortRecipient: pool.beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress,
-			// 	}))
-			// })
 
 			// @todo test this
 			Promise.all(
