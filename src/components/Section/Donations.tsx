@@ -4,174 +4,217 @@ import {DivaABI, DivaABIold, ERC20ABI} from '../../abi'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAccount, useNetwork } from 'wagmi'
+import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenBalance } from '../../utils/general'
 import { Progress, ProgressLabel, Text } from '@chakra-ui/react'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import pools from '../../../config/pools.json'
-import {getShortenedAddress} from "../../utils/general";
-import {getContract} from "@wagmi/core";
+import AddToMetamaskIcon from '../AddToMetamaskIcon'
+import pools from '../../../config/pools.json' // @todo remove
+import campaigns from '../../../config/campaigns.json'
+import { divaContractAddressOld } from "../../constants";
+import { formatDate, isExpired } from "../../utils/general";
+import { chainConfig } from "../../constants";
+import { getContract } from "@wagmi/core";
 
 export default function Donations() {
-	const divaContractAddress = '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
+	const divaContractAddress = '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D' // @todo remove
 	const [redeemLoading, setRedeemLoading] = useState(false)
-	const [donated, setDonated] = useState<any>()
-	const [balance, setBalance] = useState<any>(null)
-	const [percentage, setPercentage] = useState<any[]>([])
-	const [expiryDate, setExpiryDate] = useState<any>('')
-	const [decimals, setDecimals] = useState(8)
-	const [claimEnabled, setClaimEnabled] = useState()
+	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({}) // @todo update type
+	const [campaignBalance, setCampaignBalance] = useState<{ [campaignId: string]: number }>({})
+	const [poolBalance, setPoolBalance] = useState<{ [poolId: string]: number }>({})
+	const [percentage, setPercentage] = useState<any[]>([]) // @todo update type
+	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
+	const [decimals, setDecimals] = useState(8) // @todo read from campaign.json
+	const [claimEnabled, setClaimEnabled] = useState<{ [campaignId: string]: boolean }>({})
 	const { address: activeAddress, isConnected } = useAccount()
-	const collateralTokenAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F'
+	const collateralTokenAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F' // @todo replace
 	const { chain } = useNetwork()
+	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
-	const usdtTokenContract = useERC20Contract(collateralTokenAddress)
+	const { switchNetwork } = useSwitchNetwork()
+	const usdtTokenContract = useERC20Contract(collateralTokenAddress) // @todo replace
 
-	const [chainId, setChainId] = React.useState('0')
+	const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
+
+	// ----------------------------
+	// Event handlers
+	// ----------------------------
+	// const handleOpen = () => {
+	// 	;(window as any as any).ethereum.request({
+	// 		method: 'wallet_switchEthereumChain',
+	// 		params: [{ chainId: chainConfig.chainId }],
+	// 	})
+	// }
+
+	// 
 	const handleOpen = () => {
-		;(window as any as any).ethereum.request({
-			method: 'wallet_switchEthereumChain',
-			params: [{ chainId: '0x89' }],
-		})
+		switchNetwork?.(chainConfig.chainId)
 	}
 
 	useEffect(() => {
 		if (chain) {
-			setChainId(ethers.utils.hexlify(chain.id))
+			setChainId(chain.id)
 		}
 	}, [chain])
-	const updateBalance = (poolId: string, tokenAmount: number) => {
-		setBalance((prevBalance: any) => ({
-			...prevBalance,
+
+	const updateCampaignBalance = (campaignId: string, tokenAmount: number) => {
+		setCampaignBalance((prev) => ({
+			...prev,
+			[campaignId]: tokenAmount,
+		}));
+	};
+
+	const updatePoolBalance = (poolId: string, tokenAmount: number) => {
+		setPoolBalance((prev) => ({
+			...prev,
 			[poolId]: tokenAmount,
 		}));
 	};
 
-	const updateClaimEnabled = (poolId: string, enabled: boolean) => {
-		setClaimEnabled((prevEnabled: any) => ({
-			...prevEnabled,
-			[poolId]: enabled,
+	const updateClaimEnabled = (campaignId: string, enabled: boolean) => {
+		setClaimEnabled((prev) => ({
+			...prev,
+			[campaignId]: enabled,
 		}));
 	};
 
-	const updateDonated = (poolId: string, value: any) => {
-		setDonated((prevDonated: any) => ({
-			...prevDonated,
-			[poolId]: value,
+	const updateDonated = (campaignId: string, value: number) => {
+		setDonated((prev) => ({
+			...prev,
+			[campaignId]: value,
 		}));
 	};
 
-	const updateExpiryDate = (poolId: string, date: any) => {
-		setExpiryDate((prevDate: any) => ({
-			...prevDate,
-			[poolId]: date,
+	const updateExpiryTime = (campaignId: string, expiryTimeInMilliseconds: number) => {
+		setExpiryTime((prev) => ({
+			...prev,
+			[campaignId]: expiryTimeInMilliseconds,
 		}));
 	};
 
-	useEffect(() => {
-		const getDecimals = async () => {
-			if (chainId === '0x89' && usdtTokenContract != null) {
-				const decimals = await usdtTokenContract.decimals();
-				setDecimals(decimals);
+	// @todo Duplicated in CampaignSection component. Move into general.tsx
+	const handleAddToMetamask = async (campaign: any) => {		
+		for (const pool of campaign.pools) {
+			const token = getContract({
+				address: pool.positionToken,
+				abi: ERC20ABI,
+				signerOrProvider: wagmiProvider
+			})
+			const decimals = await token.decimals()
+			const symbol = await token.symbol()													
+		
+			try {
+				await (window as any).ethereum.request({
+					method: 'wallet_watchAsset',
+					params: {
+						type: 'ERC20',
+						options: {
+							address: pool.positionToken,
+							symbol: symbol,
+							decimals: decimals,
+							image:
+								'https://res.cloudinary.com/dphrdrgmd/image/upload/v1641730802/image_vanmig.png',
+						},
+					} as any,
+				})
+			} catch (error) {
+				console.error('Error in HandleAddMetaMask', error)
 			}
-		};
-		getDecimals();
+		}														
+	}
+
+	// Update state variables for all campaigns in `campaigns.json`
+	useEffect(() => {
 		if (
-			chainId === '0x89' &&
+			chainId === chainConfig.chainId &&
 			activeAddress != null &&
-			pools != null &&
 			typeof window !== 'undefined' &&
 			typeof window.ethereum !== 'undefined'
 		) {
-			const provider = new ethers.providers.Web3Provider(window.ethereum as any);
-			const divaContract = new ethers.Contract(
-				divaContractAddress,
-				DivaABI,
-				provider.getSigner()
-			);
-			const divaContractOld = new ethers.Contract(
-				'0xFf7d52432B19521276962B67FFB432eCcA609148',
-				DivaABIold,
-				provider.getSigner()
-			);
 
-			pools.forEach((pool) => {
-					const tokenContract = new ethers.Contract(
-						pool.positionToken,
-						ERC20ABI,
-						provider.getSigner()
-					);
-					getTokenBalance(tokenContract, activeAddress).then((result) => {
-						const tokenAmount = Number(
-							formatUnits(result?.balance, result?.decimals)
-						);
-						if (tokenAmount === 0) {
-							updateClaimEnabled(pool.poolId, false);
-						} else {
-							updateClaimEnabled(pool.poolId, true);
-						}
-						updateBalance(pool.poolId, tokenAmount);
-					});
-			});
+			campaigns.forEach(campaign => {
+				// More efficient to simply store the decimals in `campaigns.json` rather than doing many RPC requests
+				const decimals = campaign.decimals
 
-			if (balance != null) {
-				divaContractOld.getPoolParameters(8).then((res: any) => {
-					if (res.payoutLong.gt(0)) {
-						updateClaimEnabled('8', true);
-					} else {
-						updateClaimEnabled('8', false);
-					}
-					updateDonated('8', formatUnits(
-						res.payoutShort.mul(balance['8'] ? parseUnits(balance['8']?.toString(), decimals) : parseUnits('0', decimals))
-					));
-					updateExpiryDate('8', new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
-						undefined,
-						{
-							day: 'numeric',
-							month: 'short',
-							year: 'numeric',
-							hour: '2-digit',
-							hour12: true,
-							timeZoneName: 'short',
-						}
-					));
-				});
+				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
+				// version of the DIVA Protocol contract. All subsequent campaigns are using the audited final version.
+				const divaContract = getContract({
+					address: campaign.divaContractAddress,
+					abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+					signerOrProvider: wagmiProvider,
+				})
 
-				pools.forEach((pool) => {
-					if (pool.poolId !== '8' && balance[pool.poolId]) {
-						divaContract.getPoolParameters(pool.poolId).then((res: any) => {
-							if (res.payoutLong.gt(0)) {
-								updateClaimEnabled(pool.poolId, true);
-							} else {
-								updateClaimEnabled(pool.poolId, false);
+				// Check the user's position token balances for the campaigns in order to determine, which
+				// campaigns to show on the page
+				Promise.all(
+					campaign.pools.map(pool => {
+						// It's ok to pull the balance of the position token that the beneficiary received
+						// as it's the same amount that the donor received of the opposite token
+						const positionTokenContract = getContract({
+							address: pool.positionToken,
+							abi: ERC20ABI,
+							signerOrProvider: wagmiProvider,
+						})
+
+						return getTokenBalance(positionTokenContract, activeAddress).then(res => {
+							const balance = Number(formatUnits(res?.balance, decimals))
+							updatePoolBalance(pool.poolId, balance)
+							return {
+								campaignId: campaign.campaignId,
+								poolId: pool.poolId,
+								balance: balance
 							}
-							updateDonated(pool.poolId, formatUnits(
-								res.payoutShort.mul(parseUnits(balance[pool.poolId]?.toString(), decimals))
-							));
-							updateExpiryDate(pool.poolId, new Date(Number(res.expiryTime) * 1000).toLocaleDateString(
-								undefined,
-								{
-									day: 'numeric',
-									month: 'short',
-									year: 'numeric',
-									hour: '2-digit',
-									hour12: true,
-									timeZoneName: 'short',
+						})
+					})					
+				).then(tokenData => {
+					const sumTokenBalance = Number(formatUnits(tokenData.reduce((acc, data) => acc.add(data.balance), ethers.BigNumber.from(0)), decimals))
+					updateCampaignBalance(campaign.campaignId, sumTokenBalance)
+
+					Promise.all(
+						tokenData.map(pool => {
+							return divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+								return {
+									campaignId: pool.campaignId,
+									poolId: pool.poolId,
+									balance: pool.balance,
+									expiryTime: res.expiryTime,
+									payoutLong: res.payoutLong,
+									payoutShort: res.payoutShort
 								}
-							));
-						});
-					}
-				});
-			}
+							})
+						})
+					).then(data => {
+						// Assumes that `expiryTime` for all linked pools is the same.
+						// `campaignId` is the same for all items in the `data` array, hence it's
+						// ok to use the `campaignId` of the first item (`data[0]`)
+						updateExpiryTime(data[0].campaignId, Number(data[0].expiryTime) * 1000)
+						const sumDonated = Number(formatUnits(data.reduce((acc, data) => acc.add(data.payoutShort.mul(data.balance)), ethers.BigNumber.from(0)), decimals))
+						updateDonated(campaign.campaignId, sumDonated)
+
+						// if (balance != null) {
+						// divaContract.getPoolParameters(campaign.campaignId).then((res: any) => {
+						// 	if (res.payoutLong.gt(0)) {
+						// 		updateClaimEnabled(campaign.campaignId, true);
+						// 	} else {
+						// 		updateClaimEnabled(campaign.campaignId, false);
+						// 	}
+						// 	// updateDonated(campaign.campaignId, Number(formatUnits(
+						// 	// 	res.payoutShort.mul(balance[campaign.campaignId] ? parseUnits(balance[campaign.campaignId]?.toString(), decimals) : ethers.BigNumber.from(0))
+						// 	// )));
+						// 	// updateExpiryTime(campaign.campaignId, Number(res.expiryTime) * 1000);
+						// })
+						// }
+					})
+				})
 		}
-	}, [chainId, decimals, activeAddress, pools, !balance, claimEnabled == null]);
+	}, [chainId, decimals, activeAddress, pools, !campaignBalance, claimEnabled == null]);
 
 
 	return (
 		<div className="pt-[5rem] pb-[200px] sm:pt-[8rem] md:pt-[8rem] my-auto mx-auto px-4">
-			{chainId === '0x89' && isConnected && (<div className="pb-10 flex flex-col items-center justify-center">
+			{chainId === chainConfig.chainId && isConnected && (<div className="pb-10 flex flex-col items-center justify-center">
 				<h1 className="font-lora text-[60px]">My Donations</h1>
 				<div
 					className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
@@ -179,96 +222,65 @@ export default function Donations() {
 				</div>
 			</div>)}
 			<div className="flex flex-row gap-10 justify-center">
-			{pools.map((pool) => {
-				if (balance != undefined && balance[pool.poolId] > 0) {
+			{campaigns.map((campaign) => {
+				if (campaignBalance != undefined && campaignBalance[campaign.campaignId] > 0) {
 				return (
 					// eslint-disable-next-line react/jsx-key
 						<div
 							className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md ">
-							<a href="#">
+							<Link href={campaign.path}>
 								<Image
 									className="h-[300px] rounded-t-[16px] object-cover"
 									width="800"
 									height="800"
-									src={pool.img}
+									src={campaign.img}
 									alt="Modern building architecture"
 								/>
 								<div className="relative -mt-10">
 									<div
-										className="text-2xs pt-1 pl-2 bg-[#DBF227] w-[320px] h-[40px] rounded-tr-[3.75rem] text-left text-green-[#042940]">
-									<span className="mt-1 inline-block align-middle">
-										<b>Expiry:</b> {expiryDate[pool.poolId]}
-									</span>
+									className={`
+										${expiryTime[campaign.campaignId] && isConnected ? '' : 'invisible'} // Add 'invisible' class conditionally
+										${isExpired(expiryTime[campaign.campaignId]) ? 'bg-[#005C53] text-white' : 'bg-[#DBF227] text-green-[#042940]'}
+										text-2xs pt-1 pl-2 w-[320px] h-[40px] rounded-tr-[3.75rem] text-left
+									`}
+									>
+									{expiryTime[campaign.campaignId] && (
+										<span className="mt-1 inline-block align-middle">
+										<b>{isExpired(expiryTime[campaign.campaignId]) ? 'Completed' : 'Expiry:'}</b>
+										{isExpired(expiryTime[campaign.campaignId])
+											? null
+											: ` ${formatDate(expiryTime[campaign.campaignId])}`}
+										</span>
+									)}
 									</div>
 								</div>
-							</a>
+							</Link>
 							<div className="p-5">
 								<h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 text-[#042940]">
-									Fortune DIVA
+									{campaign.title}
+									<button onClick={() => handleAddToMetamask(campaign)}>
+										<AddToMetamaskIcon />
+									</button>
 								</h5>
-								<div className="text-indigo-600 flex items-center dark:text-indigo-400">
-									<span className="text-slate-400 font-normal">#{getShortenedAddress(pool.poolId)}</span>
-									<Link onClick={
-										async () => {
-											const provider = new ethers.providers.Web3Provider((window as any).ethereum)
-											const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
-											const decimal = await token.decimals()
-											const symbol = await token.symbol()
-											try {
-												await (window as any).ethereum.request({
-													method: 'wallet_watchAsset',
-													params: {
-														type: 'ERC20',
-														options: {
-															address: pool.positionToken,
-															symbol: symbol,
-															decimals: decimal,
-														},
-													} as any,
-												})
-											} catch (error) {
-												console.error('Error in HandleAddMetaMask', error)
-											}
-										}
-									} href="">
-										<svg
-											width="16"
-											height="16"
-											viewBox="0 0 16 16"
-											fill="none"
-											xmlns="http://www.w3.org/2000/svg"
-											className="ml-2">
-											<g clipPath="url(#clip0_270_567)">
-												<path
-													d="M8 0C6.41775 0 4.87103 0.469192 3.55544 1.34824C2.23985 2.22729 1.21447 3.47672 0.608967 4.93853C0.00346629 6.40034 -0.15496 8.00888 0.153721 9.56072C0.462403 11.1126 1.22433 12.538 2.34315 13.6569C3.46197 14.7757 4.88743 15.5376 6.43928 15.8463C7.99113 16.155 9.59966 15.9965 11.0615 15.391C12.5233 14.7855 13.7727 13.7602 14.6518 12.4446C15.5308 11.129 16 9.58225 16 8C15.9977 5.87897 15.1541 3.84547 13.6543 2.34568C12.1545 0.845886 10.121 0.00229405 8 0V0ZM10.6667 8.66667H8.66667V10.6667C8.66667 10.8435 8.59643 11.013 8.47141 11.1381C8.34638 11.2631 8.17682 11.3333 8 11.3333C7.82319 11.3333 7.65362 11.2631 7.5286 11.1381C7.40358 11.013 7.33334 10.8435 7.33334 10.6667V8.66667H5.33334C5.15653 8.66667 4.98696 8.59643 4.86193 8.47141C4.73691 8.34638 4.66667 8.17681 4.66667 8C4.66667 7.82319 4.73691 7.65362 4.86193 7.5286C4.98696 7.40357 5.15653 7.33333 5.33334 7.33333H7.33334V5.33333C7.33334 5.15652 7.40358 4.98695 7.5286 4.86193C7.65362 4.73691 7.82319 4.66667 8 4.66667C8.17682 4.66667 8.34638 4.73691 8.47141 4.86193C8.59643 4.98695 8.66667 5.15652 8.66667 5.33333V7.33333H10.6667C10.8435 7.33333 11.0131 7.40357 11.1381 7.5286C11.2631 7.65362 11.3333 7.82319 11.3333 8C11.3333 8.17681 11.2631 8.34638 11.1381 8.47141C11.0131 8.59643 10.8435 8.66667 10.6667 8.66667Z"
-													fill="#898989"
-												/>
-											</g>
-											<defs>
-												<clipPath id="clip0_270_567">
-													<rect width="16" height="16" fill="white"/>
-												</clipPath>
-											</defs>
-										</svg>
-									</Link>
-								</div>
-
 								<div className=" h-[100px] mb-5 border-b-2 border-[#9FC131]">
 									<p className="mb-3 font-normal text-[#000000]">
-										{pool.desc}
+										{campaign.desc}
 									</p>
 								</div>
 
-								{/*<Progress*/}
-								{/*	className=" mb-3 rounded-[20px]"*/}
-								{/*	style={{ background: '#D6D58E' }}*/}
-								{/*	colorScheme="green"*/}
-								{/*	height="22px"*/}
-								{/*	value={percentage}>*/}
-								{/*	<ProgressLabel className="text-2xl flex flex-start">*/}
-								{/*		<Text fontSize="xs">{percentage}%</Text>*/}
-								{/*	</ProgressLabel>*/}
-								{/*</Progress>*/}
+								{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
+								{chainId === chainConfig.chainId ? (											
+									<Progress
+										className=" mb-3 rounded-[15px]"
+										style={{ background: '#D6D58E' }}
+										colorScheme="green"
+										height="22px"
+										value={percentage[campaign.campaignId]}>
+										<ProgressLabel className="text-2xl flex flex-start">
+											<Text fontSize="xs" marginLeft="0.5rem">{percentage[campaign.campaignId]?.toFixed(1)}%</Text>
+										</ProgressLabel>
+									</Progress>
+								) : <div className="h-[30px]"></div>}
 
 								<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
 									<div className="flex flex-col items-center justify-center">
@@ -335,6 +347,7 @@ export default function Donations() {
 												const longTokenBalance = await longTokenContract.balanceOf(activeAddress)
 
 												setRedeemLoading(true)
+												// @todo Implement batchRedeemPositionToken
 												diva
 													.redeemPositionToken(pool.positionToken, longTokenBalance)
 													.then((tx: any) => {
@@ -368,7 +381,7 @@ export default function Donations() {
 			}
 			})}
 			</div>
-				{chainId === '0x89' && balance?.length == 0 && isConnected ? (
+				{chainId === chainConfig.chainId && balance?.length == 0 && isConnected ? (
 				<div className="pb-[23rem] flex flex-col items-center justify-center">
 					<h1 className="font-lora text-[60px]">My Donations</h1>
 					<div className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
@@ -383,7 +396,7 @@ export default function Donations() {
 						</button>
 					</Link>
 				</div>
-			) : chainId !== '0x89' && (
+			) : chainId !== chainConfig.chainId && (
 				<div className="flex flex-col items-center justify-center ">
 					<h1 className="font-lora text-[60px]">My Donations</h1>
 					<div className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">

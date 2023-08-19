@@ -3,7 +3,7 @@ import { useERC20Contract } from '../../utils/hooks/useContract'
 import { getTokenBalance } from '../../utils/general'
 import { ethers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { useAccount, useFeeData, useNetwork } from 'wagmi'
+import { useAccount, useSwitchNetwork, useFeeData, useProvider, useNetwork } from 'wagmi'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
@@ -12,6 +12,7 @@ import Link from "next/link"
 import { getShortenedAddress, formatDate, isExpired, isUnlimited } from "../../utils/general"
 import { chainConfig } from "../../constants";
 import { divaContractAddressOld } from "../../constants";
+import { getContract } from "@wagmi/core";
 
 const DonationExpiredInfo = () => {
 	return (
@@ -69,15 +70,20 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 	const decimals = campaign.decimals
 	const [chainId, setChainId] = React.useState<number>(0)
 	const { chain } = useNetwork()
+	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
+	const { switchNetwork } = useSwitchNetwork()
 
 	// @todo needed in the presence of wagmi?
 	// Test the wallet connect feature if wallet is not connected
+	// const handleOpen = () => {
+	// 	;(window as any).ethereum.request({
+	// 		method: 'wallet_switchEthereumChain',
+	// 		params: [{ chainId: chainConfig.chainId }],
+	// 	})
+	// }
 	const handleOpen = () => {
-		;(window as any).ethereum.request({
-			method: 'wallet_switchEthereumChain',
-			params: [{ chainId: chainConfig.chainId }],
-		})
+		switchNetwork?.(chainConfig.chainId)
 	}
 
 	useEffect(() => {
@@ -128,19 +134,15 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
-		) {
-			const provider = new ethers.providers.Web3Provider(
-				(window as any).ethereum
-			)
-			const divaContract = new ethers.Contract(
-				campaign.divaContractAddress,
-				campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
-				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
-			)
+		) {			
+			const divaContract = getContract({
+				address: campaign.divaContractAddress,
+				abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				signerOrProvider: wagmiProvider,
+			})
 
-
-			Promise.all(				
-				campaign.pools.map(pool => 
+			Promise.all(
+				campaign.pools.map(pool =>
 					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
 						return {
 							collateralBalance: res.collateralBalance,
@@ -156,10 +158,6 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 				// Aggregate the raised amount across the pools linked to the campaign. Note that using
 				// `collateralBalance` may not equal to raised amount if users choose a different recipient
 				// address during add liquidity.
-				console.log('decimals', decimals)
-				console.log('poolData.collateralBalance', poolData[0].collateralBalance.toString())
-				console.log('poolData.capacity', poolData[0].capacity.toString())
-
 				const sumRaisedPools = Number(formatUnits(poolData.reduce((acc, data) => acc.add(data.collateralBalance), ethers.BigNumber.from(0)), decimals))
 				setRaised(sumRaisedPools)
 
@@ -214,14 +212,11 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 	}
 	const handleDonation = async () => {
 		if (amount != null) {
-			const provider = new ethers.providers.Web3Provider(
-				(window as any).ethereum
-			)
-			const divaContract = new ethers.Contract(
-				campaign.divaContractAddress,
-				campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
-				provider.getSigner()
-			)
+			const divaContract = getContract({
+				address: campaign.divaContractAddress,
+				abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				signerOrProvider: wagmiProvider,
+			})
 			setDonateLoading(true)
 
 			// @todo test this

@@ -34,9 +34,7 @@ export const CampaignSection = () => {
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
-
 	const { switchNetwork } = useSwitchNetwork()
-
 	const [chainId, setChainId] = React.useState<number>(0)
 
 	// ----------------------------
@@ -87,11 +85,14 @@ export const CampaignSection = () => {
 		}))
 	}	
 
-	const handleAddToMetamask = async (campaign: any) => {
-			const provider = new ethers.providers.Web3Provider((window as any).ethereum)
-			
+	// @todo Duplicated in Donations component. Move into general.tsx
+	const handleAddToMetamask = async (campaign: any) => {		
 			for (const pool of campaign.pools) {
-				const token = new ethers.Contract(pool.positionToken, ERC20ABI, provider.getSigner())
+				const token = getContract({
+					address: pool.positionToken,
+					abi: ERC20ABI,
+					signerOrProvider: wagmiProvider
+				})
 				const decimals = await token.decimals()
 				const symbol = await token.symbol()													
 			
@@ -189,6 +190,8 @@ export const CampaignSection = () => {
 							toGoAmount = Number(goalAmount) - raisedAmount
 							percentage = raisedAmount / goalAmount * 100
 						}
+
+						// @todo Question: return the different variables here rather than having them defined as "let" at the top?
 					});
 				});
 			
