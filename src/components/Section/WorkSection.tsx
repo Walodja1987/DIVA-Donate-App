@@ -7,7 +7,7 @@ export const WorkSection = () => (
         How it works
       </h1>
     </div>
-    <hr className="w-48 h-[8px] bg-[#9FC131] border-0 rounded-[20px] mx-auto" />
+    <hr className="w-48 h-[8px] bg-[#9FC131] border-0 rounded-[20px] mx-auto mt-5" />
     <div className="bg-deep-purple-accent-700">
       <div className="px-4 py-16 mx-auto sm:max-w-xl md:max-w-full lg:max-w-screen-xl md:px-24 lg:px-8 lg:py-20">
         <div className="flex flex-col mb-16 hidden sm:hidden md:hidden lg:block xl:block 2xl:block sm:mb-0">

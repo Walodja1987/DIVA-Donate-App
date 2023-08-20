@@ -27,6 +27,7 @@ export default function Donations() {
 	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
 	const [decimals, setDecimals] = useState(8) // @todo read from campaign.json
 	const [claimEnabled, setClaimEnabled] = useState<{ [campaignId: string]: boolean }>({})
+	const [campaignsParticipated, setCampaignsParticipated] = useState(0)
 	const { address: activeAddress, isConnected } = useAccount()
 	const collateralTokenAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F' // @todo replace
 	const { chain } = useNetwork()
@@ -91,7 +92,50 @@ export default function Donations() {
 			...prev,
 			[campaignId]: percentage,
 		}))
-	}	
+	}
+
+	const handleClaim = async (campaign: any) => {
+		const provider = new ethers.providers.Web3Provider(
+			(window as any).ethereum
+		)
+		const diva = campaign.campaignId === 'pastoralists_1' ? new ethers.Contract(
+			divaContractAddress,
+			DivaABIold,
+			provider.getSigner()
+		) :  new ethers.Contract(
+			divaContractAddress,
+			DivaABI,
+			provider.getSigner()
+		)
+
+		const longTokenContract = new ethers.Contract(
+			campaign.pools[0].positionToken, // @todo temporarily using pools 0
+			ERC20ABI,
+			provider.getSigner()
+		)
+
+		const longTokenBalance = await longTokenContract.balanceOf(activeAddress)
+
+		setRedeemLoading(true)
+		// @todo Implement batchRedeemPositionToken
+		diva
+			.redeemPositionToken(campaign.pools[0].positionToken, longTokenBalance)
+			.then((tx: any) => {
+				tx.wait()
+					.then(() => {
+						setRedeemLoading(false)
+						console.log('success')
+					})
+					.catch((err: any) => {
+						setRedeemLoading(false)
+						console.log(err)
+					})
+			})
+			.catch((err: any) => {
+				setRedeemLoading(false)
+				console.log(err)
+			})
+	}
 
 	// @todo Duplicated in CampaignSection component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {
@@ -141,10 +185,11 @@ export default function Donations() {
 			typeof window !== 'undefined' &&
 			typeof window.ethereum !== 'undefined'
 		) {
+			let countCampaignsParticipated = 0
 
 			campaigns.forEach(campaign => {
 				// More efficient to simply store the decimals in `campaigns.json` rather than doing many RPC requests
-				const decimals = campaign.decimals
+				const decimals = campaign.decimals				
 
 				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
 				// version of the DIVA Protocol contract. All subsequent campaigns are using the audited final version.
@@ -185,6 +230,11 @@ export default function Donations() {
 					).then(poolDataWithBalance => {
 						const sumTokenBalanceFormatted = Number(formatUnits(poolDataWithBalance.reduce((acc, data) => acc.add(data.balance), ethers.BigNumber.from(0)), decimals))
 						updateCampaignBalance(campaign.campaignId, sumTokenBalanceFormatted)
+						
+						
+						if (sumTokenBalanceFormatted > 0) {
+							countCampaignsParticipated += 1
+						}
 
 						// @todo Assumes that the beneficiary side for all the pools linked to a campaign are the same
 						let sumDonated
@@ -203,29 +253,47 @@ export default function Donations() {
 						// `campaignId` is the same for all items in the `data` array, hence it's
 						// ok to use the `campaignId` of the first item (`data[0]`)
 						updateExpiryTime(campaign.campaignId, Number(poolDataWithBalance[0].poolData.expiryTime) * 1000)
-						poolDataWithBalance[0].poolData.statusFinalReferenceValue === 3 ? updateClaimEnabled(campaign.campaignId, true) : updateClaimEnabled(campaign.campaignId, false)
+
+						// Enable claim button only if the final value has been confirmed and there is something to claim.
+						// Accounts for 0.3% fee that is withheld by DIVA Protocol at claim time.
+						poolDataWithBalance[0].poolData.statusFinalReferenceValue === 3 && Math.floor(sumTokenBalanceFormatted*0.997 - sumDonatedFormatted) > 0  ? updateClaimEnabled(campaign.campaignId, true) : updateClaimEnabled(campaign.campaignId, false)
+					}).then(() => {
+						setCampaignsParticipated(countCampaignsParticipated)
 					})
 				})
 			})
+			
 		}
 	}, [chainId, decimals, activeAddress, pools, !campaignBalance, claimEnabled == null]);
 
-
+	// @todo Navigating from Donations to Home breaks the app
 	return (
 		<div className="pt-[5rem] pb-[200px] sm:pt-[8rem] md:pt-[8rem] my-auto mx-auto px-4">
-			{chainId === chainConfig.chainId && isConnected && (<div className="pb-10 flex flex-col items-center justify-center">
-				<h1 className="font-lora text-[60px]">My Donations</h1>
-				<div
-					className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
-					{' '}
+			<div className="pb-10 flex flex-col items-center justify-center">
+				<h1 className="font-lora text-[60px]">
+					My Donations
+				</h1>
+				<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
+			</div>
+			{campaignsParticipated === 0 && (			
+				<div className="pb-[23rem] flex flex-col items-center justify-center">
+					<p className="mt-[60px]">{`You have already claimed your donations or you haven't made any donations yet`}</p>
+					<Link href="/">
+						<button
+							type="button"
+							className="mt-10 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
+							Explore Campaigns
+						</button>
+					</Link>
 				</div>
-			</div>)}
+			)}
 			<div className="flex flex-row gap-10 justify-center">
 			{campaigns.map((campaign) => {
 				if (campaignBalance[campaign.campaignId] > 0) {
-				return (
+					return (
 					// eslint-disable-next-line react/jsx-key
-						<div key={campaign.campaignId}
+						<div 
+							key={campaign.campaignId}
 							className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md ">
 							<Link href={campaign.path}>
 								<Image
@@ -280,26 +348,61 @@ export default function Donations() {
 										</ProgressLabel>
 									</Progress>
 								) : <div className="h-[30px]"></div>}
-
-								<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
-									<div className="flex flex-col items-center justify-center">
-										<dt className="mb-2 font-medium text-xl text-[#042940]">
-											Committed
-										</dt>
-
-										<dd className="font-normal text-base text-[#042940] ">
-											${campaignBalance && !isNaN(campaignBalance[campaign.campaignId]) ? Number(campaignBalance[campaign.campaignId]).toFixed(2) : 0.00}
-										</dd>
+							
+								{isConnected ? (
+									<>
+										{chainId === chainConfig.chainId ? (
+										<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
+											<div className="flex flex-col items-center justify-center">
+												<dt className="mb-2 font-medium text-xl text-[#042940]">
+													Committed
+												</dt>
+												<dd className="font-normal text-base text-[#042940] ">
+													${campaignBalance && !isNaN(campaignBalance[campaign.campaignId]) ? Number(campaignBalance[campaign.campaignId]).toFixed(1) : 0.0}
+												</dd>
+											</div>
+											<div className="flex flex-col items-center justify-center">
+												<dt className="mb-2 font-medium text-xl text-[#042940]">
+													Donated
+												</dt>
+												<dd className="font-normal text-base text-[#042940] ">
+													${donated && !isNaN(donated[campaign.campaignId]) ? Number(donated[campaign.campaignId]).toFixed(1) : 0.0}
+												</dd>
+											</div>
+										</div>
+										) : (
+											<div className="mb-10 flex flex-col items-center justify-center ">
+												<div className=" flex items-center justify-center">
+													Please
+													<span>
+														<button
+															className="p-2 text-blue-600"
+															onClick={handleOpen}
+														>
+															connect
+														</button>
+													</span>
+													{` to the ${chainConfig.name} network.`}
+												</div>
+											</div>
+										)}
+									</>
+								) : (
+									<div className="mb-10 flex flex-col items-center justify-center ">
+										<div className=" flex items-center justify-center">
+											Please
+											<span>
+												<button
+													className="p-2 text-blue-600"
+													onClick={openConnectModal}
+												>
+													connect
+												</button>
+											</span>
+											{` to the ${chainConfig.name} network.`}
+										</div>
 									</div>
-									<div className="flex flex-col items-center justify-center">
-										<dt className="mb-2 font-medium text-xl text-[#042940]">
-											Donated
-										</dt>
-										<dd className="font-normal text-base text-[#042940] ">
-											${donated && !isNaN(donated[campaign.campaignId]) ? Number(donated[campaign.campaignId]).toFixed(2) : 0.00}
-										</dd>
-									</div>
-								</div>
+								)}
 								{redeemLoading ? (
 									<div role="status" className="flex justify-center mt-4">
 										<svg
@@ -321,114 +424,19 @@ export default function Donations() {
 									</div>
 								) : (
 									<button
-										disabled={claimEnabled ? claimEnabled[campaign.campaignId] : true}
-										onClick={
-											async () => {
-												const provider = new ethers.providers.Web3Provider(
-													(window as any).ethereum
-												)
-												const diva = campaign.campaignId === 'pastoralists_1' ? new ethers.Contract(
-													divaContractAddress,
-													DivaABIold,
-													provider.getSigner()
-												) :  new ethers.Contract(
-													divaContractAddress,
-													DivaABI,
-													provider.getSigner()
-												)
-
-												const longTokenContract = new ethers.Contract(
-													campaign.pools[0].positionToken, // @todo temporarily using pools 0
-													ERC20ABI,
-													provider.getSigner()
-												)
-
-												const longTokenBalance = await longTokenContract.balanceOf(activeAddress)
-
-												setRedeemLoading(true)
-												// @todo Implement batchRedeemPositionToken
-												diva
-													.redeemPositionToken(campaign.pools[0].positionToken, longTokenBalance)
-													.then((tx: any) => {
-														tx.wait()
-															.then(() => {
-																setRedeemLoading(false)
-																console.log('success')
-															})
-															.catch((err: any) => {
-																setRedeemLoading(false)
-																console.log(err)
-															})
-													})
-													.catch((err: any) => {
-														setRedeemLoading(false)
-														console.log(err)
-													})
-											}
-
-										}
+										disabled={!claimEnabled[campaign.campaignId]}
+										onClick={() => handleClaim(campaign)}
 										type="button"
 										className="disabled:hover:bg-[#042940] disabled:opacity-25 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
-										Claim Donated Amount
+										Claim Unfunded Amount
 									</button>
 								)}
 							</div>
 						</div>
-
-			// }
-				)
-			}
+					)
+				}
 			})}
 			</div>
-				{chainId === chainConfig.chainId && campaignBalance?.length == 0 && isConnected ? (
-				<div className="pb-[23rem] flex flex-col items-center justify-center">
-					<h1 className="font-lora text-[60px]">My Donations</h1>
-					<div className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
-						{' '}
-					</div>
-					<p className="mt-[140px]">{`You have already claimed your donations or you haven't made any donations yet`}</p>
-					<Link href="/">
-						<button
-							type="button"
-							className="mt-10 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
-							Explore Campaigns
-						</button>
-					</Link>
-				</div>
-			) : chainId !== chainConfig.chainId && (
-				<div className="flex flex-col items-center justify-center ">
-					<h1 className="font-lora text-[60px]">My Donations</h1>
-					<div className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">
-						{' '}
-					</div>
-					{isConnected ? (
-						<div className="pt-10 flex items-center justify-center">
-							Please{' '}
-							<span>
-								<button className="p-2 text-blue-600" onClick={handleOpen}>
-									{' '}
-									connect
-								</button>
-							</span>{' '}
-							to the Polygon network.
-						</div>
-					) : (
-						<div className="mb-10 flex flex-col items-center justify-center pt-10">
-							<div className=" flex items-center justify-center">
-								Please{' '}
-								<span>
-									<button
-										className="p-2 text-blue-600"
-										onClick={openConnectModal}>
-										connect
-									</button>
-								</span>{' '}
-								Wallet.
-							</div>
-						</div>
-					)}
-				</div>
-			)}
-		</div>
+			</div>
 	)
 }

@@ -340,11 +340,12 @@ export const CampaignSection = () => {
 														<span>
 															<button
 																className="p-2 text-blue-600"
-																onClick={handleOpen}>
+																onClick={handleOpen}
+															>
 																connect
 															</button>
 														</span>
-														{` to the ${chainConfig.name} network.`}															
+														{` to the ${chainConfig.name} network.`}
 													</div>
 												</div>
 											)}
@@ -356,7 +357,8 @@ export const CampaignSection = () => {
 												<span>
 													<button
 														className="p-2 text-blue-600"
-														onClick={openConnectModal}>
+														onClick={openConnectModal}
+													>
 														connect
 													</button>
 												</span>
