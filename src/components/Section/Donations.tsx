@@ -23,8 +23,7 @@ export default function Donations() {
 	const [redeemLoading, setRedeemLoading] = useState(false)
 	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({}) // @todo update type
 	const [campaignBalance, setCampaignBalance] = useState<{ [campaignId: string]: number }>({})
-	const [poolBalance, setPoolBalance] = useState<{ [poolId: string]: number }>({})
-	const [percentage, setPercentage] = useState<any[]>([]) // @todo update type
+	const [percentageDonated, setPercentageDonated] = useState<{ [campaignId: string]: number }>({})
 	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
 	const [decimals, setDecimals] = useState(8) // @todo read from campaign.json
 	const [claimEnabled, setClaimEnabled] = useState<{ [campaignId: string]: boolean }>({})
@@ -66,13 +65,6 @@ export default function Donations() {
 		}));
 	};
 
-	const updatePoolBalance = (poolId: string, tokenAmount: number) => {
-		setPoolBalance((prev) => ({
-			...prev,
-			[poolId]: tokenAmount,
-		}));
-	};
-
 	const updateClaimEnabled = (campaignId: string, enabled: boolean) => {
 		setClaimEnabled((prev) => ({
 			...prev,
@@ -94,16 +86,32 @@ export default function Donations() {
 		}));
 	};
 
+	const updatePercentageDonated = (campaignId: string, percentage: number) => {
+		setPercentageDonated((prev) => ({
+			...prev,
+			[campaignId]: percentage,
+		}))
+	}	
+
 	// @todo Duplicated in CampaignSection component. Move into general.tsx
-	const handleAddToMetamask = async (campaign: any) => {		
+	const handleAddToMetamask = async (campaign: any) => {
 		for (const pool of campaign.pools) {
+			const divaContract = getContract({
+				address: campaign.divaContractAddress,
+				abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				signerOrProvider: wagmiProvider,
+			})
+
+			const poolParams = await divaContract.getPoolParameters(pool.poolId)
+			const donorPositionToken = pool.beneficiarySide === 'short' ? poolParams.longToken : poolParams.shortToken
+
 			const token = getContract({
-				address: pool.positionToken,
+				address: donorPositionToken,
 				abi: ERC20ABI,
 				signerOrProvider: wagmiProvider
 			})
 			const decimals = await token.decimals()
-			const symbol = await token.symbol()													
+			const symbol = await token.symbol()
 		
 			try {
 				await (window as any).ethereum.request({
@@ -111,7 +119,7 @@ export default function Donations() {
 					params: {
 						type: 'ERC20',
 						options: {
-							address: pool.positionToken,
+							address: donorPositionToken,
 							symbol: symbol,
 							decimals: decimals,
 							image:
@@ -146,68 +154,59 @@ export default function Donations() {
 					signerOrProvider: wagmiProvider,
 				})
 
-				// Check the user's position token balances for the campaigns in order to determine, which
-				// campaigns to show on the page
+				// Get pool parameters for the underlying campaign, check user's position token balance and
+				// calculate donated amount.
 				Promise.all(
 					campaign.pools.map(pool => {
-						// It's ok to pull the balance of the position token that the beneficiary received
-						// as it's the same amount that the donor received of the opposite token
-						const positionTokenContract = getContract({
-							address: pool.positionToken,
-							abi: ERC20ABI,
-							signerOrProvider: wagmiProvider,
+						// @todo Replace with multicall at a later stage
+						return divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+							return res
 						})
-
-						return getTokenBalance(positionTokenContract, activeAddress).then(res => {
-							const balance = Number(formatUnits(res?.balance, decimals))
-							updatePoolBalance(pool.poolId, balance)
-							return {
-								campaignId: campaign.campaignId,
-								poolId: pool.poolId,
-								balance: balance
-							}
-						})
-					})					
-				).then(tokenData => {
-					const sumTokenBalance = Number(formatUnits(tokenData.reduce((acc, data) => acc.add(data.balance), ethers.BigNumber.from(0)), decimals))
-					updateCampaignBalance(campaign.campaignId, sumTokenBalance)
-
+					})
+				).then(poolData => {
 					Promise.all(
-						tokenData.map(pool => {
-							return divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+						poolData.map(pool => {
+							// Assumes that beneficiarySide is the same for all pools linked to a campaign
+							const userPositionToken = campaign.pools[0].beneficiarySide === 'short' ? pool.longToken : pool.shortToken
+							
+							const positionTokenContract = getContract({
+								address: userPositionToken,
+								abi: ERC20ABI,
+								signerOrProvider: wagmiProvider,
+							})
+
+							return getTokenBalance(positionTokenContract, activeAddress).then(res => {
 								return {
-									campaignId: pool.campaignId,
-									poolId: pool.poolId,
-									balance: pool.balance,
-									expiryTime: res.expiryTime,
-									payoutLong: res.payoutLong,
-									payoutShort: res.payoutShort
+									poolData: pool,
+									balance: res?.balance // User's position token balance in the pool. Unformatted balance for easier handling when multiplying with payout amount
 								}
 							})
 						})
-					).then(data => {
+					).then(poolDataWithBalance => {
+						const sumTokenBalanceFormatted = Number(formatUnits(poolDataWithBalance.reduce((acc, data) => acc.add(data.balance), ethers.BigNumber.from(0)), decimals))
+						updateCampaignBalance(campaign.campaignId, sumTokenBalanceFormatted)
+
+						// @todo Assumes that the beneficiary side for all the pools linked to a campaign are the same
+						let sumDonated
+						if (campaign.pools[0].beneficiarySide === 'short') {
+							sumDonated = poolDataWithBalance.reduce((acc, data) => acc.add(data.poolData.payoutShort.mul(data.balance)), ethers.BigNumber.from(0))
+						} else {
+							sumDonated = poolDataWithBalance.reduce((acc, data) => acc.add(data.poolData.payoutLong.mul(data.balance)), ethers.BigNumber.from(0))
+						}
+						
+						const sumDonatedFormatted = Number(formatUnits(sumDonated.div(parseUnits('1', decimals)), decimals))
+						updateDonated(campaign.campaignId, sumDonatedFormatted)
+
+						updatePercentageDonated(campaign.campaignId, sumDonatedFormatted / sumTokenBalanceFormatted * 100) // @todo Update with actual value
+
 						// Assumes that `expiryTime` for all linked pools is the same.
 						// `campaignId` is the same for all items in the `data` array, hence it's
 						// ok to use the `campaignId` of the first item (`data[0]`)
-						updateExpiryTime(data[0].campaignId, Number(data[0].expiryTime) * 1000)
-						const sumDonated = Number(formatUnits(data.reduce((acc, data) => acc.add(data.payoutShort.mul(data.balance)), ethers.BigNumber.from(0)), decimals))
-						updateDonated(campaign.campaignId, sumDonated)
-
-						// if (balance != null) {
-						// divaContract.getPoolParameters(campaign.campaignId).then((res: any) => {
-						// 	if (res.payoutLong.gt(0)) {
-						// 		updateClaimEnabled(campaign.campaignId, true);
-						// 	} else {
-						// 		updateClaimEnabled(campaign.campaignId, false);
-						// 	}
-						// 	// updateDonated(campaign.campaignId, Number(formatUnits(
-						// 	// 	res.payoutShort.mul(balance[campaign.campaignId] ? parseUnits(balance[campaign.campaignId]?.toString(), decimals) : ethers.BigNumber.from(0))
-						// 	// )));
-						// 	// updateExpiryTime(campaign.campaignId, Number(res.expiryTime) * 1000);
-						// })
-						// }
+						updateExpiryTime(campaign.campaignId, Number(poolDataWithBalance[0].poolData.expiryTime) * 1000)
+						poolDataWithBalance[0].poolData.statusFinalReferenceValue === 3 ? updateClaimEnabled(campaign.campaignId, true) : updateClaimEnabled(campaign.campaignId, false)
 					})
 				})
+			})
 		}
 	}, [chainId, decimals, activeAddress, pools, !campaignBalance, claimEnabled == null]);
 
@@ -223,10 +222,10 @@ export default function Donations() {
 			</div>)}
 			<div className="flex flex-row gap-10 justify-center">
 			{campaigns.map((campaign) => {
-				if (campaignBalance != undefined && campaignBalance[campaign.campaignId] > 0) {
+				if (campaignBalance[campaign.campaignId] > 0) {
 				return (
 					// eslint-disable-next-line react/jsx-key
-						<div
+						<div key={campaign.campaignId}
 							className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md ">
 							<Link href={campaign.path}>
 								<Image
@@ -275,9 +274,9 @@ export default function Donations() {
 										style={{ background: '#D6D58E' }}
 										colorScheme="green"
 										height="22px"
-										value={percentage[campaign.campaignId]}>
+										value={percentageDonated[campaign.campaignId]}>
 										<ProgressLabel className="text-2xl flex flex-start">
-											<Text fontSize="xs" marginLeft="0.5rem">{percentage[campaign.campaignId]?.toFixed(1)}%</Text>
+											<Text fontSize="xs" marginLeft="0.5rem">{percentageDonated[campaign.campaignId]?.toFixed(1)}%</Text>
 										</ProgressLabel>
 									</Progress>
 								) : <div className="h-[30px]"></div>}
@@ -289,7 +288,7 @@ export default function Donations() {
 										</dt>
 
 										<dd className="font-normal text-base text-[#042940] ">
-											${balance && !isNaN(balance[pool.poolId]) ? Number(balance[pool.poolId]).toFixed(2) : 0.00}
+											${campaignBalance && !isNaN(campaignBalance[campaign.campaignId]) ? Number(campaignBalance[campaign.campaignId]).toFixed(2) : 0.00}
 										</dd>
 									</div>
 									<div className="flex flex-col items-center justify-center">
@@ -297,7 +296,7 @@ export default function Donations() {
 											Donated
 										</dt>
 										<dd className="font-normal text-base text-[#042940] ">
-											${donated && !isNaN(donated[pool.poolId]) ? Number(donated[pool.poolId]).toFixed(2) : 0.00}
+											${donated && !isNaN(donated[campaign.campaignId]) ? Number(donated[campaign.campaignId]).toFixed(2) : 0.00}
 										</dd>
 									</div>
 								</div>
@@ -322,13 +321,13 @@ export default function Donations() {
 									</div>
 								) : (
 									<button
-										disabled={claimEnabled ? claimEnabled[pool.poolId] : true}
+										disabled={claimEnabled ? claimEnabled[campaign.campaignId] : true}
 										onClick={
 											async () => {
 												const provider = new ethers.providers.Web3Provider(
 													(window as any).ethereum
 												)
-												const diva = pool.poolId === '8' ? new ethers.Contract(
+												const diva = campaign.campaignId === 'pastoralists_1' ? new ethers.Contract(
 													divaContractAddress,
 													DivaABIold,
 													provider.getSigner()
@@ -339,7 +338,7 @@ export default function Donations() {
 												)
 
 												const longTokenContract = new ethers.Contract(
-													pool.positionToken,
+													campaign.pools[0].positionToken, // @todo temporarily using pools 0
 													ERC20ABI,
 													provider.getSigner()
 												)
@@ -349,7 +348,7 @@ export default function Donations() {
 												setRedeemLoading(true)
 												// @todo Implement batchRedeemPositionToken
 												diva
-													.redeemPositionToken(pool.positionToken, longTokenBalance)
+													.redeemPositionToken(campaign.pools[0].positionToken, longTokenBalance)
 													.then((tx: any) => {
 														tx.wait()
 															.then(() => {
@@ -381,7 +380,7 @@ export default function Donations() {
 			}
 			})}
 			</div>
-				{chainId === chainConfig.chainId && balance?.length == 0 && isConnected ? (
+				{chainId === chainConfig.chainId && campaignBalance?.length == 0 && isConnected ? (
 				<div className="pb-[23rem] flex flex-col items-center justify-center">
 					<h1 className="font-lora text-[60px]">My Donations</h1>
 					<div className="bg-[#9FC131] w-[200px] text-xs font-medium text-blue-100 text-center p-0.5 leading-none ">

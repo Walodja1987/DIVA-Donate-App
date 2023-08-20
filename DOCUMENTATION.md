@@ -18,12 +18,15 @@ If any modifications to the file structure are required, make sure to mirror the
 
 ### Multiple pools
 
-A campaign can link multiple pools. A few important notes when linking multiple pools to a campaign:
+A campaign can link multiple pools. A few important notes when linking multiple pools to a campaign, considering the current version of the app:
 - All linked pools should either have unlimited capacities or limited capacities. Mixing the two types will break the app's functionality.
 - The donation amount will be split between among the linked pools based on their assigned capacities. For example, if pool A is assigned USDT 15'000 as capacity and pool B USDT 30'000, then a USDT 300 donation will be split USDT 100 into pool A and USDT 200 into pool B.
 - The raised and donated amounts can be hard-coded in `campaigns.json` on **campaign level**. This is to remove the reliance on indexer's like The Graph.
 - All pools linked to a campaign must share the same expiry time and utilize the same collateral token.
+- The beneficiary side for all the pools linked to a campaign should be the same.
 - Manual provision of the `decimals` value for the collateral token is required to minimize the need for frequent RPC calls.
+
+With further improvements of the app, above restrictions can be further relaxed.
 
 ### Overwrites
 

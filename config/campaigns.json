@@ -57,5 +57,37 @@
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "80001"
+  },
+  {
+    "campaignId": "pastoralists_3",
+    "pools": [
+      {
+        "poolId": "0xa4d48998a0d7457a392ebd1ef2508d04a3bd401feb31c56545245c14da1465e9",
+        "beneficiarySide": "short",
+        "positionToken": "0x5D6D5a64cbA98E1dB8Ab8f2F08Da0E8A86f244bf"
+      },
+      {
+        "poolId": "0x00c2040515d65e94c99754a2439a859aa72f3d721d593074f664da0ea02b22f6",
+        "beneficiarySide": "short",
+        "positionToken": "0x0CBF0559ff0b26E09fD8c73E149E2Cdba7b1d65d"
+      }
+    ],
+    "img": "/Images/pastrolists400pxVertical.png",
+    "path": "/campaign/pastoralists-3",
+    "title": "Pastoralists 3.0",
+    "desc": "A conditional donation campaign to provide livestock insurance to 500 pastoralists in Kenya (Kajiado and Laikipia region) to financially assist them in the event of drought.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
+        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xbA99068Cb134ADdf11d437dbD99e9ae5032832c5",
+    "decimals": "6",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "80001"
   }
 ]

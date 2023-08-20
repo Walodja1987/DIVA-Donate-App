@@ -212,11 +212,22 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 	}
 	const handleDonation = async () => {
 		if (amount != null) {
-			const divaContract = getContract({
-				address: campaign.divaContractAddress,
-				abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
-				signerOrProvider: wagmiProvider,
-			})
+			// const divaContract = getContract({
+			// 	address: campaign.divaContractAddress,
+			// 	abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+			// 	signerOrProvider: wagmiProvider,
+			// })
+
+			// @todo somehow the above doesn't work... Check why that's the case
+			const provider = new ethers.providers.Web3Provider(
+				(window as any).ethereum
+			)
+			const divaContract = new ethers.Contract(
+				campaign.divaContractAddress,
+				campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
+			)
+
 			setDonateLoading(true)
 
 			// @todo test this
