@@ -19,6 +19,8 @@ import { formatDate, isExpired, isUnlimited } from '../../utils/general';
 // in that format. It's less of a problem if the values are not used for calculations, but if they are
 // used, then it's problematic. Consider adjusting.
 
+// @todo Fix "Donated" in CampaignSection on Home page
+
 /**
  * @notice Campaign section on the Home page
  */
@@ -76,14 +78,14 @@ export const CampaignSection = () => {
 			...prev,
 			[campaignId]: tokenAmount,
 		}))
-	} 
+	}
 
 	const updatePercentage = (campaignId: string, percentage: number) => {
 		setPercentage((prev) => ({
 			...prev,
 			[campaignId]: percentage,
 		}))
-	}	
+	}
 
 	// @todo Duplicated in Donations component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {		
@@ -328,7 +330,7 @@ export const CampaignSection = () => {
 																Donated
 															</dt>
 															<dd className="font-normal text-base text-[#042940]">
-															${donated[campaign.campaignId].toFixed(0)}
+															${donated[campaign.campaignId] ? donated[campaign.campaignId].toFixed(0) : 0}
 															</dd>
 														</div>
 													)}

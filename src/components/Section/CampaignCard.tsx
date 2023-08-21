@@ -13,6 +13,16 @@ import { getShortenedAddress, formatDate, isExpired, isUnlimited } from "../../u
 import { chainConfig } from "../../constants";
 import { divaContractAddressOld } from "../../constants";
 import { getContract } from "@wagmi/core";
+import {
+	Alert,
+	AlertIcon,
+	AlertTitle,
+	AlertDescription,
+	Box,
+	CloseButton,
+	useDisclosure,
+	Button
+  } from "@chakra-ui/react";
 
 const DonationExpiredInfo = () => {
 	return (
@@ -21,6 +31,34 @@ const DonationExpiredInfo = () => {
 				This campaign has expired. Stayed tuned for the next one.
 			</div>
 		</div>
+	)
+}
+
+function AlertBox() {
+	const {
+		isOpen: isVisible,
+		onClose,
+	} = useDisclosure({ defaultIsOpen: true })
+
+	return isVisible ? (
+		<Alert status='success'>
+		<AlertIcon />
+		<Box>
+			<AlertTitle>Donation deposited! 🙏</AlertTitle>
+			<AlertDescription>
+			Help us to improve our product by particating in our <Link href="www.divaprotocol.io" className='text-blue-800'></Link>
+			</AlertDescription>
+		</Box>
+		<CloseButton
+			alignSelf='flex-start'
+			position='relative'
+			right={-1}
+			top={-1}
+			onClick={onClose}
+		/>
+		</Alert>
+	) : (
+		null
 	)
 }
 
@@ -64,6 +102,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
+	const [showAlert, setShowAlert] = useState<boolean>(false)
 	const [expiryTime, setExpiryTime] = useState<number>(0)
 	const { address: activeAddress, isConnected } = useAccount()
 	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
@@ -198,7 +237,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 					.then(() => {
 						setApproveEnabled(false)
 						setDonateEnabled(true)
-						setApproveLoading(false)
+						setApproveLoading(false)			
 					})
 					.catch((err: any) => {
 						setApproveLoading(false)
@@ -259,6 +298,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 					.then((tx: any) => {
 						tx.wait().then(() => {
 							setDonateLoading(false)
+							setShowAlert(true)
 						})
 					})
 					.catch((err: any) => {
@@ -325,6 +365,10 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 													</div>
 													)} */}
 													{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
+													{showAlert && 
+														<AlertBox />
+													}
+													
 													<Progress
 														className=" mb-3 rounded-[15px]"
 														style={{ background: '#D6D58E' }}
