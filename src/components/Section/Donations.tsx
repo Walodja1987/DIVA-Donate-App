@@ -24,11 +24,22 @@ import {
 	ContractCallResults,
 	ContractCallContext,
   } from 'ethereum-multicall';
+import {
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalHeader,
+	ModalFooter,
+	ModalBody,
+	ModalCloseButton,
+	Button,
+	useDisclosure
+} from '@chakra-ui/react'
   
 
 export default function Donations() {
 	const [redeemLoading, setRedeemLoading] = useState<{ [campaignId: string]: boolean }>({})
-	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({}) // @todo update type
+	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
 	const [campaignBalance, setCampaignBalance] = useState<{ [campaignId: string]: number }>({})
 	const [percentageDonated, setPercentageDonated] = useState<{ [campaignId: string]: number }>({})
 	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
@@ -42,6 +53,12 @@ export default function Donations() {
 	const { switchNetwork } = useSwitchNetwork()
 
 	const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
+
+	const {
+		isOpen,
+		onClose,
+		onOpen
+	} = useDisclosure({ defaultIsOpen: false })
 
 	// ----------------------------
 	// Event handlers
@@ -269,6 +286,7 @@ export default function Donations() {
 						tx.wait()
 							.then(() => {
 								updateRedeemLoading(campaign.campaignId, false)
+								onOpen()
 								console.log('success')
 							})
 							.catch((err: any) => {
@@ -496,17 +514,38 @@ export default function Donations() {
 								</div>
 
 								{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-								{chainId === chainConfig.chainId ? (											
-									<Progress
-										className=" mb-3 rounded-[15px]"
-										style={{ background: '#D6D58E' }}
-										colorScheme="green"
-										height="22px"
-										value={percentageDonated[campaign.campaignId]}>
-										<ProgressLabel className="text-2xl flex flex-start">
-											<Text fontSize="xs" marginLeft="0.5rem">{percentageDonated[campaign.campaignId]?.toFixed(1)}%</Text>
-										</ProgressLabel>
-									</Progress>
+								{chainId === chainConfig.chainId ? (
+									<>
+										<Modal isCentered isOpen={isOpen} onClose={onClose}>
+											<ModalOverlay bg='blackAlpha.300'
+												backdropFilter='blur(5px)'
+											/>
+											<ModalContent>
+											<ModalHeader>🍀 Unfunded successfully claimed! </ModalHeader>
+											<ModalCloseButton />
+											<ModalBody>
+												Help us improve our product by participating in our <span className='font-semibold'>survey</span>
+											</ModalBody>
+
+											<ModalFooter>
+												<Button variant='ghost' mr={3} onClick={onClose}>
+												No Thanks
+												</Button>
+												<Button colorScheme='blue'><Link href="https://o26wxmqxfy2.typeform.com/to/FwmhnSq7" target="_blank" rel="noopener noreferrer">Take Survey</Link></Button>
+											</ModalFooter>
+											</ModalContent>
+										</Modal>
+										<Progress
+											className=" mb-3 rounded-[15px]"
+											style={{ background: '#D6D58E' }}
+											colorScheme="green"
+											height="22px"
+											value={percentageDonated[campaign.campaignId]}>
+											<ProgressLabel className="text-2xl flex flex-start">
+												<Text fontSize="xs" marginLeft="0.5rem">{percentageDonated[campaign.campaignId]?.toFixed(1)}%</Text>
+											</ProgressLabel>
+										</Progress>
+									</>
 								) : <div className="h-[30px]"></div>}
 							
 								{isConnected ? (

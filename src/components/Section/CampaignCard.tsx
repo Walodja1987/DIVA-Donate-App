@@ -14,25 +14,16 @@ import { chainConfig } from "../../constants";
 import { divaContractAddressOld } from "../../constants";
 import { getContract } from "@wagmi/core";
 import {
-	Alert,
-	AlertIcon,
-	AlertTitle,
-	AlertDescription,
-	Box,
-	CloseButton,
-	useDisclosure,
-	Button
-  } from "@chakra-ui/react";
-  import {
 	Modal,
 	ModalOverlay,
 	ModalContent,
 	ModalHeader,
 	ModalFooter,
 	ModalBody,
-	ModalCloseButton
-  } from '@chakra-ui/react'
-  import { CheckCircleIcon } from '@chakra-ui/icons'
+	ModalCloseButton,
+	Button,
+	useDisclosure
+} from '@chakra-ui/react'
   
 
 const DonationExpiredInfo = () => {
@@ -355,25 +346,25 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 													</div>
 													)} */}
 													{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-														<Modal isCentered isOpen={isOpen} onClose={onClose}>
-															<ModalOverlay bg='blackAlpha.300'
-																backdropFilter='blur(5px)'
-															/>
-															<ModalContent>
-															<ModalHeader>🙏 Thank you for your Donation! </ModalHeader>
-															<ModalCloseButton />
-															<ModalBody>
-																Help us improve our product by participating in our <span className='font-semibold'>survey</span>
-															</ModalBody>
+													<Modal isCentered isOpen={isOpen} onClose={onClose}>
+														<ModalOverlay bg='blackAlpha.300'
+															backdropFilter='blur(5px)'
+														/>
+														<ModalContent>
+														<ModalHeader>🙏 Thank you for your Donation! </ModalHeader>
+														<ModalCloseButton />
+														<ModalBody>
+															Help us improve our product by participating in our <span className='font-semibold'>survey</span>
+														</ModalBody>
 
-															<ModalFooter>
-																<Button variant='ghost' mr={3} onClick={onClose}>
-																No Thanks
-																</Button>
-																<Button colorScheme='blue'><Link href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy" target="_blank" rel="noopener noreferrer">Take Survey</Link></Button>
-															</ModalFooter>
-															</ModalContent>
-														</Modal>
+														<ModalFooter>
+															<Button variant='ghost' mr={3} onClick={onClose}>
+															No Thanks
+															</Button>
+															<Button colorScheme='blue'><Link href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy" target="_blank" rel="noopener noreferrer">Take Survey</Link></Button>
+														</ModalFooter>
+														</ModalContent>
+													</Modal>
 													
 													<Progress
 														className=" mb-3 rounded-[15px]"
