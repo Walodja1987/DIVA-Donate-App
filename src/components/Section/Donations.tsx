@@ -250,8 +250,7 @@ export default function Donations() {
 					return res
 				})
 			})
-		)
-		.then((poolData: Pool[]) => {
+		).then((poolData: Pool[]) => {
 			Promise.all(
 				poolData.map((pool: Pool) => {
 					// Assumes that beneficiarySide is the same for all pools linked to a campaign
@@ -286,8 +285,7 @@ export default function Donations() {
 						tx.wait()
 							.then(() => {
 								updateRedeemLoading(campaign.campaignId, false)
-								onOpen()
-								console.log('success')
+								onOpen() // Open Success Modal
 							})
 							.catch((err: any) => {
 								updateRedeemLoading(campaign.campaignId, false)
@@ -431,8 +429,6 @@ export default function Donations() {
 						// Accounts for 0.3% fee that is withheld by DIVA Protocol at claim time.
 						const currentStatusFinalReferenceValue = poolDataWithBalance[0].poolData.statusFinalReferenceValue
 						currentStatusFinalReferenceValue === 3 && Math.floor(sumTokenBalanceFormatted*0.997 - sumDonatedFormatted) > 0  ? updateClaimEnabled(campaign.campaignId, true) : updateClaimEnabled(campaign.campaignId, false)
-						console.log('campaign.campaignId', campaign.campaignId)
-						console.log('currentStatusFinalReferenceValue', currentStatusFinalReferenceValue)
 						updateStatusFinalReferenceValue(campaign.campaignId, currentStatusFinalReferenceValue)
 					}).then(() => {
 						setCampaignsParticipated(countCampaignsParticipated)
@@ -441,7 +437,7 @@ export default function Donations() {
 			})
 			
 		}
-	}, [chainId, activeAddress, pools, !campaignBalance, claimEnabled == null]);
+	}, [chainId, activeAddress, pools, !campaignBalance, claimEnabled == null, isOpen === false]);
 
 	// @todo Navigating from Donations to Home breaks the app
 	return (
@@ -521,7 +517,7 @@ export default function Donations() {
 												backdropFilter='blur(5px)'
 											/>
 											<ModalContent>
-											<ModalHeader>🍀 Unfunded successfully claimed! </ModalHeader>
+											<ModalHeader>🍀 You have successfully claimed the unfunded! </ModalHeader>
 											<ModalCloseButton />
 											<ModalBody>
 												Help us improve our product by participating in our <span className='font-semibold'>survey</span>
@@ -619,7 +615,6 @@ export default function Donations() {
 												fill="currentFill"
 											/>
 										</svg>
-										<span className="sr-only">Loading...</span>
 									</div>
 								) : (
 									<button

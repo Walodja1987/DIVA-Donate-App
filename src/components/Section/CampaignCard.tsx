@@ -76,7 +76,6 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [showAlert, setShowAlert] = useState<boolean>(false)
 	const [expiryTime, setExpiryTime] = useState<number>(0)
 	const { address: activeAddress, isConnected } = useAccount()
 	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
@@ -259,6 +258,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 			).then(capacities => {
 				const sumCapacity = capacities.reduce((acc, capacity) => acc.add(capacity), ethers.BigNumber.from(0))
 			
+				// Prepare args for `batchAddLiquidity` smart contract call
 				const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
 					const collateralAmountIncr = parseUnits(amount.toString(), decimals).mul(capacities[index]).div(sumCapacity)
 				
@@ -278,8 +278,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 					.then((tx: any) => {
 						tx.wait().then(() => {
 							setDonateLoading(false)
-							setShowAlert(true)
-							onOpen()
+							onOpen() // Open Success Modal
 						})
 					})
 					.catch((err: any) => {
@@ -520,7 +519,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 															<div style={{ width: '50%' }} role="status">
 																<svg
 																	aria-hidden="true"
-																	className="w-9 h-9 ml-20 mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+																	className="w-9 h-9 mx-auto mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
 																	viewBox="0 0 100 101"
 																	fill="none"
 																	xmlns="http://www.w3.org/2000/svg">
@@ -533,7 +532,6 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 																		fill="currentFill"
 																	/>
 																</svg>
-																<span className="sr-only">Loading...</span>
 															</div>
 														) : (
 															<button
@@ -550,7 +548,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 															<div style={{ width: '50%' }} role="status">
 																<svg
 																	aria-hidden="true"
-																	className="w-9 h-9 ml-20 mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+																	className="w-9 h-9 mx-auto mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
 																	viewBox="0 0 100 101"
 																	fill="none"
 																	xmlns="http://www.w3.org/2000/svg">
@@ -563,7 +561,6 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 																		fill="currentFill"
 																	/>
 																</svg>
-																<span className="sr-only">Loading...</span>
 															</div>
 														) : (
 															<button

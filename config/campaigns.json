@@ -62,14 +62,14 @@
     "campaignId": "pastoralists_3",
     "pools": [
       {
-        "poolId": "0x0879f7b1455da011882981f974835570a6a77f2a6f0f4cf0f5d7fe3d78a11cbe",
+        "poolId": "0x1dba16ebb34efd67ab07c6bb0aea81b37eb81ca66fce0eb8d640da526685f7e3",
         "beneficiarySide": "short",
-        "positionToken": "0xC2D190676639eaB8aEAfC86565b52BaD5Ea52b23"
+        "positionToken": "0xb68Ca5960D6B94892a8B74595a6EdFab75b9f7C6"
       },
       {
-        "poolId": "0x54dcfd6478685e3f45ecc6c1afafbe31cf739cdd5c377e9bcd64d07961269a7e",
+        "poolId": "0xc388171a3d8c8c0522cfa014bd15411ce8b671c087a3f32bf4a5fad3ee17d8f7",
         "beneficiarySide": "short",
-        "positionToken": "0x6d87C8CD5bDff5F2394B7441b728A8440Df5BFE9"
+        "positionToken": "0x274B8a54369744a250a733feFA1C689Ec7C3ec1e"
       }
     ],
     "img": "/Images/pastrolists400pxVertical.png",
