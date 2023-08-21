@@ -237,35 +237,35 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 					return res.capacity
 				  })
 				)
-			  ).then(capacities => {
-					const sumCapacity = capacities.reduce((acc, capacity) => acc.add(capacity), ethers.BigNumber.from(0))
+			).then(capacities => {
+				const sumCapacity = capacities.reduce((acc, capacity) => acc.add(capacity), ethers.BigNumber.from(0))
+			
+				const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
+					const collateralAmountIncr = parseUnits(amount.toString(), decimals).mul(capacities[index]).div(sumCapacity)
 				
-					const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
-						const collateralAmountIncr = parseUnits(amount.toString(), decimals).mul(capacities[index]).div(sumCapacity)
-					
-						return {
-							poolId: pool.poolId,
-							collateralAmountIncr: collateralAmountIncr,
-							longRecipient: pool.beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address,
-							shortRecipient: pool.beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress,
-						}
-					})
-					
-					divaContract
-						.batchAddLiquidity(
-							batchAddLiquidityArgs,
-							{ gasPrice: data?.maxFeePerGas }
-						)
-						.then((tx: any) => {
-							tx.wait().then(() => {
-								setDonateLoading(false)
-							})
-						})
-						.catch((err: any) => {
+					return {
+						poolId: pool.poolId,
+						collateralAmountIncr: collateralAmountIncr,
+						longRecipient: pool.beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address,
+						shortRecipient: pool.beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress,
+					}
+				})
+				
+				divaContract
+					.batchAddLiquidity(
+						batchAddLiquidityArgs,
+						{ gasPrice: data?.maxFeePerGas }
+					)
+					.then((tx: any) => {
+						tx.wait().then(() => {
 							setDonateLoading(false)
-							console.log(err)
 						})
-				});
+					})
+					.catch((err: any) => {
+						setDonateLoading(false)
+						console.log(err)
+					})
+			});
 		}
 	}
 

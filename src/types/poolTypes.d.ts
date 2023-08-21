@@ -1,0 +1,21 @@
+export type Pool = {
+    floor: string;
+    inflection: string;
+    cap: string;
+    gradient: string;
+    collateralBalance: string;
+    finalReferenceValue: string;
+    capacity: string;
+    statusTimestamp: string;
+    shortToken: string;
+    payoutShort: string;
+    longToken: string;
+    payoutLong: string;
+    collateralToken: string;
+    expiryTime: string;
+    dataProvider: string;
+    indexFees: string;
+    indexSettlementPeriods: string;
+    statusFinalReferenceValue: string;
+    referenceAsset: string;
+};

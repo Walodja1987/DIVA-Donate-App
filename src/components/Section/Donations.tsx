@@ -17,10 +17,12 @@ import { divaContractAddressOld } from "../../constants";
 import { formatDate, isExpired } from "../../utils/general";
 import { chainConfig } from "../../constants";
 import { getContract } from "@wagmi/core";
+import { Campaign } from '../../types/campaignTypes'
+import { Pool } from '../../types/poolTypes'
 
 export default function Donations() {
 	const divaContractAddress = '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D' // @todo remove
-	const [redeemLoading, setRedeemLoading] = useState(false)
+	const [redeemLoading, setRedeemLoading] = useState<{ [campaignId: string]: boolean }>({})
 	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({}) // @todo update type
 	const [campaignBalance, setCampaignBalance] = useState<{ [campaignId: string]: number }>({})
 	const [percentageDonated, setPercentageDonated] = useState<{ [campaignId: string]: number }>({})
@@ -48,7 +50,6 @@ export default function Donations() {
 	// 	})
 	// }
 
-	// 
 	const handleOpen = () => {
 		switchNetwork?.(chainConfig.chainId)
 	}
@@ -73,6 +74,13 @@ export default function Donations() {
 		}));
 	};
 
+	const updateRedeemLoading = (campaignId: string, loading: boolean) => {
+		setRedeemLoading((prev) => ({
+			...prev,
+			[campaignId]: loading,
+		}));
+	};
+
 	const updateDonated = (campaignId: string, value: number) => {
 		setDonated((prev) => ({
 			...prev,
@@ -94,47 +102,76 @@ export default function Donations() {
 		}))
 	}
 
-	const handleClaim = async (campaign: any) => {
+	const handleRedeemPositionToken = async (campaign: Campaign) => {
 		const provider = new ethers.providers.Web3Provider(
 			(window as any).ethereum
 		)
-		const diva = campaign.campaignId === 'pastoralists_1' ? new ethers.Contract(
-			divaContractAddress,
-			DivaABIold,
-			provider.getSigner()
-		) :  new ethers.Contract(
-			divaContractAddress,
-			DivaABI,
-			provider.getSigner()
+
+		const divaContract = new ethers.Contract(
+			campaign.divaContractAddress,
+			campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+			provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
 		)
 
-		const longTokenContract = new ethers.Contract(
-			campaign.pools[0].positionToken, // @todo temporarily using pools 0
-			ERC20ABI,
-			provider.getSigner()
-		)
+		updateRedeemLoading(campaign.campaignId, true)
 
-		const longTokenBalance = await longTokenContract.balanceOf(activeAddress)
+		// @todo Potentially easier to hard-code the donor position tokens in campaign.json as well rather
+		// than querying them
+		Promise.all(
+			campaign.pools.map(pool => {
+				// @todo Replace with multicall at a later stage
+				return divaContract.getPoolParameters(pool.poolId).then((res: Pool) => {
+					return res
+				})
+			})
+		).then((poolData: Pool[]) => {
+			Promise.all(
+				poolData.map((pool: Pool) => {
+					// Assumes that beneficiarySide is the same for all pools linked to a campaign
+					const userPositionToken = campaign.pools[0].beneficiarySide === 'short' ? pool.longToken : pool.shortToken
+					
+					const positionTokenContract = getContract({
+						address: userPositionToken,
+						abi: ERC20ABI,
+						signerOrProvider: wagmiProvider,
+					})
 
-		setRedeemLoading(true)
-		// @todo Implement batchRedeemPositionToken
-		diva
-			.redeemPositionToken(campaign.pools[0].positionToken, longTokenBalance)
-			.then((tx: any) => {
-				tx.wait()
-					.then(() => {
-						setRedeemLoading(false)
-						console.log('success')
+					return getTokenBalance(positionTokenContract, activeAddress as `0x${string}`).then(res => {
+						return {
+							poolData: pool,
+							userPositionToken: userPositionToken,
+							balance: res?.balance // User's position token balance in the pool. Unformatted balance for easier handling when multiplying with payout amount
+						}
+					})
+				})
+			).then(data => {
+				// Prepare args for `batchRedeemPositionToken` smart contract call
+				const batchRedeemPositionTokenArgs = data.map(pool => {				
+					return {
+						positionToken: pool.userPositionToken,
+						amount: pool.balance
+					}
+				})
+
+				divaContract
+					.batchRedeemPositionToken(batchRedeemPositionTokenArgs)
+					.then((tx: any) => {
+						tx.wait()
+							.then(() => {
+								updateRedeemLoading(campaign.campaignId, false)
+								console.log('success')
+							})
+							.catch((err: any) => {
+								updateRedeemLoading(campaign.campaignId, false)
+								console.log(err)
+							})
 					})
 					.catch((err: any) => {
-						setRedeemLoading(false)
+						updateRedeemLoading(campaign.campaignId, false)
 						console.log(err)
 					})
 			})
-			.catch((err: any) => {
-				setRedeemLoading(false)
-				console.log(err)
-			})
+		})
 	}
 
 	// @todo Duplicated in CampaignSection component. Move into general.tsx
@@ -275,6 +312,7 @@ export default function Donations() {
 				</h1>
 				<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
 			</div>
+			{/* @todo improve that part as it will show this message even when wallet is disconnected */}
 			{campaignsParticipated === 0 && (			
 				<div className="pb-[23rem] flex flex-col items-center justify-center">
 					<p className="mt-[60px]">{`You have already claimed your donations or you haven't made any donations yet`}</p>
@@ -403,7 +441,7 @@ export default function Donations() {
 										</div>
 									</div>
 								)}
-								{redeemLoading ? (
+								{redeemLoading[campaign.campaignId] ? (
 									<div role="status" className="flex justify-center mt-4">
 										<svg
 											aria-hidden="true"
@@ -425,7 +463,7 @@ export default function Donations() {
 								) : (
 									<button
 										disabled={!claimEnabled[campaign.campaignId]}
-										onClick={() => handleClaim(campaign)}
+										onClick={() => handleRedeemPositionToken(campaign)}
 										type="button"
 										className="disabled:hover:bg-[#042940] disabled:opacity-25 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
 										Claim Unfunded Amount
