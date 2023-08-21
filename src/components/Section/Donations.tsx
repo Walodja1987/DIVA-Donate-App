@@ -13,30 +13,33 @@ import { useConnectModal } from '@rainbow-me/rainbowkit'
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import pools from '../../../config/pools.json' // @todo remove
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld } from "../../constants";
+import { divaContractAddressOld, divaContractAddress } from "../../constants";
 import { formatDate, isExpired } from "../../utils/general";
 import { chainConfig } from "../../constants";
 import { getContract } from "@wagmi/core";
-import { Campaign } from '../../types/campaignTypes'
-import { Pool } from '../../types/poolTypes'
+import { CampaignPool, Campaign } from '../../types/campaignTypes'
+import { Pool, Status } from '../../types/poolTypes'
+import {
+	Multicall,
+	ContractCallResults,
+	ContractCallContext,
+  } from 'ethereum-multicall';
+  
 
 export default function Donations() {
-	const divaContractAddress = '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D' // @todo remove
 	const [redeemLoading, setRedeemLoading] = useState<{ [campaignId: string]: boolean }>({})
 	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({}) // @todo update type
 	const [campaignBalance, setCampaignBalance] = useState<{ [campaignId: string]: number }>({})
 	const [percentageDonated, setPercentageDonated] = useState<{ [campaignId: string]: number }>({})
 	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
-	const [decimals, setDecimals] = useState(8) // @todo read from campaign.json
 	const [claimEnabled, setClaimEnabled] = useState<{ [campaignId: string]: boolean }>({})
 	const [campaignsParticipated, setCampaignsParticipated] = useState(0)
+	const [statusFinalReferenceValue, setStatusFinalReferenceValue] = useState<{ [campaignId: string]: Status }>({})
 	const { address: activeAddress, isConnected } = useAccount()
-	const collateralTokenAddress = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F' // @todo replace
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
 	const { switchNetwork } = useSwitchNetwork()
-	const usdtTokenContract = useERC20Contract(collateralTokenAddress) // @todo replace
 
 	const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
 
@@ -54,10 +57,109 @@ export default function Donations() {
 		switchNetwork?.(chainConfig.chainId)
 	}
 
+	// @todo Function kept to replace Promise.all blocks with multicall at a later stage
+	/**
+	 * @notice Function to fetch the pool parameters from the pools linked to the given array of campaigns
+	 * using ethereum-multicall lib.
+	 * @dev Accounts for the first pilot campaign `pastoralists_1` which was executed on Polygon using
+	 * a pre-audited version of DIVA Protocol.
+	 * @param chainId Chain id. Only used to identify the `pastoralists_1` campaign on Polygon.
+	 * @param provider Web3 provider.
+	 * @param campaigns Array of campaign objects (including `pools` field).
+	 * @return Multicall results object.
+	 */
+	const fetchPoolParams = async (chainId: number, provider: any, campaigns: Campaign[]) => {
+		const multicall = new Multicall({ ethersProvider: provider, tryAggregate: true })
+		
+		let multicallArgs: any[] = []		
+		campaigns.forEach((campaign, indexCampaign) => {
+			campaign.pools.forEach((pool, indexPool) => {
+				multicallArgs.push(
+					{
+						reference: 'pool-' + indexCampaign + '-' + indexPool,
+						contractAddress: (campaign.campaignId === 'pastoralists_1' && chainId === 137) ? divaContractAddressOld : divaContractAddress,
+						abi: (campaign.campaignId === 'pastoralists_1' && chainId === 137) ? DivaABIold : DivaABI,
+						calls: [{ reference: 'getPoolParametersPool-' + indexCampaign + '-' + indexPool, methodName: 'getPoolParameters', methodParameters: [pool.poolId] }]
+					}
+				)
+			})
+		})
+
+		const contractCallContext: ContractCallContext[] = multicallArgs
+		
+		const results: ContractCallResults = await multicall.call(contractCallContext)
+		console.log('results poolParams', results)
+		return results		
+	}
+
+	// @todo Function kept to replace Promise.all blocks with multicall at a later stage
+	/**
+	 * @notice Function to fetch the balances of the provided tokens for the provided users
+	 * @param provider Web3 provider.
+	 * @param tokens Array of token addresses.
+	 * @param users Array of user addresses.
+	 * @returns Multicall results object.
+	 */
+	const fetchPositionTokenBalances = async (provider: any, tokens: string[], users: string[]) => {
+		const multicall = new Multicall({ ethersProvider: provider, tryAggregate: true })
+
+		let multicallArgs: any[] = []
+		tokens.forEach((token, indexToken) => {
+			multicallArgs.push({
+				reference: 'token-' + indexToken,
+				contractAddress: token,
+				abi: ERC20ABI,
+				calls: [{ reference: 'balanceToken-' + indexToken, methodName: 'balanceOf', methodParameters: [users[indexToken]] }]
+			})
+		})
+
+		const contractCallContext: ContractCallContext[] = multicallArgs
+		
+		const results: ContractCallResults = await multicall.call(contractCallContext)
+		console.log('results token balances', results)
+		return results		
+	}
+
+	// @todo Function kept to replace Promise.all blocks with multicall at a later stage
+	const processMulticallResult = (data: ContractCallResults): any[] => {
+		const res = [];
+
+		for (const item in data.results) {
+			const itemData = data.results[item]
+
+			const returnValues = itemData.callsReturnContext[0].returnValues;
+
+			// Convert the array of values into an array of objects
+			const valueObjects = returnValues.map(value => ({ value }));
+
+			res.push(valueObjects);
+		}
+		// console.log('data', data)
+		// console.log('res', res)
+		return res
+	}
+
 	useEffect(() => {
 		if (chain) {
 			setChainId(chain.id)
 		}
+
+		// Keep for later to better understanding the output of multicall
+		// const test = async () => {
+		// 	// Some multicall testing
+		// 	const provider = new ethers.providers.Web3Provider(
+		// 		(window as any).ethereum
+		// 	)			
+
+		// 	const res = await fetchPoolParams(chainId, provider, [campaigns[1]])
+		// 	const poolParams = processMulticallResult(res)
+		// 	console.log('poolParams', poolParams)
+			
+		// }
+		
+		// test()
+
+
 	}, [chain])
 
 	const updateCampaignBalance = (campaignId: string, tokenAmount: number) => {
@@ -71,6 +173,13 @@ export default function Donations() {
 		setClaimEnabled((prev) => ({
 			...prev,
 			[campaignId]: enabled,
+		}));
+	};
+
+	const updateStatusFinalReferenceValue = (campaignId: string, status: Status) => {
+		setStatusFinalReferenceValue((prev) => ({
+			...prev,
+			[campaignId]: status,
 		}));
 	};
 
@@ -124,7 +233,8 @@ export default function Donations() {
 					return res
 				})
 			})
-		).then((poolData: Pool[]) => {
+		)
+		.then((poolData: Pool[]) => {
 			Promise.all(
 				poolData.map((pool: Pool) => {
 					// Assumes that beneficiarySide is the same for all pools linked to a campaign
@@ -215,6 +325,8 @@ export default function Donations() {
 	}
 
 	// Update state variables for all campaigns in `campaigns.json`
+	// @todo Trigger it if RedeemPositionToken has completed. Right now it I need to reload the page manually
+	// in order to see the pool disappear
 	useEffect(() => {
 		if (
 			chainId === chainConfig.chainId &&
@@ -226,7 +338,7 @@ export default function Donations() {
 
 			campaigns.forEach(campaign => {
 				// More efficient to simply store the decimals in `campaigns.json` rather than doing many RPC requests
-				const decimals = campaign.decimals				
+				const decimals = campaign.decimals
 
 				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
 				// version of the DIVA Protocol contract. All subsequent campaigns are using the audited final version.
@@ -245,7 +357,13 @@ export default function Donations() {
 							return res
 						})
 					})
-				).then(poolData => {
+				)
+				// const provider = new ethers.providers.Web3Provider(
+				// 	(window as any).ethereum
+				// )			
+				// fetchPoolParams(chainId, provider, [campaign])
+				.then(poolData => {
+					console.log('poolData', poolData)
 					Promise.all(
 						poolData.map(pool => {
 							// Assumes that beneficiarySide is the same for all pools linked to a campaign
@@ -293,7 +411,11 @@ export default function Donations() {
 
 						// Enable claim button only if the final value has been confirmed and there is something to claim.
 						// Accounts for 0.3% fee that is withheld by DIVA Protocol at claim time.
-						poolDataWithBalance[0].poolData.statusFinalReferenceValue === 3 && Math.floor(sumTokenBalanceFormatted*0.997 - sumDonatedFormatted) > 0  ? updateClaimEnabled(campaign.campaignId, true) : updateClaimEnabled(campaign.campaignId, false)
+						const currentStatusFinalReferenceValue = poolDataWithBalance[0].poolData.statusFinalReferenceValue
+						currentStatusFinalReferenceValue === 3 && Math.floor(sumTokenBalanceFormatted*0.997 - sumDonatedFormatted) > 0  ? updateClaimEnabled(campaign.campaignId, true) : updateClaimEnabled(campaign.campaignId, false)
+						console.log('campaign.campaignId', campaign.campaignId)
+						console.log('currentStatusFinalReferenceValue', currentStatusFinalReferenceValue)
+						updateStatusFinalReferenceValue(campaign.campaignId, currentStatusFinalReferenceValue)
 					}).then(() => {
 						setCampaignsParticipated(countCampaignsParticipated)
 					})
@@ -301,7 +423,7 @@ export default function Donations() {
 			})
 			
 		}
-	}, [chainId, decimals, activeAddress, pools, !campaignBalance, claimEnabled == null]);
+	}, [chainId, activeAddress, pools, !campaignBalance, claimEnabled == null]);
 
 	// @todo Navigating from Donations to Home breaks the app
 	return (
@@ -466,7 +588,7 @@ export default function Donations() {
 										onClick={() => handleRedeemPositionToken(campaign)}
 										type="button"
 										className="disabled:hover:bg-[#042940] disabled:opacity-25 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
-										Claim Unfunded Amount
+										{(isExpired(expiryTime[campaign.campaignId]) && statusFinalReferenceValue[campaign.campaignId] !== 3) ? 'In Settlement' : 'Claim Unfunded Amount'}
 									</button>
 								)}
 							</div>

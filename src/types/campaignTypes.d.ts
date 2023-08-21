@@ -4,7 +4,7 @@ interface DonationRecipient {
     url: string;
   }
   
-  interface Pool {
+  export interface CampaignPool {
     poolId: string;
     beneficiarySide: string;
     positionToken: string;
@@ -12,7 +12,7 @@ interface DonationRecipient {
   
   export interface Campaign {
     campaignId: string;
-    pools: Pool[];
+    pools: CampaignPool[];
     img: string;
     path: string;
     title: string;
