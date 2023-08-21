@@ -19,3 +19,10 @@ export type Pool = {
     statusFinalReferenceValue: string;
     referenceAsset: string;
 };
+
+// Possible values of `statusFinalReferenceValue` returned by DIVA Protocol:
+// - 0: Open
+// - 1: Submitted
+// - 2: Challenged
+// - 3: Confirmed
+export type Status = 0 | 1 | 2 | 3;
