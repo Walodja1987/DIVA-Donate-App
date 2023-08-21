@@ -23,6 +23,17 @@ import {
 	useDisclosure,
 	Button
   } from "@chakra-ui/react";
+  import {
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalHeader,
+	ModalFooter,
+	ModalBody,
+	ModalCloseButton
+  } from '@chakra-ui/react'
+  import { CheckCircleIcon } from '@chakra-ui/icons'
+  
 
 const DonationExpiredInfo = () => {
 	return (
@@ -31,34 +42,6 @@ const DonationExpiredInfo = () => {
 				This campaign has expired. Stayed tuned for the next one.
 			</div>
 		</div>
-	)
-}
-
-function AlertBox() {
-	const {
-		isOpen: isVisible,
-		onClose,
-	} = useDisclosure({ defaultIsOpen: true })
-
-	return isVisible ? (
-		<Alert status='success'>
-		<AlertIcon />
-		<Box>
-			<AlertTitle>Donation deposited! 🙏</AlertTitle>
-			<AlertDescription>
-			Help us to improve our product by particating in our <Link href="www.divaprotocol.io" className='text-blue-800'></Link>
-			</AlertDescription>
-		</Box>
-		<CloseButton
-			alignSelf='flex-start'
-			position='relative'
-			right={-1}
-			top={-1}
-			onClick={onClose}
-		/>
-		</Alert>
-	) : (
-		null
 	)
 }
 
@@ -112,6 +95,12 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
 	const { switchNetwork } = useSwitchNetwork()
+
+	const {
+		isOpen,
+		onClose,
+		onOpen
+	} = useDisclosure({ defaultIsOpen: false })
 
 	// @todo needed in the presence of wagmi?
 	// Test the wallet connect feature if wallet is not connected
@@ -299,6 +288,7 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 						tx.wait().then(() => {
 							setDonateLoading(false)
 							setShowAlert(true)
+							onOpen()
 						})
 					})
 					.catch((err: any) => {
@@ -365,9 +355,25 @@ export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: strin
 													</div>
 													)} */}
 													{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-													{showAlert && 
-														<AlertBox />
-													}
+														<Modal isCentered isOpen={isOpen} onClose={onClose}>
+															<ModalOverlay bg='blackAlpha.300'
+																backdropFilter='blur(5px)'
+															/>
+															<ModalContent>
+															<ModalHeader>🙏 Thank you for your Donation! </ModalHeader>
+															<ModalCloseButton />
+															<ModalBody>
+																Help us improve our product by participating in our <span className='font-semibold'>survey</span>
+															</ModalBody>
+
+															<ModalFooter>
+																<Button variant='ghost' mr={3} onClick={onClose}>
+																No Thanks
+																</Button>
+																<Button colorScheme='blue'><Link href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy" target="_blank" rel="noopener noreferrer">Take Survey</Link></Button>
+															</ModalFooter>
+															</ModalContent>
+														</Modal>
 													
 													<Progress
 														className=" mb-3 rounded-[15px]"
