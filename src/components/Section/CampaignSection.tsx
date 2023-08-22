@@ -14,6 +14,8 @@ import campaigns from '../../../config/campaigns.json'
 import { divaContractAddressOld } from "../../constants";
 import { chainConfig } from "../../constants";
 import { formatDate, isExpired, isUnlimited } from '../../utils/general';
+import { Pool, PoolExtended } from '../../types/poolTypes'
+import { Campaign, CampaignPool } from '../../types/campaignTypes'
 
 // @todo I think it would be better to use toFixed inside jsx only and not store the values
 // in that format. It's less of a problem if the values are not used for calculations, but if they are
@@ -139,80 +141,80 @@ export const CampaignSection = () => {
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
-		) {			
-			campaigns.forEach(campaign => {
-				let goalAmount: number | 'Unlimited' = 0
-				let toGoAmount: number | 'Unlimited' = 0
-				let raisedAmount: number = 0
-				let donatedAmount: number = 0
-				let percentage: number = 0
+		) {
+			// Loop through each campaign in `campaign.json` and update the state variables
+			campaigns.forEach((campaign: Campaign) => {
+				let totalGoal: number | 'Unlimited'
+				let totalToGo: number | 'Unlimited'
+				let totalRaised: number
+				let totalDonated: number
 
-				// More efficient to simply store the decimals in `campaigns.json` rather than doing many RPC requests
+				// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 				const decimals = campaign.decimals
 
-				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
-				// version of the DIVA Protocol contract. All subsequent campaigns are using the audited final version.
+				// Note that the first campaign was using a pre-audited version of the DIVA Protocol contract.
+				// To display the first campaign, it requires using the old ABI.
 				const divaContract = getContract({
 					address: campaign.divaContractAddress,
-					abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+					abi: (campaign.divaContractAddress === divaContractAddressOld && chainId === 137) ? DivaABIold : DivaABI,
 					signerOrProvider: wagmiProvider,
 				})
 
-				// Iterate through each pool listed under each campaign's pools array and aggregate the statistics.
-				// Create an array to store promises for each getPoolParameters call.
-				const poolPromises = campaign.pools.map((pool, index) => {
-					return divaContract.getPoolParameters(pool.poolId).then((res: any) => {
-						if (index === 0) {
-							// Update only once. This assumes that the expiry time is the same for all
-							// pools linked under the campaign. Could be improved further down the road.
-							updateExpiryTime(campaign.campaignId, Number(res.expiryTime) * 1000)
-						}
-			
-						// Use overwrite if one exists in `campaigns.json`. `raised` is the only statistics
-						// that can be overwritten because `collateralBalance` is net of redemptions and will decrease
-						// when donors claim back their funds.
-						// @todo Using collateralBalance as the amount raised assumes that all the liquidity
-						// added will have the beneficiary as the position token recipient. However, as anyone can add
-						// liquidity with any other recipient, collateralBalance may not reflect the actual amount raised
-						// for the campaign. Use TheGraph to derive the correct value.
-						raisedAmount = campaign.raised !== ""
-							? Number(campaign.raised) // Overwrite is defined on campaign level, hence no aggregation needed
-							: raisedAmount + Number(formatUnits(res.collateralBalance, decimals)) // Accumulate raisedAmount for each pool 
+				// Create an array to store promises for each `getPoolParameters` call. Promises will be resolved
+				// in the following `Promise.all` block
+				Promise.all(
+					campaign.pools.map((pool: CampaignPool) => {
+						return divaContract.getPoolParameters(pool.poolId).then((res: Pool) => {
+							return {
+								poolId: pool.poolId,
+								poolParams: res,
+								beneficiarySide: pool.beneficiarySide
+							}
+						});
+					})	
+				).then((poolResults: PoolExtended[]) => {					
+					totalRaised = 0;
+					totalDonated = 0;
+					totalGoal = 0;
+					totalToGo = 0;
+
+					// Iterate through each pool linked to the campaign, aggregate the statistics and update the
+					// corresponding state variables. As we are using the values for display only, it's fine to convert them
+					// into number format during calculations
+					poolResults.forEach(pool => {
+						totalRaised += totalRaised + Number(formatUnits(pool.poolParams.collateralBalance, decimals))
+						totalDonated += totalDonated + Number(formatUnits(pool.poolParams.collateralBalance, decimals))
+							* (pool.beneficiarySide === 'short'
+								? Number(formatUnits(pool.poolParams.payoutShort, decimals))
+								: Number(formatUnits(pool.poolParams.payoutLong, decimals)))
 						
-						// @todo Consider adding an additional field called "Overwrites" in `campaign.json` where raised and donated are placed.
-						// Update campaignTypes.d.ts accordingly and the code in here.
-
-						// @todo Retrieve data from pool parameters / the graph if not available
-						donatedAmount = campaign.donated !== "" ? Number(campaign.donated) : 0  // Overwrite is defined on campaign level, hence no aggregation needed
-			
-						// Set variables that depend on whether `res.capacity` is unlimited or not
-						if (isUnlimited(res.capacity)) {
-							goalAmount = 'Unlimited'
-							toGoAmount = 'Unlimited'
-							percentage = 0
+						// Set totalGoal to 'Unlimited' if one of the pools has 'Unlimited capacity'
+						// Pools linked to a campaign should either be unlimited or limited in capacity, but not mixed
+						if (isUnlimited(pool.poolParams.capacity) || totalGoal === 'Unlimited') {
+							totalGoal = 'Unlimited'
+							totalToGo = 'Unlimited'
 						} else {
-							// Assumes that within a single campaign, the pools have either unlimited or limited
-							// capacity but not a mix. If it's mixed, then `Number(goalAmount)` will throw. Added
-							// alert below to make sure that this case is logged in the console.
-							goalAmount = Number(goalAmount) + Number(formatUnits(res.capacity, decimals))
-
-							// Log alert message if a campaign has pools with mixed capacities (unlimited and limited)
-							goal[campaign.campaignId] === 'Unlimited' && console.log('ALERT: The pools within a campaign have mixed capacities, consisting of both unlimited and limited capacities.')
-							toGoAmount = Number(goalAmount) - raisedAmount
-							percentage = raisedAmount / goalAmount * 100
-						}
-
-						// @todo Question: return the different variables here rather than having them defined as "let" at the top?
+							totalGoal += totalGoal + Number(formatUnits(pool.poolParams.capacity, decimals));
+							totalToGo = totalGoal - totalRaised
+						}								
 					});
-				});
-			
-				// Wait for all poolPromises to resolve and then update the state with aggregated values
-				Promise.all(poolPromises).then(() => {
-					updateRaised(campaign.campaignId, raisedAmount)
-					updateGoal(campaign.campaignId, goalAmount)
-					updateToGo(campaign.campaignId, toGoAmount)
-					updatePercentage(campaign.campaignId, percentage)
-					updateDonated(campaign.campaignId, donatedAmount)
+
+					// Check for overwrites in `campaign.json` and use them if they exist
+					if (campaign.raised !== "") Number(campaign.raised)
+
+					const percentageDonated = totalDonated / totalRaised * 100					
+
+					// Update the state variables with the accumulated values
+					updateRaised(campaign.campaignId, totalRaised);
+					updateGoal(campaign.campaignId, totalGoal);
+					updateToGo(campaign.campaignId, totalToGo);
+					updatePercentage(campaign.campaignId, percentageDonated);
+					updateDonated(campaign.campaignId, totalDonated);
+
+					// Assumes that `expiryTime` is the same for all the pools linked to a campaign
+					updateExpiryTime(campaign.campaignId, Number(poolResults[0].poolParams.expiryTime) * 1000);
+				}).catch(error => {
+					console.error("An error occurred while fetching pool data:", error);
 				});
 			})
 		}

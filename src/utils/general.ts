@@ -1,7 +1,9 @@
-import { Contract, BigNumber, ethers } from "ethers";
+import { Contract, BigNumber, ethers, BigNumberish } from "ethers";
 import { getAddress } from "@ethersproject/address";
 import { AddressZero } from "@ethersproject/constants";
 import { JsonRpcSigner, AlchemyProvider } from "@ethersproject/providers";
+
+export const ZERO = BigNumber.from(0)
 
 export function isAddress(value: any): string | false {
   try {
@@ -94,6 +96,6 @@ export const isExpired = (timestampInMilliseconds: number) => {
   return expiryTime < currentTime;
 }
 
-export const isUnlimited = (amount: BigNumber): boolean => {
-  return amount.gte(ethers.constants.MaxUint256) // gte in case more than one pool is aggregated
+export const isUnlimited = (amount: BigNumberish): boolean => {
+  return BigNumber.from(amount).gte(ethers.constants.MaxUint256) // gte in case more than one pool is aggregated
 }

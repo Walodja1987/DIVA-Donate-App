@@ -94,8 +94,8 @@ export default function Donations() {
 				multicallArgs.push(
 					{
 						reference: 'pool-' + indexCampaign + '-' + indexPool,
-						contractAddress: (campaign.campaignId === 'pastoralists_1' && chainId === 137) ? divaContractAddressOld : divaContractAddress,
-						abi: (campaign.campaignId === 'pastoralists_1' && chainId === 137) ? DivaABIold : DivaABI,
+						contractAddress: campaign.divaContractAddress,
+						abi: (campaign.divaContractAddress === divaContractAddressOld && chainId === 137) ? DivaABIold : DivaABI, // only campaignId = "pastoralists_1" on Polygon has the old DIVA Protocol address linked to it
 						calls: [{ reference: 'getPoolParametersPool-' + indexCampaign + '-' + indexPool, methodName: 'getPoolParameters', methodParameters: [pool.poolId] }]
 					}
 				)
@@ -254,10 +254,10 @@ export default function Donations() {
 			Promise.all(
 				poolData.map((pool: Pool) => {
 					// Assumes that beneficiarySide is the same for all pools linked to a campaign
-					const userPositionToken = campaign.pools[0].beneficiarySide === 'short' ? pool.longToken : pool.shortToken
+					const donorPositionToken = campaign.pools[0].beneficiarySide === 'short' ? pool.longToken : pool.shortToken
 					
 					const positionTokenContract = getContract({
-						address: userPositionToken,
+						address: donorPositionToken,
 						abi: ERC20ABI,
 						signerOrProvider: wagmiProvider,
 					})
@@ -265,7 +265,7 @@ export default function Donations() {
 					return getTokenBalance(positionTokenContract, activeAddress as `0x${string}`).then(res => {
 						return {
 							poolData: pool,
-							userPositionToken: userPositionToken,
+							donorPositionToken: donorPositionToken,
 							balance: res?.balance // User's position token balance in the pool. Unformatted balance for easier handling when multiplying with payout amount
 						}
 					})
@@ -274,7 +274,7 @@ export default function Donations() {
 				// Prepare args for `batchRedeemPositionToken` smart contract call
 				const batchRedeemPositionTokenArgs = data.map(pool => {				
 					return {
-						positionToken: pool.userPositionToken,
+						positionToken: pool.donorPositionToken,
 						amount: pool.balance
 					}
 				})
@@ -341,8 +341,6 @@ export default function Donations() {
 	}
 
 	// Update state variables for all campaigns in `campaigns.json`
-	// @todo Trigger it if RedeemPositionToken has completed. Right now it I need to reload the page manually
-	// in order to see the pool disappear
 	useEffect(() => {
 		if (
 			chainId === chainConfig.chainId &&
@@ -350,10 +348,13 @@ export default function Donations() {
 			typeof window !== 'undefined' &&
 			typeof window.ethereum !== 'undefined'
 		) {
+			// Variable used as a flag to display "Explore campaigns" message if user didn't make any donations
+			// yet or has already re-claimed the funds from previous campaigns.
 			let countCampaignsParticipated = 0
 
+			// Loop through each campaign in `campaign.json` and update the state variables
 			campaigns.forEach(campaign => {
-				// More efficient to simply store the decimals in `campaigns.json` rather than doing many RPC requests
+				// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 				const decimals = campaign.decimals
 
 				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
@@ -366,42 +367,36 @@ export default function Donations() {
 
 				// Get pool parameters for the underlying campaign, check user's position token balance and
 				// calculate donated amount.
+				// @todo Replace with multicall at a later stage
 				Promise.all(
-					campaign.pools.map(pool => {
-						// @todo Replace with multicall at a later stage
+					campaign.pools.map(pool => {						
 						return divaContract.getPoolParameters(pool.poolId).then((res: any) => {
 							return res
 						})
 					})
-				)
-				// const provider = new ethers.providers.Web3Provider(
-				// 	(window as any).ethereum
-				// )			
-				// fetchPoolParams(chainId, provider, [campaign])
-				.then(poolData => {
-					console.log('poolData', poolData)
+				).then(poolData => {
+					// Get user's position token balance
 					Promise.all(
 						poolData.map(pool => {
 							// Assumes that beneficiarySide is the same for all pools linked to a campaign
-							const userPositionToken = campaign.pools[0].beneficiarySide === 'short' ? pool.longToken : pool.shortToken
+							const donorPositionToken = campaign.pools[0].beneficiarySide === 'short' ? pool.longToken : pool.shortToken
 							
 							const positionTokenContract = getContract({
-								address: userPositionToken,
+								address: donorPositionToken,
 								abi: ERC20ABI,
 								signerOrProvider: wagmiProvider,
 							})
 
 							return getTokenBalance(positionTokenContract, activeAddress).then(res => {
 								return {
-									poolData: pool,
+									poolParams: pool,
 									balance: res?.balance // User's position token balance in the pool. Unformatted balance for easier handling when multiplying with payout amount
 								}
 							})
 						})
-					).then(poolDataWithBalance => {
-						const sumTokenBalanceFormatted = Number(formatUnits(poolDataWithBalance.reduce((acc, data) => acc.add(data.balance), ethers.BigNumber.from(0)), decimals))
+					).then(poolResults => {
+						const sumTokenBalanceFormatted = Number(formatUnits(poolResults.reduce((acc, data) => acc.add(data.balance), ethers.BigNumber.from(0)), decimals))
 						updateCampaignBalance(campaign.campaignId, sumTokenBalanceFormatted)
-						
 						
 						if (sumTokenBalanceFormatted > 0) {
 							countCampaignsParticipated += 1
@@ -410,9 +405,9 @@ export default function Donations() {
 						// @todo Assumes that the beneficiary side for all the pools linked to a campaign are the same
 						let sumDonated
 						if (campaign.pools[0].beneficiarySide === 'short') {
-							sumDonated = poolDataWithBalance.reduce((acc, data) => acc.add(data.poolData.payoutShort.mul(data.balance)), ethers.BigNumber.from(0))
+							sumDonated = poolResults.reduce((acc, data) => acc.add(data.poolParams.payoutShort.mul(data.balance)), ethers.BigNumber.from(0))
 						} else {
-							sumDonated = poolDataWithBalance.reduce((acc, data) => acc.add(data.poolData.payoutLong.mul(data.balance)), ethers.BigNumber.from(0))
+							sumDonated = poolResults.reduce((acc, data) => acc.add(data.poolParams.payoutLong.mul(data.balance)), ethers.BigNumber.from(0))
 						}
 						
 						const sumDonatedFormatted = Number(formatUnits(sumDonated.div(parseUnits('1', decimals)), decimals))
@@ -423,11 +418,11 @@ export default function Donations() {
 						// Assumes that `expiryTime` for all linked pools is the same.
 						// `campaignId` is the same for all items in the `data` array, hence it's
 						// ok to use the `campaignId` of the first item (`data[0]`)
-						updateExpiryTime(campaign.campaignId, Number(poolDataWithBalance[0].poolData.expiryTime) * 1000)
+						updateExpiryTime(campaign.campaignId, Number(poolResults[0].poolParams.expiryTime) * 1000)
 
 						// Enable claim button only if the final value has been confirmed and there is something to claim.
 						// Accounts for 0.3% fee that is withheld by DIVA Protocol at claim time.
-						const currentStatusFinalReferenceValue = poolDataWithBalance[0].poolData.statusFinalReferenceValue
+						const currentStatusFinalReferenceValue = poolResults[0].poolParams.statusFinalReferenceValue
 						currentStatusFinalReferenceValue === 3 && Math.floor(sumTokenBalanceFormatted*0.997 - sumDonatedFormatted) > 0  ? updateClaimEnabled(campaign.campaignId, true) : updateClaimEnabled(campaign.campaignId, false)
 						updateStatusFinalReferenceValue(campaign.campaignId, currentStatusFinalReferenceValue)
 					}).then(() => {

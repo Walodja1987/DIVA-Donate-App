@@ -20,6 +20,13 @@ export type Pool = {
     referenceAsset: string;
 };
 
+export type PoolExtended = {
+    poolId: string;
+    poolParams: Pool;
+    beneficiarySide: string;
+};
+
+
 // Possible values of `statusFinalReferenceValue` returned by DIVA Protocol:
 // - 0: Open
 // - 1: Submitted
