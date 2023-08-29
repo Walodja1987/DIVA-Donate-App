@@ -1,25 +1,9 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import NavBar from './Navbar'
 import { FooterSection } from '../Section/FooterSection'
 import Head from 'next/head'
 
 const Layout = ({ children }: React.PropsWithChildren<{}>) => {
-	const [chainId, setChainId] = React.useState('0')
-	//const handleOpen = () => {
-	//    (window as any).ethereum.request({
-	//        method: "wallet_switchEthereumChain",
-	//        params: [{ chainId: "0x89" }],
-	//    });
-	//}
-	useEffect(() => {
-		if ((window as any)?.ethereum) {
-			setChainId((window as any).ethereum.chainId)
-			;(window as any).ethereum.on('chainChanged', (chainId: any) => {
-				setChainId(chainId)
-			})
-		}
-	}, [chainId])
-	
 	return (
 		<>
 			<Head>
@@ -54,11 +38,9 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
 					content="https://www.divaprotocol.io/_next/image?url=%2Fimages%2Fposts%2Fdiva_donate_header.png&w=3840&q=75"
 				/>
 			</Head>
-			<div>
-				<NavBar />
-				{children}
-				<FooterSection />
-			</div>
+			<NavBar />
+			{children}
+			<FooterSection />
 		</>
 	)
 }

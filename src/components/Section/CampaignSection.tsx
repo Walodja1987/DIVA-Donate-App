@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
-import {DivaABI, DivaABIold, ERC20ABI} from '../../abi'
+import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
 import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
@@ -11,9 +11,9 @@ import { fetchToken, getContract } from '@wagmi/core'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld } from "../../constants";
-import { chainConfig } from "../../constants";
-import { formatDate, isExpired, isUnlimited } from '../../utils/general';
+import { divaContractAddressOld } from '../../constants'
+import { chainConfig } from '../../constants'
+import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { Pool, PoolExtended } from '../../types/poolTypes'
 import { Campaign, CampaignPool } from '../../types/campaignTypes'
 
@@ -27,12 +27,20 @@ import { Campaign, CampaignPool } from '../../types/campaignTypes'
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
-	const [goal, setGoal] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
+	const [goal, setGoal] = useState<{
+		[campaignId: string]: number | 'Unlimited'
+	}>({})
 	const [raised, setRaised] = useState<{ [campaignId: string]: number }>({})
-	const [toGo, setToGo] = useState<{ [campaignId: string]: number | 'Unlimited' }>({})
+	const [toGo, setToGo] = useState<{
+		[campaignId: string]: number | 'Unlimited'
+	}>({})
 	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
-	const [percentage, setPercentage] = useState<{ [campaignId: string]: number }>({})
-	const [expiryTime, setExpiryTime] = useState<{ [campaignId: string]: number }>({})
+	const [percentage, setPercentage] = useState<{
+		[campaignId: string]: number
+	}>({})
+	const [expiryTime, setExpiryTime] = useState<{
+		[campaignId: string]: number
+	}>({})
 
 	const { address: activeAddress, isConnected, connector } = useAccount()
 	const { chain } = useNetwork()
@@ -55,20 +63,29 @@ export const CampaignSection = () => {
 		}))
 	}
 
-	const updateToGo = (campaignId: string, tokenAmount: number | 'Unlimited') => {
+	const updateToGo = (
+		campaignId: string,
+		tokenAmount: number | 'Unlimited'
+	) => {
 		setToGo((prev) => ({
 			...prev,
 			[campaignId]: tokenAmount,
 		}))
 	}
-	const updateGoal = (campaignId: string, tokenAmount: number | 'Unlimited') => {
+	const updateGoal = (
+		campaignId: string,
+		tokenAmount: number | 'Unlimited'
+	) => {
 		setGoal((prev) => ({
 			...prev,
 			[campaignId]: tokenAmount,
 		}))
 	}
 
-	const updateExpiryTime = (campaignId: string, expiryTimeInMilliseconds: number) => {
+	const updateExpiryTime = (
+		campaignId: string,
+		expiryTimeInMilliseconds: number
+	) => {
 		setExpiryTime((prev) => ({
 			...prev,
 			[campaignId]: expiryTimeInMilliseconds,
@@ -90,43 +107,49 @@ export const CampaignSection = () => {
 	}
 
 	// @todo Duplicated in Donations component. Move into general.tsx
-	const handleAddToMetamask = async (campaign: any) => {		
-			for (const pool of campaign.pools) {
-				const divaContract = getContract({
-					address: campaign.divaContractAddress,
-					abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
-					signerOrProvider: wagmiProvider,
+	const handleAddToMetamask = async (campaign: any) => {
+		for (const pool of campaign.pools) {
+			const divaContract = getContract({
+				address: campaign.divaContractAddress,
+				abi:
+					campaign.divaContractAddress === divaContractAddressOld
+						? DivaABIold
+						: DivaABI,
+				signerOrProvider: wagmiProvider,
+			})
+
+			const poolParams = await divaContract.getPoolParameters(pool.poolId)
+			const donorPositionToken =
+				pool.beneficiarySide === 'short'
+					? poolParams.longToken
+					: poolParams.shortToken
+
+			const token = getContract({
+				address: donorPositionToken,
+				abi: ERC20ABI,
+				signerOrProvider: wagmiProvider,
+			})
+			const decimals = await token.decimals()
+			const symbol = await token.symbol()
+
+			try {
+				await (window as any).ethereum.request({
+					method: 'wallet_watchAsset',
+					params: {
+						type: 'ERC20',
+						options: {
+							address: donorPositionToken,
+							symbol: symbol,
+							decimals: decimals,
+							image:
+								'https://res.cloudinary.com/dphrdrgmd/image/upload/v1641730802/image_vanmig.png',
+						},
+					} as any,
 				})
-	
-				const poolParams = await divaContract.getPoolParameters(pool.poolId)
-				const donorPositionToken = pool.beneficiarySide === 'short' ? poolParams.longToken : poolParams.shortToken
-	
-				const token = getContract({
-					address: donorPositionToken,
-					abi: ERC20ABI,
-					signerOrProvider: wagmiProvider
-				})
-				const decimals = await token.decimals()
-				const symbol = await token.symbol()													
-			
-				try {
-					await (window as any).ethereum.request({
-						method: 'wallet_watchAsset',
-						params: {
-							type: 'ERC20',
-							options: {
-								address: donorPositionToken,
-								symbol: symbol,
-								decimals: decimals,
-								image:
-									'https://res.cloudinary.com/dphrdrgmd/image/upload/v1641730802/image_vanmig.png',
-							},
-						} as any,
-					})
-				} catch (error) {
-					console.error('Error in HandleAddMetaMask', error)
-				}
-			}														
+			} catch (error) {
+				console.error('Error in HandleAddMetaMask', error)
+			}
+		}
 	}
 
 	useEffect(() => {
@@ -137,7 +160,8 @@ export const CampaignSection = () => {
 
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
-		if (chainId === chainConfig.chainId &&
+		if (
+			chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
@@ -156,7 +180,11 @@ export const CampaignSection = () => {
 				// To display the first campaign, it requires using the old ABI.
 				const divaContract = getContract({
 					address: campaign.divaContractAddress,
-					abi: (campaign.divaContractAddress === divaContractAddressOld && chainId === 137) ? DivaABIold : DivaABI,
+					abi:
+						campaign.divaContractAddress === divaContractAddressOld &&
+						chainId === 137
+							? DivaABIold
+							: DivaABI,
 					signerOrProvider: wagmiProvider,
 				})
 
@@ -164,62 +192,79 @@ export const CampaignSection = () => {
 				// in the following `Promise.all` block
 				Promise.all(
 					campaign.pools.map((pool: CampaignPool) => {
-						return divaContract.getPoolParameters(pool.poolId).then((res: Pool) => {
-							return {
-								poolId: pool.poolId,
-								poolParams: res,
-								beneficiarySide: pool.beneficiarySide
+						return divaContract
+							.getPoolParameters(pool.poolId)
+							.then((res: Pool) => {
+								return {
+									poolId: pool.poolId,
+									poolParams: res,
+									beneficiarySide: pool.beneficiarySide,
+								}
+							})
+					})
+				)
+					.then((poolResults: PoolExtended[]) => {
+						totalRaised = 0
+						totalDonated = 0
+						totalGoal = 0
+						totalToGo = 0
+
+						// Iterate through each pool linked to the campaign, aggregate the statistics and update the
+						// corresponding state variables. As we are using the values for display only, it's fine to convert them
+						// into number format during calculations
+						poolResults.forEach((pool) => {
+							totalRaised +=
+								totalRaised +
+								Number(formatUnits(pool.poolParams.collateralBalance, decimals))
+							totalDonated +=
+								totalDonated +
+								Number(
+									formatUnits(pool.poolParams.collateralBalance, decimals)
+								) *
+									(pool.beneficiarySide === 'short'
+										? Number(formatUnits(pool.poolParams.payoutShort, decimals))
+										: Number(formatUnits(pool.poolParams.payoutLong, decimals)))
+
+							// Set totalGoal to 'Unlimited' if one of the pools has 'Unlimited capacity'
+							// Pools linked to a campaign should either be unlimited or limited in capacity, but not mixed
+							if (
+								isUnlimited(pool.poolParams.capacity) ||
+								totalGoal === 'Unlimited'
+							) {
+								totalGoal = 'Unlimited'
+								totalToGo = 'Unlimited'
+							} else {
+								totalGoal +=
+									totalGoal +
+									Number(formatUnits(pool.poolParams.capacity, decimals))
+								totalToGo = totalGoal - totalRaised
 							}
-						});
-					})	
-				).then((poolResults: PoolExtended[]) => {					
-					totalRaised = 0;
-					totalDonated = 0;
-					totalGoal = 0;
-					totalToGo = 0;
+						})
 
-					// Iterate through each pool linked to the campaign, aggregate the statistics and update the
-					// corresponding state variables. As we are using the values for display only, it's fine to convert them
-					// into number format during calculations
-					poolResults.forEach(pool => {
-						totalRaised += totalRaised + Number(formatUnits(pool.poolParams.collateralBalance, decimals))
-						totalDonated += totalDonated + Number(formatUnits(pool.poolParams.collateralBalance, decimals))
-							* (pool.beneficiarySide === 'short'
-								? Number(formatUnits(pool.poolParams.payoutShort, decimals))
-								: Number(formatUnits(pool.poolParams.payoutLong, decimals)))
-						
-						// Set totalGoal to 'Unlimited' if one of the pools has 'Unlimited capacity'
-						// Pools linked to a campaign should either be unlimited or limited in capacity, but not mixed
-						if (isUnlimited(pool.poolParams.capacity) || totalGoal === 'Unlimited') {
-							totalGoal = 'Unlimited'
-							totalToGo = 'Unlimited'
-						} else {
-							totalGoal += totalGoal + Number(formatUnits(pool.poolParams.capacity, decimals));
-							totalToGo = totalGoal - totalRaised
-						}								
-					});
+						// Check for overwrites in `campaign.json` and use them if they exist
+						if (campaign.raised !== '') Number(campaign.raised)
 
-					// Check for overwrites in `campaign.json` and use them if they exist
-					if (campaign.raised !== "") Number(campaign.raised)
+						const percentageDonated = (totalDonated / totalRaised) * 100
 
-					const percentageDonated = totalDonated / totalRaised * 100					
+						// Update the state variables with the accumulated values
+						updateRaised(campaign.campaignId, totalRaised)
+						updateGoal(campaign.campaignId, totalGoal)
+						updateToGo(campaign.campaignId, totalToGo)
+						updatePercentage(campaign.campaignId, percentageDonated)
+						updateDonated(campaign.campaignId, totalDonated)
 
-					// Update the state variables with the accumulated values
-					updateRaised(campaign.campaignId, totalRaised);
-					updateGoal(campaign.campaignId, totalGoal);
-					updateToGo(campaign.campaignId, totalToGo);
-					updatePercentage(campaign.campaignId, percentageDonated);
-					updateDonated(campaign.campaignId, totalDonated);
-
-					// Assumes that `expiryTime` is the same for all the pools linked to a campaign
-					updateExpiryTime(campaign.campaignId, Number(poolResults[0].poolParams.expiryTime) * 1000);
-				}).catch(error => {
-					console.error("An error occurred while fetching pool data:", error);
-				});
+						// Assumes that `expiryTime` is the same for all the pools linked to a campaign
+						updateExpiryTime(
+							campaign.campaignId,
+							Number(poolResults[0].poolParams.expiryTime) * 1000
+						)
+					})
+					.catch((error) => {
+						console.error('An error occurred while fetching pool data:', error)
+					})
 			})
 		}
 	}, [chainId, wagmiProvider, campaigns])
-
 
 	return (
 		<section className="pt-[5rem]">
@@ -233,11 +278,11 @@ export const CampaignSection = () => {
 					</p>
 					<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
 				</div>
-				<div className="flex flex-row gap-10 justify-center ">
+				<div className="flex flex-row flex-wrap md:gap-10 justify-center ">
 					{campaigns.map((campaign) => {
 						return (
 							// eslint-disable-next-line react/jsx-key
-							<div 
+							<div
 								key={campaign.campaignId}
 								className="max-w-sm mb-10 bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md">
 								<Link href={campaign.path}>
@@ -250,20 +295,31 @@ export const CampaignSection = () => {
 									/>
 									<div className="relative -mt-10">
 										<div
-										className={`
-											${expiryTime[campaign.campaignId] && isConnected ? '' : 'invisible'} // Add 'invisible' class conditionally
-											${isExpired(expiryTime[campaign.campaignId]) ? 'bg-[#005C53] text-white' : 'bg-[#DBF227] text-green-[#042940]'}
+											className={`
+											${
+												expiryTime[campaign.campaignId] && isConnected
+													? ''
+													: 'invisible'
+											} // Add 'invisible' class conditionally
+											${
+												isExpired(expiryTime[campaign.campaignId])
+													? 'bg-[#005C53] text-white'
+													: 'bg-[#DBF227] text-green-[#042940]'
+											}
 											text-2xs pt-1 pl-2 w-[320px] h-[40px] rounded-tr-[3.75rem] text-left
-										`}
-										>
-										{expiryTime[campaign.campaignId] && (
-											<span className="mt-1 inline-block align-middle">
-											<b>{isExpired(expiryTime[campaign.campaignId]) ? 'Completed' : 'Expiry:'}</b>
-											{isExpired(expiryTime[campaign.campaignId])
-												? null
-												: ` ${formatDate(expiryTime[campaign.campaignId])}`}
-											</span>
-										)}
+										`}>
+											{expiryTime[campaign.campaignId] && (
+												<span className="mt-1 inline-block align-middle">
+													<b>
+														{isExpired(expiryTime[campaign.campaignId])
+															? 'Completed'
+															: 'Expiry:'}
+													</b>
+													{isExpired(expiryTime[campaign.campaignId])
+														? null
+														: ` ${formatDate(expiryTime[campaign.campaignId])}`}
+												</span>
+											)}
 										</div>
 									</div>
 								</Link>
@@ -281,7 +337,7 @@ export const CampaignSection = () => {
 									</div>
 
 									{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-									{chainId === chainConfig.chainId ? (											
+									{chainId === chainConfig.chainId ? (
 										<Progress
 											className=" mb-3 rounded-[15px]"
 											style={{ background: '#D6D58E' }}
@@ -289,10 +345,14 @@ export const CampaignSection = () => {
 											height="22px"
 											value={percentage[campaign.campaignId]}>
 											<ProgressLabel className="text-2xl flex flex-start">
-												<Text fontSize="xs" marginLeft="0.5rem">{percentage[campaign.campaignId]?.toFixed(1)}%</Text>
+												<Text fontSize="xs" marginLeft="0.5rem">
+													{percentage[campaign.campaignId]?.toFixed(1)}%
+												</Text>
 											</ProgressLabel>
 										</Progress>
-									) : <div className="h-[30px]"></div>}
+									) : (
+										<div className="h-[30px]"></div>
+									)}
 
 									{isConnected ? (
 										<>
@@ -305,7 +365,11 @@ export const CampaignSection = () => {
 															Goal
 														</dt>
 														<dd className="font-normal text-base text-[#042940]">
-															{goal[campaign.campaignId] === 'Unlimited' ? goal[campaign.campaignId] : `$${Number(goal[campaign.campaignId]).toFixed(0)}`}
+															{goal[campaign.campaignId] === 'Unlimited'
+																? goal[campaign.campaignId]
+																: `$${Number(goal[campaign.campaignId]).toFixed(
+																		0
+																  )}`}
 														</dd>
 													</div>
 													<div className="flex flex-col items-center justify-center">
@@ -323,7 +387,11 @@ export const CampaignSection = () => {
 																To Go
 															</dt>
 															<dd className="font-normal text-base text-[#042940]">
-																{toGo[campaign.campaignId] === 'Unlimited' ? toGo[campaign.campaignId] : `$${Number(toGo[campaign.campaignId]).toFixed(0)}`}
+																{toGo[campaign.campaignId] === 'Unlimited'
+																	? toGo[campaign.campaignId]
+																	: `$${Number(
+																			toGo[campaign.campaignId]
+																	  ).toFixed(0)}`}
 															</dd>
 														</div>
 													) : (
@@ -332,11 +400,14 @@ export const CampaignSection = () => {
 																Donated
 															</dt>
 															<dd className="font-normal text-base text-[#042940]">
-															${donated[campaign.campaignId] ? donated[campaign.campaignId].toFixed(0) : 0}
+																$
+																{donated[campaign.campaignId]
+																	? donated[campaign.campaignId].toFixed(0)
+																	: 0}
 															</dd>
 														</div>
 													)}
-												</div>												  
+												</div>
 											) : (
 												<div className="mb-10 flex flex-col items-center justify-center ">
 													<div className=" flex items-center justify-center">
@@ -344,8 +415,7 @@ export const CampaignSection = () => {
 														<span>
 															<button
 																className="p-2 text-blue-600"
-																onClick={handleOpen}
-															>
+																onClick={handleOpen}>
 																connect
 															</button>
 														</span>
@@ -361,8 +431,7 @@ export const CampaignSection = () => {
 												<span>
 													<button
 														className="p-2 text-blue-600"
-														onClick={openConnectModal}
-													>
+														onClick={openConnectModal}>
 														connect
 													</button>
 												</span>
@@ -381,9 +450,7 @@ export const CampaignSection = () => {
 								</div>
 							</div>
 						)
-					})
-				}
-
+					})}
 
 					<div className="max-w-sm max-h-xl mb-10 p-5 justify-center items-center text-center bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md ">
 						<div className="justify-center mt-[17rem]">
