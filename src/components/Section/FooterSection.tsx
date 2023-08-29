@@ -1,10 +1,11 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 export const FooterSection = () => (
 	<footer className="p-4 md:p-6 bg-[#042940] flex flex-col">
 		<div className="md:flex justify-between">
 			<div className="pt-4">
-				<a
+				<Link
 					href="/"
 					className="flex items-center w-[200px] h-[35px] md:w-[337px] md-h-fit">
 					<Image
@@ -14,7 +15,7 @@ export const FooterSection = () => (
 						src="/Images/donate-logo-light.png"
 						alt="logo"
 					/>
-				</a>
+				</Link>
 			</div>
 
 			<div>
