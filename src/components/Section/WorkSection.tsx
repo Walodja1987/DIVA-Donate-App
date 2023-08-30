@@ -3,7 +3,7 @@ import Image from 'next/image'
 export const WorkSection = () => (
 	<div className="flex flex-col mt-10 px-4">
 		<div className="mx-auto px-4 sm:px-6 text-center divide-y divide-slate-700">
-			<h1 className="font-semibold leading-[4.75rem]  text-[#042940]  text-[30px] md:text-[60px] ">
+			<h1 className="font-semibold lg:leading-[4.75rem]  text-[#042940]  text-4xl lg:text-[60px] ">
 				How it works
 			</h1>
 		</div>

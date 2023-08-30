@@ -270,7 +270,7 @@ export const CampaignSection = () => {
 		<section className="pt-[5rem]">
 			<div className="container mx-auto p-6">
 				<div className="mx-auto max-w-7xl py-10 px-4 sm:px-6 text-center lg:items-center lg:justify-between">
-					<h1 className="font-lora font-semibold text-[30px] md:text-[60px] leading-[76.8px] text-[#042940]">
+					<h1 className="font-lora font-semibold text-4xl lg:text-[60px] lg:leading-[76.8px] text-[#042940]">
 						Campaigns
 					</h1>
 					<p className="font-semibold font-openSans text-[15px] md:text-[20px] mt-6 text-[#005C53] ">

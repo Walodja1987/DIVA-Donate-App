@@ -14,7 +14,7 @@ import {
 
 import campaigns from '../../../config/campaigns.json'
 import { links } from './../../constants'
-import { ChevronDownIcon } from '@chakra-ui/icons'
+import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons'
 
 type NavbarLinksProps = {
 	activePath: string
@@ -46,32 +46,38 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
 				<li key={link.name}>
 					{link.name === 'Campaigns' ? (
 						<Menu>
-							<MenuButton
-								as={Button}
-								rightIcon={<ChevronDownIcon />}
-								className={
-									'font-semibold text-dark-grey-100 hover:text-[#9FC131] hover:bg-transparent'
-								}
-								sx={{
-									_active: {
-										bg: 'transparent',
-									},
-								}}>
-								{link.name}
-							</MenuButton>
-							<MenuList>
-								{campaigns.map((campaign) => (
-									<MenuItem key={campaign.campaignId} className="text-center">
-										<Link
-											href={campaign.path}
-											className={
-												'block px-4 py-2 text-base font-semibold hover:text-[#9FC131]'
-											}>
-											{campaign.title}
-										</Link>
-									</MenuItem>
-								))}
-							</MenuList>
+							{({ isOpen }) => (
+								<>
+									<MenuButton
+										as={Button}
+										rightIcon={isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
+										className={
+											'font-semibold text-dark-grey-100 hover:text-[#9FC131] hover:bg-transparent'
+										}
+										sx={{
+											_active: {
+												bg: 'transparent',
+											},
+										}}>
+										{link.name}
+									</MenuButton>
+									<MenuList>
+										{campaigns.map((campaign) => (
+											<MenuItem
+												key={campaign.campaignId}
+												className="text-center">
+												<Link
+													href={campaign.path}
+													className={
+														'block px-4 py-2 text-base font-semibold hover:text-[#9FC131]'
+													}>
+													{campaign.title}
+												</Link>
+											</MenuItem>
+										))}
+									</MenuList>
+								</>
+							)}
 						</Menu>
 					) : (
 						<Link
