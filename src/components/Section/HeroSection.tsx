@@ -19,7 +19,7 @@ export default function HeroSection() {
 						</p>
 					</div>
 
-					<div className="flex items-center justify-between gap-4 flex-row mt-6 space-y-4 sm:items-center sm:justify-center sm:flex-row sm:space-y-0 sm:space-x-4 lg:justify-start">
+					<div className="flex items-center justify-center gap-4 mt-6 space-y-4 sm:space-y-0 sm:space-x-4 lg:justify-start">
 						<button
 							onClick={() => {
 								window.scrollBy(0, 2750)
