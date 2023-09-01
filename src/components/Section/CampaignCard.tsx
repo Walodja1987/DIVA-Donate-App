@@ -69,7 +69,7 @@ const FortuneDiva: React.FC<{
 						</h5>
 						<p className="card-text text-sm font-openSans">{campaign?.desc}</p>
 						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center">
-							<img src="/images/fi-sr-hourglass-end.svg" alt="hourglass" />
+							<img src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" />
 							<div>
 								<b>Expiry:</b> {expiryTime}
 							</div>
@@ -405,7 +405,6 @@ export const CampaignCard: React.FC<{
 									donateEnabled={donateEnabled}
 									openConnectModal={openConnectModal}
 									handleOpen={handleOpen}
-									chainConfig={chainConfig}
 								/>
 							)}
 						</div>

@@ -13,10 +13,12 @@ import {
 	Text,
 } from '@chakra-ui/react'
 import Link from 'next/link'
+
 import {
 	getShortenedAddress,
 	formatNumberWithCommas,
 } from '../../utils/general'
+import { chainConfig } from '../../constants'
 
 interface DonationCardProps {
 	thankYouMessage: string
@@ -40,7 +42,6 @@ interface DonationCardProps {
 	donateEnabled: boolean
 	openConnectModal: (() => void) | undefined
 	handleOpen: () => void
-	chainConfig: any
 }
 
 export const DonationCard: React.FC<DonationCardProps> = ({
@@ -65,7 +66,6 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	donateEnabled,
 	openConnectModal,
 	handleOpen,
-	chainConfig,
 }) => {
 	return (
 		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px]">
@@ -131,7 +131,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 												data-dropdown-toggle="dropdown"
 												className="disabled absolute right-0 top-0 bottom-0 text-white bg-[#005C53] focus:ring-green-300 font-medium rounded-lg text-sm px-6 py-2.5 text-center flex gap-2 items-center font-openSans"
 												type="button">
-												<img src="/images/usdt-logo.svg" alt="USDT" />
+												<img src="/Images/usdt-logo.svg" alt="USDT" />
 
 												<div className="text-base">USDT</div>
 											</button>

@@ -452,10 +452,10 @@ export const CampaignSection = () => {
 						)
 					})}
 
-					<div className="max-w-sm max-h-xl mb-10 p-5 justify-center items-center text-center bg-[#DEEFE7] border border-gray-200 rounded-[16px] shadow-md ">
-						<div className="justify-center mt-[17rem]">
+					<div className="min-h-[648px] max-w-sm max-h-xl mb-10 p-5 justify-center items-center text-center bg-[#DEEFE7] border border-gray-200 rounded-2xl shadow-md">
+						<div className="flex flex-col items-center justify-center h-full">
 							{' '}
-							<h5 className="mb-2 text-2xl font-bold text-gray-900 text-[#042940]">
+							<h5 className="mb-2 text-2xl font-bold text-[#042940]">
 								More campaigns coming soon!
 							</h5>
 							<p className="mb-3 font-normal text-[#000000]">
