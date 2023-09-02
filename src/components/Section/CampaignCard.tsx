@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useERC20Contract } from '../../utils/hooks/useContract'
-import { formatNumberWithCommas, getTokenBalance } from '../../utils/general'
+import { getTokenBalance } from '../../utils/general'
 import { ethers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import {
@@ -10,33 +10,16 @@ import {
 	useProvider,
 	useNetwork,
 } from 'wagmi'
-import { Text, Progress, ProgressLabel, Spinner } from '@chakra-ui/react'
 import { DivaABI, DivaABIold } from '../../abi'
-import { ConnectButton, useConnectModal } from '@rainbow-me/rainbowkit'
+import { useConnectModal } from '@rainbow-me/rainbowkit'
 import { Campaign } from '../../types/campaignTypes'
-import Link from 'next/link'
-import {
-	getShortenedAddress,
-	formatDate,
-	isExpired,
-	isUnlimited,
-} from '../../utils/general'
+import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { chainConfig } from '../../constants'
 import { divaContractAddressOld } from '../../constants'
 import { getContract } from '@wagmi/core'
-import {
-	Modal,
-	ModalOverlay,
-	ModalContent,
-	ModalHeader,
-	ModalFooter,
-	ModalBody,
-	ModalCloseButton,
-	Button,
-	useDisclosure,
-} from '@chakra-ui/react'
+import { useDisclosure } from '@chakra-ui/react'
 import { DonationCard } from './DonationCard'
-import { config } from 'process'
+import { useDebounce } from '../../utils/hooks/useDebounce'
 
 const DonationExpiredInfo = () => {
 	return (
@@ -59,7 +42,7 @@ const FortuneDiva: React.FC<{
 
 	return (
 		campaign && (
-			<div className="mx-auto lg:mt-0 lg:col-span-4 lg:flex ">
+			<div className="mx-auto lg:mt-0 lg:col-span-4 lg:flex flex-1">
 				<div
 					className={`sm-bg-auto h-[403px] lg:h-[660px] bg-cover bg-center bg-no-repeat rounded-[20px]`}
 					style={{ backgroundImage: `url('${campaign?.img}')` }}>
@@ -100,6 +83,7 @@ export const CampaignCard: React.FC<{
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
 	const [expiryTime, setExpiryTime] = useState<number>(0)
+
 	const { address: activeAddress, isConnected } = useAccount()
 	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
 	const decimals = campaign.decimals
@@ -108,6 +92,7 @@ export const CampaignCard: React.FC<{
 	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
 	const { switchNetwork } = useSwitchNetwork()
+	const debouncedAmount = useDebounce(amount, 300)
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
@@ -134,12 +119,13 @@ export const CampaignCard: React.FC<{
 		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
 		const checkAllowance = async () => {
 			// Replace commas in the `amount` string with dots
-			const sanitized = amount?.replace(/,/g, '.')
+			const sanitized = debouncedAmount?.replace(/,/g, '.')
 			if (Number(sanitized) > 0 && collateralTokenContract != null) {
 				const allowance = await collateralTokenContract.allowance(
 					activeAddress,
 					campaign.divaContractAddress
 				)
+
 				if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
 					setApproveEnabled(false)
 					setDonateEnabled(true)
@@ -377,37 +363,35 @@ export const CampaignCard: React.FC<{
 					expiryTimeInMilliseconds={expiryTime}
 					campaign={campaign}
 				/>
-				<div className="">
-					<div className="flex-col">
-						<div className="mx-auto pb-12 lg:pb-0 bg-[#FFFFFF] border border-gray-200 rounded-[26px] drop-shadow-xl">
-							{isExpired(expiryTime) ? (
-								<DonationExpiredInfo />
-							) : (
-								<DonationCard
-									thankYouMessage={thankYouMessage}
-									isConnected={isConnected}
-									chainId={chainId}
-									isOpen={isOpen}
-									onClose={onClose}
-									percentage={percentage}
-									goal={goal}
-									raised={raised}
-									amount={amount}
-									handleAmountChange={handleAmountChange}
-									balance={balance}
-									campaign={campaign}
-									approveLoading={approveLoading}
-									handleApprove={handleApprove}
-									toGo={toGo}
-									approveEnabled={approveEnabled}
-									donateLoading={donateLoading}
-									handleDonation={handleDonation}
-									donateEnabled={donateEnabled}
-									openConnectModal={openConnectModal}
-									handleOpen={handleOpen}
-								/>
-							)}
-						</div>
+				<div className="flex-col">
+					<div className="mx-auto pb-12 lg:pb-0 bg-[#FFFFFF] border border-gray-200 rounded-[26px] drop-shadow-xl">
+						{isExpired(expiryTime) ? (
+							<DonationExpiredInfo />
+						) : (
+							<DonationCard
+								thankYouMessage={thankYouMessage}
+								isConnected={isConnected}
+								chainId={chainId}
+								isOpen={isOpen}
+								onClose={onClose}
+								percentage={percentage}
+								goal={goal}
+								raised={raised}
+								amount={amount}
+								handleAmountChange={handleAmountChange}
+								balance={balance}
+								campaign={campaign}
+								approveLoading={approveLoading}
+								handleApprove={handleApprove}
+								toGo={toGo}
+								approveEnabled={approveEnabled}
+								donateLoading={donateLoading}
+								handleDonation={handleDonation}
+								donateEnabled={donateEnabled}
+								openConnectModal={openConnectModal}
+								handleOpen={handleOpen}
+							/>
+						)}
 					</div>
 				</div>
 			</div>

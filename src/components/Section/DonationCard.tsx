@@ -191,13 +191,13 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 								<CustomButton
 									isLoading={approveLoading}
 									onClick={handleApprove}
-									isEnabled={!approveEnabled}
+									isEnabled={approveEnabled}
 									label={'Approve'}
 								/>
 								<CustomButton
 									isLoading={donateLoading}
 									onClick={handleDonation}
-									isEnabled={!donateEnabled}
+									isEnabled={donateEnabled}
 									label={'Donate'}
 								/>
 							</div>
@@ -234,7 +234,7 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 				<Button variant="ghost" mr={3} onClick={onClose}>
 					No Thanks
 				</Button>
-				<Button colorScheme="blue">
+				<Button className=" bg-blue-500 text-white hover:bg-blue-500">
 					<Link
 						href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy"
 						target="_blank"
