@@ -68,7 +68,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	handleOpen,
 }) => {
 	return (
-		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px]">
+		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[777px]">
 			<div className="mb-10">
 				<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
 					{thankYouMessage}
@@ -234,7 +234,14 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 				<Button variant="ghost" mr={3} onClick={onClose}>
 					No Thanks
 				</Button>
-				<Button className=" bg-blue-500 text-white hover:bg-blue-500">
+				<Button
+					className="text-white"
+					sx={{
+						backgroundColor: '#005C53',
+						_hover: {
+							backgroundColor: '#005C53',
+						},
+					}}>
 					<Link
 						href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy"
 						target="_blank"
@@ -273,7 +280,7 @@ const CustomButton: React.FC<any> = ({
 			}`}
 			type="button"
 			style={{ width: '50%' }}
-			disabled={!isEnabled}>
+			disabled={!isEnabled || isLoading}>
 			{isLoading ? <Spinner /> : label}
 		</button>
 	)

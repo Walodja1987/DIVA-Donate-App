@@ -23,7 +23,7 @@ import { useDebounce } from '../../utils/hooks/useDebounce'
 
 const DonationExpiredInfo = () => {
 	return (
-		<div className="h-[403px] lg:h-[660px] justify-evenly p-[30px]  lg:p-[60px] flex items-center w-full">
+		<div className="h-[403px] lg:h-[660px] justify-evenly p-[30px] lg:p-[60px] flex items-center w-full">
 			<div className="text-2xl font-bold font-lora text-center opacity-70">
 				This campaign has expired. Stayed tuned for the next one.
 			</div>
@@ -42,7 +42,7 @@ const FortuneDiva: React.FC<{
 
 	return (
 		campaign && (
-			<div className="mx-auto lg:mt-0 lg:col-span-4 lg:flex flex-1">
+			<div className="mx-auto lg:w-[732px] lg:mt-0 lg:col-span-4 lg:flex">
 				<div
 					className={`sm-bg-auto h-[403px] lg:h-[660px] bg-cover bg-center bg-no-repeat rounded-[20px]`}
 					style={{ backgroundImage: `url('${campaign?.img}')` }}>
