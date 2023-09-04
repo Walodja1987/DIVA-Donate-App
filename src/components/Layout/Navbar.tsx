@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/router'
 import { NavbarLinks } from './NavbarLinks'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
+import path from 'path'
 
 export default function NavBar() {
 	const [navbar, setNavbar] = useState(false)
@@ -20,7 +21,7 @@ export default function NavBar() {
 						</Link>
 						<div className="md:hidden">
 							<button
-								className=" text-gray-700 rounded-md outline-none -my-1 ml-6 -mr-1 flex h-9 w-9 items-center justify-center lg:hidden"
+								className="text-gray-700 rounded-md outline-none -my-1 ml-6 -mr-1 flex h-9 w-9 items-center justify-center lg:hidden"
 								onClick={() => setNavbar(!navbar)}>
 								{navbar ? (
 									<svg

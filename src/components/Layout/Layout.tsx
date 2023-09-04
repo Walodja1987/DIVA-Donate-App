@@ -19,6 +19,7 @@ const Layout = ({ children }: React.PropsWithChildren<{}>) => {
 			})
 		}
 	}, [chainId])
+	
 	return (
 		<>
 			<Head>

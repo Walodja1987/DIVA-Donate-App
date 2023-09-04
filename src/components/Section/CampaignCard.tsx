@@ -3,11 +3,29 @@ import { useERC20Contract } from '../../utils/hooks/useContract'
 import { getTokenBalance } from '../../utils/general'
 import { ethers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { useAccount, useFeeData, useNetwork } from 'wagmi'
+import { useAccount, useSwitchNetwork, useFeeData, useProvider, useNetwork } from 'wagmi'
+import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { DivaABI, DivaABIold } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import pools from '../../../config/pools.json'
-import Link from "next/link";
+import { Campaign } from '../../types/campaignTypes'
+import Link from "next/link"
+import { getShortenedAddress, formatDate, isExpired, isUnlimited } from "../../utils/general"
+import { chainConfig } from "../../constants";
+import { divaContractAddressOld } from "../../constants";
+import { getContract } from "@wagmi/core";
+import {
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalHeader,
+	ModalFooter,
+	ModalBody,
+	ModalCloseButton,
+	Button,
+	useDisclosure
+} from '@chakra-ui/react'
+  
+
 const DonationExpiredInfo = () => {
 	return (
 		<div className="h-[600px] justify-evenly p-[60px] flex items-center">
@@ -18,83 +36,90 @@ const DonationExpiredInfo = () => {
 	)
 }
 
-const FortuneDiva = ({ expiryDate, poolConfig }: { expiryDate: string, poolConfig: any }) => {
-	// changing the format to 11 Jun 2023, 11 pm GMT+5:30
-	expiryDate = new Date(expiryDate).toLocaleDateString(undefined, {
-		day: 'numeric',
-		month: 'short',
-		year: 'numeric',
-		hour: '2-digit',
-		hour12: true,
-		timeZoneName: 'short',
-	})
+// @todo at the bottom, align the Please connect to Polygon message with the component on the CampaignSection page
 
-	return poolConfig && (
+const FortuneDiva: React.FC<{ expiryTimeInMilliseconds: number, campaign: Campaign }> = ({ expiryTimeInMilliseconds, campaign }) => {
+	// Set the date format to "Jun 10, 2023, 11 PM GMT + 1"
+	const expiryTime = formatDate(expiryTimeInMilliseconds)
+
+	return campaign && (
 		<div className="mx-auto lg:mt-0 lg:col-span-4 lg:flex ">
 			<div className={` sm-bg-auto h-[648px] bg-cover bg-center bg-no-repeat rounded-[26px]`}
-				 style={{backgroundImage: `url('${poolConfig?.img}')`}}
+				 style={{backgroundImage: `url('${campaign?.img}')`}}
 			>
 				<div className="p-8 relative top-[28rem] text-[#DEEFE7] ">
-					<h5 className="font-semibold text-4xl font-['lora']">{poolConfig?.title}</h5>
+					<h5 className="font-semibold text-4xl font-['lora']">{campaign?.title}</h5>
 					<p className="card-text">
-						{poolConfig?.desc}
+						{campaign?.desc}
 					</p>
 					<span className="inline-block text-2xs text-[#DBF227] align-middle">
-						<b>Expiry:</b> {expiryDate}
+						<b>Expiry:</b> {expiryTime}
 					</span>
 				</div>
 			</div>
 		</div>
 	)
 }
-interface CampaignCardProps {
-	poolId: any;
-	collateralTokenAddress: string;
-	divaContractAddress: string;
-	multisig: string;
-}
 
-
-export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractAddress, multisig: walletAddress}: CampaignCardProps) => {
-	const [balance, setBalance] = useState(0)
-	const { data } = useFeeData({ chainId: 137 })
-	const [amount, setAmount] = useState<any>()
-	const [goal, setGoal] = useState<any>('')
-	const [raised, setRaised] = useState<any>('')
-	const [toGo, setToGo] = useState<any>('')
+/**
+ * @notice The upper section including the donation widget on individual campaign pages
+ */
+export const CampaignCard: React.FC<{ campaign: Campaign, thankYouMessage: string }> = ({ campaign, thankYouMessage }) => {
+	const [balance, setBalance] = useState<number>(0)
+	const { data } = useFeeData({ chainId: chainConfig.chainId })
+	const [amount, setAmount] = useState<string>('')
+	const [goal, setGoal] = useState<number | 'Unlimited'>(0)
+	const [raised, setRaised] = useState<number>(0)
+	const [toGo, setToGo] = useState<number | 'Unlimited'>(0)
 	const [percentage, setPercentage] = useState<number>(0)
 	const [approveEnabled, setApproveEnabled] = useState<boolean>(false)
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [poolConfig, setPoolConfig] = useState<any>()
-	const [expiryDate, setExpiryDate] = useState<string>('')
+	const [expiryTime, setExpiryTime] = useState<number>(0)
 	const { address: activeAddress, isConnected } = useAccount()
-	const [decimals, setDecimals] = useState()
-	const usdtTokenContract = useERC20Contract(collateralTokenAddress)
-	const [chainId, setChainId] = React.useState('0')
+	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
+	const decimals = campaign.decimals
+	const [chainId, setChainId] = React.useState<number>(0)
 	const { chain } = useNetwork()
+	const wagmiProvider = useProvider()
 	const { openConnectModal } = useConnectModal()
+	const { switchNetwork } = useSwitchNetwork()
 
+	const {
+		isOpen,
+		onClose,
+		onOpen
+	} = useDisclosure({ defaultIsOpen: false })
+
+	// @todo needed in the presence of wagmi?
+	// Test the wallet connect feature if wallet is not connected
+	// const handleOpen = () => {
+	// 	;(window as any).ethereum.request({
+	// 		method: 'wallet_switchEthereumChain',
+	// 		params: [{ chainId: chainConfig.chainId }],
+	// 	})
+	// }
 	const handleOpen = () => {
-		;(window as any).ethereum.request({
-			method: 'wallet_switchEthereumChain',
-			params: [{ chainId: '0x89' }],
-		})
+		switchNetwork?.(chainConfig.chainId)
 	}
+
 	useEffect(() => {
 		if (chain) {
-			setChainId(ethers.utils.hexlify(chain.id))
+			setChainId(chain.id)
 		}
 	}, [chain])
 
+	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	useEffect(() => {
+		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
 		const checkAllowance = async () => {
+			// Replace commas in the `amount` string with dots
 			const sanitized = amount?.replace(/,/g, '.')
-			if (sanitized > 0 && usdtTokenContract != null) {
-				const allowance = await usdtTokenContract.allowance(
+			if (Number(sanitized) > 0 && collateralTokenContract != null) {
+				const allowance = await collateralTokenContract.allowance(
 					activeAddress,
-					divaContractAddress
+					campaign.divaContractAddress
 				)
 				if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
 					setApproveEnabled(false)
@@ -108,58 +133,82 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 				setDonateEnabled(false)
 			}
 		}
-		if (chainId === '0x89' && activeAddress != null) {
+		if (chainId === chainConfig.chainId && activeAddress != null) {
 			checkAllowance()
 		}
-		pools.forEach((pool: any) => {
-			if (pool.poolId == poolId){
-				setPoolConfig(pool)
-			}
-		})
-	}, [activeAddress, amount, decimals, chainId, usdtTokenContract])
+	}, [
+		activeAddress,
+		amount,
+		chainId,
+		collateralTokenContract,
+		campaign.divaContractAddress,
+		decimals
+	])
+	
+	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
-		const getDecimals = async () => {
-			if (chainId === '0x89' && usdtTokenContract != null) {
-				const decimals = await usdtTokenContract.decimals()
-				setDecimals(decimals)
-			}
-		}
-		getDecimals()
 		if (
-			chainId === '0x89' &&
+			chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
-		) {
-			const provider = new ethers.providers.Web3Provider(
-				(window as any).ethereum
-			)
-			const divaContract = new ethers.Contract(
-				divaContractAddress,
-				poolId === 8 ? DivaABIold : DivaABI,
-				provider.getSigner()
-			)
-			divaContract.getPoolParameters(poolId).then((res: any) => {
-				setExpiryDate(new Date(Number(res.expiryTime) * 1000).toString())
-				setGoal(
-					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-						'Unlimited' :
-						Number(formatUnits(res.capacity, decimals)))
-				setRaised(Number(formatUnits(res.collateralBalance, decimals)))
-				setToGo(
-					res.capacity._hex === '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff' ?
-						'Unlimited' : Number(formatUnits(res.capacity.sub(res.collateralBalance), decimals))
+		) {			
+			const divaContract = getContract({
+				address: campaign.divaContractAddress,
+				abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				signerOrProvider: wagmiProvider,
+			})
+
+			Promise.all(
+				campaign.pools.map(pool =>
+					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+						return {
+							collateralBalance: res.collateralBalance,
+							capacity: res.capacity,
+							expiryTime: res.expiryTime
+						}
+					})
 				)
+			).then(poolData => {
+				// Assumes that `expiryTime` for all linked pools is the same.
+				setExpiryTime(Number(poolData[0].expiryTime) * 1000)
+
+				// Aggregate the raised amount across the pools linked to the campaign. Note that using
+				// `collateralBalance` may not equal to raised amount if users choose a different recipient
+				// address during add liquidity.
+				const sumRaisedPools = Number(formatUnits(poolData.reduce((acc, data) => acc.add(data.collateralBalance), ethers.BigNumber.from(0)), decimals))
+				setRaised(sumRaisedPools)
+
+				// Aggregate the total pool capacity
+				let sumCapacityPools: number | 'Unlimited'
+				if (isUnlimited(poolData[0].capacity)) {
+					sumCapacityPools = 'Unlimited'
+				} else {
+					sumCapacityPools = Number(formatUnits((poolData.reduce((acc, data) =>
+						acc.add(data.capacity), ethers.BigNumber.from(0))), decimals))
+				}								
+				setGoal(sumCapacityPools)
+				
+				// Derive ToGo from `sumCapacityPools` and `sumRaisedPools`
+				let sumToGoPools: number | 'Unlimited'
+				if (sumCapacityPools === 'Unlimited') {
+					sumToGoPools = 'Unlimited'
+				} else {
+					sumToGoPools = sumCapacityPools - sumRaisedPools
+				}								
+				setToGo(sumToGoPools)
 			})
 		}
-	}, [chainId, decimals, donateLoading, activeAddress, usdtTokenContract])
+	}, [chainId, donateLoading, activeAddress, collateralTokenContract])
+
 	useEffect(() => {
 		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
 	}, [goal, raised, donateLoading])
+
 	const handleApprove = async () => {
 		setApproveLoading(true)
-		usdtTokenContract
-			.approve(divaContractAddress, parseUnits(amount!.toString(), decimals), {
+		collateralTokenContract
+			.approve(campaign.divaContractAddress, parseUnits(amount, decimals).add(10), { // small buffer added to ensure sufficient allowance
 				gasPrice: data?.gasPrice,
 			})
 			.then((tx: any) => {
@@ -167,7 +216,7 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 					.then(() => {
 						setApproveEnabled(false)
 						setDonateEnabled(true)
-						setApproveLoading(false)
+						setApproveLoading(false)			
 					})
 					.catch((err: any) => {
 						setApproveLoading(false)
@@ -181,38 +230,68 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 	}
 	const handleDonation = async () => {
 		if (amount != null) {
+			// const divaContract = getContract({
+			// 	address: campaign.divaContractAddress,
+			// 	abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+			// 	signerOrProvider: wagmiProvider,
+			// })
+
+			// @todo somehow the above doesn't work... Check why that's the case
 			const provider = new ethers.providers.Web3Provider(
 				(window as any).ethereum
 			)
 			const divaContract = new ethers.Contract(
-				divaContractAddress,
-				poolId === 8 ? DivaABIold : DivaABI,
-				provider.getSigner()
+				campaign.divaContractAddress,
+				campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
+				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
 			)
-			const decimals = await usdtTokenContract.decimals()
+
 			setDonateLoading(true)
-			divaContract
-				.addLiquidity(
-					poolId,
-					parseUnits(amount!.toString(), decimals),
-					poolConfig?.beneficiarySide === 'short' ? activeAddress : walletAddress,
-					poolConfig?.beneficiarySide === 'short' ? walletAddress : activeAddress,
-					{ gasPrice: data?.maxFeePerGas }
+
+			// @todo test this
+			Promise.all(
+				campaign.pools.map(pool =>
+				  divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+					return res.capacity
+				  })
 				)
-				.then((tx: any) => {
-					tx.wait().then(() => {
-						setDonateLoading(false)
+			).then(capacities => {
+				const sumCapacity = capacities.reduce((acc, capacity) => acc.add(capacity), ethers.BigNumber.from(0))
+			
+				// Prepare args for `batchAddLiquidity` smart contract call
+				const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
+					const collateralAmountIncr = parseUnits(amount.toString(), decimals).mul(capacities[index]).div(sumCapacity)
+				
+					return {
+						poolId: pool.poolId,
+						collateralAmountIncr: collateralAmountIncr,
+						longRecipient: pool.beneficiarySide === 'short' ? activeAddress : campaign.donationRecipients[0].address,
+						shortRecipient: pool.beneficiarySide === 'short' ? campaign.donationRecipients[0].address : activeAddress,
+					}
+				})
+				
+				divaContract
+					.batchAddLiquidity(
+						batchAddLiquidityArgs,
+						{ gasPrice: data?.maxFeePerGas }
+					)
+					.then((tx: any) => {
+						tx.wait().then(() => {
+							setDonateLoading(false)
+							onOpen() // Open Success Modal
+						})
 					})
-				})
-				.catch((err: any) => {
-					setDonateLoading(false)
-					console.log(err)
-				})
+					.catch((err: any) => {
+						setDonateLoading(false)
+						console.log(err)
+					})
+			});
 		}
 	}
+
 	const handleMax = () => {
 		if (balance != null) {
-			setAmount(balance)
+			setAmount(balance.toString())
 		}
 	}
 	const handleAmountChange = (e: any) => {
@@ -222,51 +301,39 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 	useEffect(() => {
 		const getBalance = async () => {
 			if (activeAddress) {
-				const result = await getTokenBalance(usdtTokenContract, activeAddress)
+				const result = await getTokenBalance(collateralTokenContract, activeAddress)
 				const tokenAmount = Number(
 					formatUnits(result?.balance, result?.decimals)
 				)
 				setBalance(tokenAmount)
 			}
 		}
-		if (chainId === '0x89' && activeAddress != null) {
+		if (chainId === chainConfig.chainId && activeAddress != null) {
 			getBalance()
 		}
-	}, [chainId, activeAddress, donateLoading, usdtTokenContract])
+	}, [chainId, activeAddress, donateLoading, collateralTokenContract])
 
-	const isDonationExpired = useCallback(() => {
-		return new Date(expiryDate) < new Date() ? true : false
-	}, [expiryDate])
 	return (
 		<div className="container relative pt-[5rem] sm:pt-[8rem] md:pt-[8rem]  mx-auto">
 			<div className="grid px-12 gap-[2rem] mx-auto lg:py-16 lg:grid-cols-9">
-				<FortuneDiva expiryDate={expiryDate} poolConfig={poolConfig}/>
+				<FortuneDiva expiryTimeInMilliseconds={expiryTime} campaign={campaign}/>
 				<div className="lg:col-span-5 mr-[6rem]">
 					<div className="flex-col">
 						<div className="mx-auto  pb-12 bg-[#FFFFFF] border border-gray-200 rounded-[26px] drop-shadow-xl">
-							{isDonationExpired() ? (
+							{isExpired(expiryTime) ? (
 								<DonationExpiredInfo />
 							) : (
 								<div className="h-[600px] justify-evenly p-[60px]">
 									<div className="mb-10">
-										{poolId === 8 && (
 											<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
-												Thank you for providing livestock insurance to
-												pastoralists in Kenya.
+												{thankYouMessage}
 											</p>
-										)
-											}
-										{poolId === '0xf9ea1671ddca4aaad1df33257cd2040c656064c9bb628102dd3c68431d1baaaf' && (
-											<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
-												Thank you for your interest in Hotez vs RFK debate.
-											</p>
-										)}
 									</div>
 									{isConnected ? (
 										<>
-											{chainId === '0x89' ? (
+											{chainId === chainConfig.chainId ? (
 												<>
-													{percentage !== 0 && (
+													{/* {percentage !== 0 && (
 														<div className="mb-10 w-full bg-[#D6D58E] rounded-[10px]">
 														<div
 															className="bg-[#005C53] text-xs font-medium text-blue-100 p-0.5 leading-none rounded-l-full"
@@ -276,15 +343,45 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 															</div>
 														</div>
 													</div>
-													)}
+													)} */}
+													{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
+													<Modal isCentered isOpen={isOpen} onClose={onClose}>
+														<ModalOverlay bg='blackAlpha.300'
+															backdropFilter='blur(5px)'
+														/>
+														<ModalContent>
+														<ModalHeader>🙏 Thank you for your Donation! </ModalHeader>
+														<ModalCloseButton />
+														<ModalBody>
+															Help us improve our product by participating in our <span className='font-semibold'>survey</span>
+														</ModalBody>
 
+														<ModalFooter>
+															<Button variant='ghost' mr={3} onClick={onClose}>
+															No Thanks
+															</Button>
+															<Button colorScheme='blue'><Link href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy" target="_blank" rel="noopener noreferrer">Take Survey</Link></Button>
+														</ModalFooter>
+														</ModalContent>
+													</Modal>
+													
+													<Progress
+														className=" mb-3 rounded-[15px]"
+														style={{ background: '#D6D58E' }}
+														colorScheme="green"
+														height="22px"
+														value={percentage}>
+														<ProgressLabel className="text-2xl flex flex-start">
+															<Text fontSize="xs" marginLeft="0.5rem">{percentage.toFixed(1)}%</Text>
+														</ProgressLabel>
+													</Progress>
 													<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-10">
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
 																Goal
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																{typeof goal !== 'string' && '$' } {goal}
+															{typeof goal === 'number' ? `$${goal.toFixed(0)}` : goal}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
@@ -292,15 +389,15 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 																Raised
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																${raised}
+																${raised.toFixed(0)}
 															</dd>
 														</div>
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
-																To go
+																To Go
 															</dt>
 															<dd className="font-normal text-base text-[#042940] ">
-																{typeof goal !== 'string' && '$' }{toGo}
+															{typeof toGo === 'number' ? `$${toGo.toFixed(0)}` : toGo}
 															</dd>
 														</div>
 													</div>
@@ -406,12 +503,15 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 															Available balance:&nbsp;{balance.toFixed(2)}
 														</p>
 													</div>
-													<div className="pt-50 mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940] h-[120px] justify-evenly">
-														Beneficiary address:{" "}
-															<Link target="_blank" href={poolConfig?.donationRecipients[0].url} className=" mb-3 font-normal font-['Open_Sans']  text-[#042940]">
-																{poolConfig?.donationRecipients[0].address}
-															</Link>
+													<div className="mt-4 mb-3 font-normal font-['Open_Sans'] text-base text-[#042940] flex justify-between items-center">
+														<span>Beneficiary address: </span>
+														<Link target="_blank" href={campaign?.donationRecipients[0].url} className="font-normal font-['Open_Sans'] text-[#042940] flex items-center">
+															{getShortenedAddress(campaign?.donationRecipients[0].address)}
+															<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 ml-2">
+															<path fill-rule="evenodd" d="M15.75 2.25H21a.75.75 0 01.75.75v5.25a.75.75 0 01-1.5 0V4.81L8.03 17.03a.75.75 0 01-1.06-1.06L19.19 3.75h-3.44a.75.75 0 010-1.5zm-10.5 4.5a1.5 1.5 0 00-1.5 1.5v10.5a1.5 1.5 0 001.5 1.5h10.5a1.5 1.5 0 001.5-1.5V10.5a.75.75 0 011.5 0v8.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V8.25a3 3 0 013-3h8.25a.75.75 0 010 1.5H5.25z" clip-rule="evenodd" />
+															</svg>
 
+														</Link>
 													</div>
 
 													<div className="flex flex-row justify-between border-spacing-x-8">
@@ -419,7 +519,7 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 															<div style={{ width: '50%' }} role="status">
 																<svg
 																	aria-hidden="true"
-																	className="w-9 h-9 ml-20 mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+																	className="w-9 h-9 mx-auto mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
 																	viewBox="0 0 100 101"
 																	fill="none"
 																	xmlns="http://www.w3.org/2000/svg">
@@ -432,7 +532,6 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 																		fill="currentFill"
 																	/>
 																</svg>
-																<span className="sr-only">Loading...</span>
 															</div>
 														) : (
 															<button
@@ -449,7 +548,7 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 															<div style={{ width: '50%' }} role="status">
 																<svg
 																	aria-hidden="true"
-																	className="w-9 h-9 ml-20 mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+																	className="w-9 h-9 mx-auto mt-11 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
 																	viewBox="0 0 100 101"
 																	fill="none"
 																	xmlns="http://www.w3.org/2000/svg">
@@ -462,7 +561,6 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 																		fill="currentFill"
 																	/>
 																</svg>
-																<span className="sr-only">Loading...</span>
 															</div>
 														) : (
 															<button
@@ -480,16 +578,15 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 											) : (
 												<div className="flex flex-col items-center justify-center ">
 													<div className="pt-10 flex items-center justify-center">
-														Please{' '}
+														Please
 														<span>
 															<button
 																className="p-2 text-blue-600"
 																onClick={handleOpen}>
-																{' '}
 																connect
 															</button>
-														</span>{' '}
-														to the Polygon network.
+														</span>
+														{` to the ${chainConfig.name} network.`}
 													</div>
 												</div>
 											)}
@@ -497,15 +594,15 @@ export const CampaingCard: any = ({poolId, collateralTokenAddress, divaContractA
 									) : (
 										<div className="mb-10 flex flex-col items-center justify-center ">
 											<div className=" flex items-center justify-center">
-												Please{' '}
+												Please
 												<span>
 													<button
 														className="p-2 text-blue-600"
 														onClick={openConnectModal}>
 														connect
 													</button>
-												</span>{' '}
-												Wallet.
+												</span>
+												{` to the ${chainConfig.name} network.`}
 											</div>
 										</div>
 									)}

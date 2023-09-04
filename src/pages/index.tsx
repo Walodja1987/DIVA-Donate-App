@@ -7,6 +7,7 @@ import { WorkSection } from "../components/Section/WorkSection";
 import {InfoCard} from "../components/InfoCard";
 import {FooterSection} from "../components/Section/FooterSection";
 
+// @todo Add FooterSection?
 export default function Home() {
   return (
     <main className="h-full w-full relative">

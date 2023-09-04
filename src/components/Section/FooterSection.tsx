@@ -23,11 +23,6 @@ export const FooterSection = () => (
             </a>
           </li>
           <li>
-            <a href="campaign" className="hover:underline">
-              Pilot Campaign
-            </a>
-          </li>
-          <li>
             <a href="donations" className="hover:underline">
               My Donations
             </a>

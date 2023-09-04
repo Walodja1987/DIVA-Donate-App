@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import Link from "next/link";
+import campaigns from '../../../config/campaigns.json'
 
 type NavbarLinksProps = {
   activePath: string;
@@ -18,25 +19,12 @@ const links = [
     to: "/donations",
     name: "My Donations",
   },
-  // {
-  //   to: "",
-  //   name: "My Campaigns",
-  // },
   {
     to: "/faq",
     name: "FAQs",
   },
 ];
-const Menu = () => {
-  return (
-      <>
-        <div className="dropdown-menu">
-          <a href={"/"}>Current Campaign</a>
-          <a href={"/"}>Pilot Campaign</a>
-        </div>
-      </>
-  )
-}
+
 export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
     const [isMenuOpen, setMenuOpen] = useState(false);
     const [hoveredLink, setHoveredLink] = useState(null);
@@ -64,10 +52,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                     {link.name === 'Campaigns' ? (
                         <div className="relative">
                             <button
-                                className={`font-semibold text-dark-grey-100 ${
-                                    activePath === link.to ? 'text-[#9FC131]' : ''
-                                }`}
-                                // onMouseLeave={handleMenuClose}
+                                className={'font-semibold text-dark-grey-100 hover:text-[#9FC131]'}
                                 onFocus={handleMenuToggle}
                                 onBlur={handleMenuToggle}
                                 onClick={handleMenuToggle}
@@ -81,33 +66,18 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                                         onMouseLeave={handleMenuClose}
                                         className="w-48 bg-white rounded shadow-md"
                                     >
-                                        <li>
-                                            <Link
-                                                href="/campaign/pastoralists"
-                                                className={`block px-4 py-2 text-base font-semibold ${
-                                                    hoveredLink === '/campaign/pastoralists'
-                                                        ? 'text-[#9FC131]'
-                                                        : 'text-[#042940]'
-                                                }`}
-                                                onMouseEnter={() => handleLinkMouseEnter('/campaign/pastoralists')}
-                                                onMouseLeave={handleLinkMouseLeave}
-                                            >
-                                                Pastoralists in Kenya
-                                            </Link>
-                                        </li>
-                                        <li>
-                                            <Link
-                                                href="/campaign/hotrfk"
-                                                className={`block px-4 py-2 text-base font-semibold ${
-                                                    hoveredLink === '/campaign/hotrfk' ? 'text-[#9FC131]' : 'text-[#042940]'
-                                                }`}
-                                                onMouseEnter={() => handleLinkMouseEnter('/campaign/hotrfk')}
-                                                onMouseLeave={handleLinkMouseLeave}
-                                            >
-                                                Hotez vs. RFK debate
-                                            </Link>
-                                        </li>
-                                        {/* Add more dropdown links as needed */}
+                                        {campaigns.map(campaign => 
+                                            <li key={campaign.campaignId} className="text-center">
+                                                <Link
+                                                    href={campaign.path}
+                                                    className={'block px-4 py-2 text-base font-semibold hover:text-[#9FC131]'}
+                                                    onMouseEnter={() => handleLinkMouseEnter(campaign.path)}
+                                                    onMouseLeave={handleLinkMouseLeave}
+                                                >
+                                                    {campaign.title}
+                                                </Link>
+                                            </li>      
+                                        )}
                                     </ul>
                                 </div>
                             )}
@@ -117,9 +87,7 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
                             href={link.to}
                             onMouseEnter={handleMenuClose}
                             onMouseLeave={handleMenuClose}
-                            className={`block py-2 pl-3 pr-4 text-base font-semibold ${
-                                activePath === link.to ? 'text-[#9FC131]' : ''
-                            }`}
+                            className={'block py-2 pl-3 pr-4 text-base font-semibold hover:text-[#9FC131]'}
                         >
                             {link.name}
                         </Link>
