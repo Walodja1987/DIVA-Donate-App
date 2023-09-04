@@ -647,7 +647,14 @@ export default function Donations() {
 														<Button variant="ghost" mr={3} onClick={onClose}>
 															No Thanks
 														</Button>
-														<Button colorScheme="blue">
+														<Button 
+															className="text-white"
+															sx={{
+																backgroundColor: '#005C53',
+																_hover: {
+																	backgroundColor: '#005C53',
+																},
+															}}>
 															<Link
 																href="https://o26wxmqxfy2.typeform.com/to/FwmhnSq7"
 																target="_blank"
