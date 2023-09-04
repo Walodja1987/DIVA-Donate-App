@@ -89,13 +89,21 @@ export const isExpired = (timestampInMilliseconds: number) => {
   if (!timestampInMilliseconds) {
     return false; // If there's no expiry time, it's not expired
   }
-  
+
   const expiryTime = new Date(timestampInMilliseconds);
   const currentTime = new Date();
-  
+
   return expiryTime < currentTime;
 }
 
 export const isUnlimited = (amount: BigNumberish): boolean => {
   return BigNumber.from(amount).gte(ethers.constants.MaxUint256) // gte in case more than one pool is aggregated
+}
+
+export function formatNumberWithCommas(str: string): string {
+  const numberValue = parseInt(str, 10);
+  if (isNaN(numberValue)) {
+    return str; // Return the original string if it's not a valid number
+  }
+  return new Intl.NumberFormat().format(numberValue);
 }

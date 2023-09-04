@@ -1,3 +1,6 @@
+import campaigns from '../config/campaigns.json'
+
+
 // Pre-audit contract version used for the very first campaign (poolId = 8)
 export const divaContractAddressOld = '0xFf7d52432B19521276962B67FFB432eCcA609148'
 
@@ -13,3 +16,33 @@ export const chainConfig = {
     name: 'Mumbai',
     chainId: 80001,
 }
+
+export type NavItemType = {
+    to: string;
+    name: string;
+    isDropdown?: boolean;
+    dropdownItems?: any[];
+};
+
+
+export const links: NavItemType[] = [
+    {
+        to: "/",
+        name: "Home",
+    },
+    {
+        to: "/campaign",
+        name: "Campaigns",
+        isDropdown: true,
+        dropdownItems: campaigns,
+    },
+    {
+        to: "/donations",
+        name: "My Donations",
+    },
+    {
+        to: "/faq",
+        name: "FAQs",
+    },
+
+];
