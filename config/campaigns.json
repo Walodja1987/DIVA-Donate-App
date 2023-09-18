@@ -19,8 +19,8 @@
         "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
       }
     ],
-    "raised": "",
-    "donated": "",
+    "raised": "10",
+    "donated": "6",
     "collateralToken": "0xbA99068Cb134ADdf11d437dbD99e9ae5032832c5",
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",

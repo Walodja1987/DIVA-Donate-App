@@ -172,6 +172,7 @@ export const CampaignSection = () => {
 				let totalToGo: number | 'Unlimited'
 				let totalRaised: number
 				let totalDonated: number
+				let percentageProgress: number
 
 				// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 				const decimals = campaign.decimals
@@ -208,6 +209,7 @@ export const CampaignSection = () => {
 						totalDonated = 0
 						totalGoal = 0
 						totalToGo = 0
+						percentageProgress = 0
 
 						// Create an array to store promises for fetching beneficiary token balances
 						const balancePromises = poolResults.map((pool) => {
@@ -230,11 +232,8 @@ export const CampaignSection = () => {
 									// pool.collateralBalance for raised amount calculation to avoid biases
 									// from non-donating addition of liquidity
 									totalRaised +=
-										totalRaised +
 										Number(formatUnits(beneficiaryTokenBalances[index], decimals))
-
 									totalDonated +=
-										totalDonated +
 										Number(formatUnits(beneficiaryTokenBalances[index], decimals)) *
 											(pool.beneficiarySide === 'short'
 												? Number(formatUnits(pool.poolParams.payoutShort, decimals))
@@ -250,22 +249,33 @@ export const CampaignSection = () => {
 										totalToGo = 'Unlimited'
 									} else {
 										totalGoal +=
-											totalGoal +
 											Number(formatUnits(pool.poolParams.capacity, decimals))
 										totalToGo = totalGoal - totalRaised
 									}
 								})
 
 								// Check for overwrites in `campaign.json` and use them if they exist
-								if (campaign.raised !== '') Number(campaign.raised)
+								if (campaign.raised !== '') {
+									totalRaised = Number(campaign.raised)
+								}
+								if (campaign.donated !== '') {
+									totalDonated = Number(campaign.donated)
+								}
 
-								const percentageDonated = (totalDonated / totalRaised) * 100
-
+								// Show progress % depending on whether the final value has been already confirmed or not								
+								if (Number(poolResults[0].poolParams.statusFinalReferenceValue) === 3) {
+									// Scenario: Final value already confirmed
+									percentageProgress = (totalDonated / totalRaised) * 100
+								} else {
+									// Scenario: Final value not yet confirmed
+									percentageProgress = totalGoal === 'Unlimited' ? 0 : (totalRaised / totalGoal) * 100
+								}
+								
 								// Update the state variables with the accumulated values
 								updateRaised(campaign.campaignId, totalRaised)
 								updateGoal(campaign.campaignId, totalGoal)
 								updateToGo(campaign.campaignId, totalToGo)
-								updatePercentage(campaign.campaignId, percentageDonated)
+								updatePercentage(campaign.campaignId, percentageProgress)
 								updateDonated(campaign.campaignId, totalDonated)
 
 								// Assumes that `expiryTime` is the same for all the pools linked to a campaign
