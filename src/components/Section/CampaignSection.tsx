@@ -209,56 +209,72 @@ export const CampaignSection = () => {
 						totalGoal = 0
 						totalToGo = 0
 
-						// Iterate through each pool linked to the campaign, aggregate the statistics and update the
-						// corresponding state variables. As we are using the values for display only, it's fine to convert them
-						// into number format during calculations
-						poolResults.forEach((pool) => {
-							totalRaised +=
-								totalRaised +
-								Number(formatUnits(pool.poolParams.collateralBalance, decimals))
-							totalDonated +=
-								totalDonated +
-								Number(
-									formatUnits(pool.poolParams.collateralBalance, decimals)
-								) *
-									(pool.beneficiarySide === 'short'
-										? Number(formatUnits(pool.poolParams.payoutShort, decimals))
-										: Number(formatUnits(pool.poolParams.payoutLong, decimals)))
-
-							// Set totalGoal to 'Unlimited' if one of the pools has 'Unlimited capacity'
-							// Pools linked to a campaign should either be unlimited or limited in capacity, but not mixed
-							if (
-								isUnlimited(pool.poolParams.capacity) ||
-								totalGoal === 'Unlimited'
-							) {
-								totalGoal = 'Unlimited'
-								totalToGo = 'Unlimited'
-							} else {
-								totalGoal +=
-									totalGoal +
-									Number(formatUnits(pool.poolParams.capacity, decimals))
-								totalToGo = totalGoal - totalRaised
-							}
+						// Create an array to store promises for fetching beneficiary token balances
+						const balancePromises = poolResults.map((pool) => {
+							const beneficiaryTokenContract = getContract({
+								address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken, // @todo make it conditioned on the beneficiarySide
+								abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
+								signerOrProvider: wagmiProvider,
+							})
+							return beneficiaryTokenContract.balanceOf(campaign.donationRecipients[0].address) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
 						})
+			
+						// Use Promise.all to fetch the beneficiary token balances for all pools
+						return Promise.all(balancePromises)
+							.then((beneficiaryTokenBalances: string[]) => {
+								// Iterate through each pool linked to the campaign, aggregate the statistics and update the
+								// corresponding state variables. As we are using the values for display only, it's fine to convert them
+								// into number format during calculations
+								poolResults.forEach((pool, index) => {
+									// Using the position token balance of the beneficiary instead of the
+									// pool.collateralBalance for raised amount calculation to avoid biases
+									// from non-donating addition of liquidity
+									totalRaised +=
+										totalRaised +
+										Number(formatUnits(beneficiaryTokenBalances[index], decimals))
 
-						// Check for overwrites in `campaign.json` and use them if they exist
-						if (campaign.raised !== '') Number(campaign.raised)
+									totalDonated +=
+										totalDonated +
+										Number(formatUnits(beneficiaryTokenBalances[index], decimals)) *
+											(pool.beneficiarySide === 'short'
+												? Number(formatUnits(pool.poolParams.payoutShort, decimals))
+												: Number(formatUnits(pool.poolParams.payoutLong, decimals)))
 
-						const percentageDonated = (totalDonated / totalRaised) * 100
+									// Set totalGoal to 'Unlimited' if one of the pools has 'Unlimited capacity'
+									// Pools linked to a campaign should either be unlimited or limited in capacity, but not mixed
+									if (
+										isUnlimited(pool.poolParams.capacity) ||
+										totalGoal === 'Unlimited'
+									) {
+										totalGoal = 'Unlimited'
+										totalToGo = 'Unlimited'
+									} else {
+										totalGoal +=
+											totalGoal +
+											Number(formatUnits(pool.poolParams.capacity, decimals))
+										totalToGo = totalGoal - totalRaised
+									}
+								})
 
-						// Update the state variables with the accumulated values
-						updateRaised(campaign.campaignId, totalRaised)
-						updateGoal(campaign.campaignId, totalGoal)
-						updateToGo(campaign.campaignId, totalToGo)
-						updatePercentage(campaign.campaignId, percentageDonated)
-						updateDonated(campaign.campaignId, totalDonated)
+								// Check for overwrites in `campaign.json` and use them if they exist
+								if (campaign.raised !== '') Number(campaign.raised)
 
-						// Assumes that `expiryTime` is the same for all the pools linked to a campaign
-						updateExpiryTime(
-							campaign.campaignId,
-							Number(poolResults[0].poolParams.expiryTime) * 1000
-						)
-					})
+								const percentageDonated = (totalDonated / totalRaised) * 100
+
+								// Update the state variables with the accumulated values
+								updateRaised(campaign.campaignId, totalRaised)
+								updateGoal(campaign.campaignId, totalGoal)
+								updateToGo(campaign.campaignId, totalToGo)
+								updatePercentage(campaign.campaignId, percentageDonated)
+								updateDonated(campaign.campaignId, totalDonated)
+
+								// Assumes that `expiryTime` is the same for all the pools linked to a campaign
+								updateExpiryTime(
+									campaign.campaignId,
+									Number(poolResults[0].poolParams.expiryTime) * 1000
+								)
+							})
+						})									
 					.catch((error) => {
 						console.error('An error occurred while fetching pool data:', error)
 					})
