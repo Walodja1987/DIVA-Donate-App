@@ -98,7 +98,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 								height="22px"
 								value={percentage}>
 								<ProgressLabel className="text-2xl flex flex-start">
-									<Text color={'#042940'} fontSize="xs" marginLeft="0.5rem">
+									<Text color={'white'} fontSize="xs" marginLeft="0.5rem">
 										{percentage.toFixed(1)}%
 									</Text>
 								</ProgressLabel>
