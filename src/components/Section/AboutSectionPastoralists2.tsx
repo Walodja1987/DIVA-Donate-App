@@ -22,16 +22,9 @@ export const AboutSectionPastoralists2 = () => (
 							and put millions at risk of starvation in Ethiopia, Kenya, and Somalia. 
 							<br />
 							<br />
-							The goal of the campaign is to provide financial support to enrolled pastoralists in the Kenyan counties Kajiado and Laikipia if the pasture
-							conditions, as measured by remote-sensed technology, are deemed distressful.
-							{' '}
-							<a
-								href="https://www.divaprotocol.io/posts/diva-conditional-donations"
-								className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
-								target={'_blank'}
-								rel="noreferrer">
-								Learn more
-							</a>
+							The goal of this campaign is to provide financial support to enrolled pastoralists in the Kenyan counties Kajiado and Laikipia if the pasture
+							conditions, as measured by remote-sensed technology, are deemed distressful. The target cover amount of $75 per pastoralist intends to subsidize 
+							the provision of food for one livestock animal over a period of six months.
 							{/* <br />
 							<br />
 							This campaign is a joint initiative between Mercy Corps Ventures, Fortune Credit, Shamba Network, and 
@@ -50,6 +43,14 @@ export const AboutSectionPastoralists2 = () => (
 						This campaign is a joint initiative between Mercy Corps Ventures, Fortune Credit, Shamba Network, and 
 							DIVA Technologies to test the use of blockchain and smart contracts to deliver anticipatory cash transfers 
 							ahead of climate shocks to pastoralist communities in the Horn of Africa.
+							{' '}
+							<a
+								href="https://www.divaprotocol.io/posts/diva-conditional-donations"
+								className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
+								target={'_blank'}
+								rel="noreferrer">
+								Learn more
+							</a>
 						</li>
 					</ul>
 					<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
@@ -58,9 +59,9 @@ export const AboutSectionPastoralists2 = () => (
 					<ul
 						role="list"
 						className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3  mb-8">
-						<li>333 Pastoralists in Kenya</li>
+						<li>333 Pastoralists</li>
 						<li>
-							$75 target cover donation to subsidize food for 1 livestock over a period of 6 months
+							$75 target cover amount per pastoralist
 						</li>
 						<li>$25’000 total cover for the campaign</li>
 					</ul>
@@ -70,23 +71,22 @@ export const AboutSectionPastoralists2 = () => (
 					<ul
 						role="list"
 						className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3  mb-8">
-						<li>Pastoralists in Kajiado and Laikipia</li>
+						<li>Pastoralists in Kajiado and Laikipia (Kenyan counties)</li>
 					</ul>
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Trigger metric
 					</div>
 					<ul className="list-disc mb-8">
 						The pasture conditions are assessed using an indicator called NDVI (Normalized Difference Vegetation Index).
-						The NDVI is a widely-used metric for quantifying the health and density of vegetation using sensor data, 
-						and is a reasonable metric to evaluate the on-ground effects of drought since vegetation density typically 
-						tracks rainfall performance.						
+						The NDVI is a widely-used metric for quantifying the health and density of vegetation using sensor data.
+						It serves as a reasonable metric for assessing drought as vegetation density generally correlates with rainfall patterns.
 						<br></br>
 						<br></br>
 						For this campaign, the average NDVI observed between 1st October and
 						22th December 2023 is used and reported by the Shamba oracle on 2nd
-						January to ensure full data coverage of the observation period. The
-						NDVI is shifted by 1 for technical reasons.The donation release curves for each pilot location (Kajiado and Laikipia)
-						were derived based on in-depth analysis of historical NDVI patterns.
+						January 2024 to ensure full data coverage of the observation period. The
+						NDVI is shifted by 1 for technical reasons. The donation release profiles for each pilot location 
+						were derived based on in-depth analysis of historical NDVI patterns in the respective regions.
 						{' '}
 						<a
 							href="https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index"
@@ -100,7 +100,8 @@ export const AboutSectionPastoralists2 = () => (
 						Donation scenarios
 					</div>
 					<p className="pb-4">
-						The following examples illustrate the released donation amounts in % of the deposited funds in specific sample scenarios:
+						The examples provided below illustrate the released donation amounts in % of the deposited funds in specific sample scenarios.
+						These scenarios are based on the donation profiles for the respective pilot locations, with a 50/50 weighting.
 					</p>
 					<ul
 						role="list"
