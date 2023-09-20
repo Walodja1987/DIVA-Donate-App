@@ -102,8 +102,7 @@ export const DonationSectionMulti: React.FC = () => {
 						{DONATION_SPECIFICATIONS.map((donation) => (
 							<DonationItem key={donation.title} {...donation} />
 						))}
-					</div>
-					
+					</div>					
 				</div>
 			</div>
 		</div>
