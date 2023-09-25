@@ -3,7 +3,7 @@ import Layout from '../../components/Layout/Layout'
 import { CampaignCard } from '../../components/Section/CampaignCard'
 import { AboutSectionPastoralists2 } from '../../components/Section/AboutSectionPastoralists2'
 import { DonationSectionMulti } from '../../components/Section/DonationSectionMulti'
-import { LinkSection } from '../../components/Section/LinkSection'
+import { LinkSectionPastoralists2 } from '../../components/Section/LinkSectionPastoralists2'
 import campaigns from '../../../config/campaigns.json'
 
 export default function Pastoralists() {
@@ -27,7 +27,7 @@ export default function Pastoralists() {
 				/>
 				<AboutSectionPastoralists2 />
 				<DonationSectionMulti /> 
-				<LinkSection />
+				<LinkSectionPastoralists2 />
 			</main>
 		</Layout>
 	)

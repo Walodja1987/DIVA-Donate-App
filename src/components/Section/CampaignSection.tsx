@@ -256,6 +256,10 @@ export const CampaignSection = () => {
 							if (campaign.raised !== '') {
 								totalRaised = Number(campaign.raised)
 							}
+							if (campaign.goal !== '') {
+								totalGoal = Number(campaign.goal)
+								totalToGo = totalGoal - totalRaised
+							}							
 							if (campaign.donated !== '') {
 								totalDonated = Number(campaign.donated)
 							}

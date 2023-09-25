@@ -47,18 +47,21 @@ const FortuneDiva: React.FC<{
 				<div
 					className={`sm-bg-auto h-[403px] lg:h-[660px] bg-cover bg-center bg-no-repeat rounded-[20px]`}
 					style={{ backgroundImage: `url('${campaign?.img}')` }}>
-					<div className="py-6 lg:py-12 lg:px-10 px-4 text-[#DEEFE7] h-full flex flex-col justify-end gap-2">
-						<h5 className="font-semibold text-4xl font-['lora']">
+					<div className="relative py-6 lg:py-12 lg:px-10 px-4 text-[#DEEFE7] h-full flex flex-col justify-end gap-2">
+						{/* todo: improve the green bar on mobile */}
+						<div className='absolute w-full bottom-0 left-0 h-56 sm:h-52 bg-[#005C53]/75 rounded-bl-[20px] rounded-br-[20px]'>
+						</div>
+						<h5 className="font-semibold text-4xl font-['lora'] z-[10]">
 							{campaign?.title}
 						</h5>
-						<p className="card-text text-sm font-openSans">{campaign?.desc}</p>
-						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center">
+						<p className="card-text text-sm font-openSans z-[10]">{campaign?.desc}</p>
+						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center z-[10]">
 							<img src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" />
 							<div>
 								<b>Expiry:</b> {expiryTime}
 							</div>
 						</span>
-					</div>
+					</div>					
 				</div>
 			</div>
 		)
@@ -164,6 +167,7 @@ export const CampaignCard: React.FC<{
 		) {
 			let sumCapacityPools: number | 'Unlimited'
 			let sumToGoPools: number | 'Unlimited'
+			let sumRaisedPools: number
 			const divaContract = getContract({
 				address: campaign.divaContractAddress,
 				abi:
@@ -180,9 +184,6 @@ export const CampaignCard: React.FC<{
 						return {
 							poolParams: res,
 							beneficiarySide: pool.beneficiarySide,
-							// collateralBalance: res.collateralBalance,
-							// capacity: res.capacity,
-							// expiryTime: res.expiryTime,
 						}
 					})
 				)
@@ -206,7 +207,7 @@ export const CampaignCard: React.FC<{
 						// Aggregate the raised amount across the pools linked to the campaign. Note that using
 						// `collateralBalance` may not equal to raised amount if users choose a different recipient
 						// address during add liquidity.
-						const sumRaisedPools = Number(
+						sumRaisedPools = Number(
 							formatUnits(
 								beneficiaryTokenBalances.reduce(
 									(acc, data) => acc.add(data),
@@ -215,6 +216,9 @@ export const CampaignCard: React.FC<{
 								decimals
 							)
 						)
+						if (campaign.raised !== '') {
+							sumRaisedPools = Number(campaign.raised)
+						}
 						setRaised(sumRaisedPools)
 
 						// Aggregate the total pool capacity						
@@ -231,9 +235,12 @@ export const CampaignCard: React.FC<{
 								)
 							)
 						}
+						if (campaign.goal !== '') {
+							sumCapacityPools = Number(campaign.goal)
+						}
 						setGoal(sumCapacityPools)
 
-						// Derive ToGo from `sumCapacityPools` and `sumRaisedPools`						
+						// Derive ToGo from `sumCapacityPools` and `sumRaisedPools`
 						if (sumCapacityPools === 'Unlimited') {
 							sumToGoPools = 'Unlimited'
 						} else {

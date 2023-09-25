@@ -45,7 +45,7 @@ export const AboutSectionPastoralists2 = () => (
 							ahead of climate shocks to pastoralist communities in the Horn of Africa.
 							{' '}
 							<a
-								href="https://www.divaprotocol.io/posts/diva-conditional-donations"
+								href="https://agfundernews.com/mercy-corps-ventures-pilots-the-blockchain-to-get-cash-transfers-to-communities-ahead-of-climate-shock"
 								className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
 								target={'_blank'}
 								rel="noreferrer">
