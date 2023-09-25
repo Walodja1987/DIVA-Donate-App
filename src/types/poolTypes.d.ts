@@ -21,7 +21,6 @@ export type Pool = {
 };
 
 export type PoolExtended = {
-    poolId: string;
     poolParams: Pool;
     beneficiarySide: string;
 };

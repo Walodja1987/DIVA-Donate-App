@@ -9,7 +9,7 @@ import { ChakraProvider } from '@chakra-ui/react'
 import CustomAvatar from '../components/CustomAvatar'
 
 const { chains, provider } = configureChains(
-	[polygonMumbai],
+	[polygon],
 	[alchemyProvider({ apiKey: 'p3-IGmZPQrd-ri5AGlGm4cVm8k1uhCXx' })]
 )
 

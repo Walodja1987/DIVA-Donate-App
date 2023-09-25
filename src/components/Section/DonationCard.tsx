@@ -98,19 +98,19 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 								height="22px"
 								value={percentage}>
 								<ProgressLabel className="text-2xl flex flex-start">
-									<Text color={'#042940'} fontSize="xs" marginLeft="0.5rem">
+									<Text color={'white'} fontSize="xs" marginLeft="0.5rem">
 										{percentage.toFixed(1)}%
 									</Text>
 								</ProgressLabel>
 							</Progress>
 							<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-10 font-lora">
-								<GoalComponent title="Goal" value={Number(goal)} />
+								<GoalComponent title="Goal" value={goal === 'Unlimited' ? 'Unlimited' : Number(goal)} />
 								<GoalComponent title="Raised" value={Number(raised)} />
-								<GoalComponent title="To Go" value={Number(toGo)} />
+								<GoalComponent title="To Go" value={goal === 'Unlimited' ? 'Unlimited' : Number(toGo)} />
 							</div>
 							<div className="mb-3">
 								<p className="font-semibold text-base lg:text-2xl font-['lora'] text-left text-[#042940]">
-									Enter donation amount
+									Enter deposit amount
 								</p>
 							</div>
 
@@ -198,7 +198,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 									isLoading={donateLoading}
 									onClick={handleDonation}
 									isEnabled={donateEnabled}
-									label={'Donate'}
+									label={'Deposit'}
 								/>
 							</div>
 						</>
@@ -223,7 +223,7 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 	<Modal isCentered isOpen={isOpen} onClose={onClose}>
 		<ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
 		<ModalContent>
-			<ModalHeader>🙏 Thank you for your Donation! </ModalHeader>
+			<ModalHeader>🙏 Thank you for your Deposit! </ModalHeader>
 			<ModalCloseButton />
 			<ModalBody>
 				Help us improve our product by participating in our{' '}
@@ -254,14 +254,14 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 	</Modal>
 )
 
-const GoalComponent: React.FC<{ title: string; value: number }> = ({
+const GoalComponent: React.FC<{ title: string; value: number | 'Unlimited'}> = ({
 	title,
 	value,
 }) => (
 	<div className="flex flex-col items-center justify-center">
 		<dt className="mb-2 font-medium text-xl text-[#042940]">{title}</dt>
 		<dd className="font-normal text-base text-[#042940]">
-			${formatNumberWithCommas(value.toFixed(0))}
+		{value === 'Unlimited' ? 'Unlimited' : '$' + formatNumberWithCommas(value.toFixed(0))}
 		</dd>
 	</div>
 )

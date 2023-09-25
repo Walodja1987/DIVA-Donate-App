@@ -689,7 +689,7 @@ export default function Donations() {
 												<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
 													<div className="flex flex-col items-center justify-center">
 														<dt className="mb-2 font-medium text-xl text-[#042940]">
-															Committed
+															Deposited
 														</dt>
 														<dd className="font-normal text-base text-[#042940] ">
 															$

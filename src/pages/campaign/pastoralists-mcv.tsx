@@ -1,9 +1,9 @@
 import React from 'react'
 import Layout from '../../components/Layout/Layout'
 import { CampaignCard } from '../../components/Section/CampaignCard'
-import { AboutSection } from '../../components/Section/AboutSection'
-import { DonationSection } from '../../components/Section/DonationSection'
-import { HRLinkSection } from '../../components/Section/HRLinkSection'
+import { AboutSectionPastoralists2 } from '../../components/Section/AboutSectionPastoralists2'
+import { DonationSectionMulti } from '../../components/Section/DonationSectionMulti'
+import { LinkSectionPastoralists2 } from '../../components/Section/LinkSectionPastoralists2'
 import campaigns from '../../../config/campaigns.json'
 
 export default function Pastoralists() {
@@ -25,7 +25,9 @@ export default function Pastoralists() {
 					campaign={campaign}
 					thankYouMessage="Thank you for providing livestock insurance to pastoralists in Kenya."
 				/>
-				<HRLinkSection />
+				<AboutSectionPastoralists2 />
+				<DonationSectionMulti /> 
+				<LinkSectionPastoralists2 />
 			</main>
 		</Layout>
 	)

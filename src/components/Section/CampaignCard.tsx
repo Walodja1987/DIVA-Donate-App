@@ -10,9 +10,9 @@ import {
 	useProvider,
 	useNetwork,
 } from 'wagmi'
-import { DivaABI, DivaABIold } from '../../abi'
+import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { Campaign } from '../../types/campaignTypes'
+import { Campaign, CampaignPool } from '../../types/campaignTypes'
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { chainConfig } from '../../constants'
 import { divaContractAddressOld } from '../../constants'
@@ -20,6 +20,7 @@ import { getContract } from '@wagmi/core'
 import { useDisclosure } from '@chakra-ui/react'
 import { DonationCard } from './DonationCard'
 import { useDebounce } from '../../utils/hooks/useDebounce'
+import { PoolExtended } from '../../types/poolTypes'
 
 const DonationExpiredInfo = () => {
 	return (
@@ -46,18 +47,21 @@ const FortuneDiva: React.FC<{
 				<div
 					className={`sm-bg-auto h-[403px] lg:h-[660px] bg-cover bg-center bg-no-repeat rounded-[20px]`}
 					style={{ backgroundImage: `url('${campaign?.img}')` }}>
-					<div className="py-6 lg:py-12 lg:px-10 px-4 text-[#DEEFE7] h-full flex flex-col justify-end gap-2">
-						<h5 className="font-semibold text-4xl font-['lora']">
+					<div className="relative py-6 lg:py-12 lg:px-10 px-4 text-[#DEEFE7] h-full flex flex-col justify-end gap-2">
+						{/* todo: improve the green bar on mobile */}
+						<div className='absolute w-full bottom-0 left-0 h-56 sm:h-52 bg-[#005C53]/75 rounded-bl-[20px] rounded-br-[20px]'>
+						</div>
+						<h5 className="font-semibold text-4xl font-['lora'] z-[10]">
 							{campaign?.title}
 						</h5>
-						<p className="card-text text-sm font-openSans">{campaign?.desc}</p>
-						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center">
+						<p className="card-text text-sm font-openSans z-[10]">{campaign?.desc}</p>
+						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center z-[10]">
 							<img src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" />
 							<div>
 								<b>Expiry:</b> {expiryTime}
 							</div>
 						</span>
-					</div>
+					</div>					
 				</div>
 			</div>
 		)
@@ -86,7 +90,10 @@ export const CampaignCard: React.FC<{
 
 	const { address: activeAddress, isConnected } = useAccount()
 	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
+
+	// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 	const decimals = campaign.decimals
+
 	const [chainId, setChainId] = React.useState<number>(0)
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
@@ -158,68 +165,89 @@ export const CampaignCard: React.FC<{
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
 		) {
+			let sumCapacityPools: number | 'Unlimited'
+			let sumToGoPools: number | 'Unlimited'
+			let sumRaisedPools: number
 			const divaContract = getContract({
 				address: campaign.divaContractAddress,
 				abi:
-					campaign.divaContractAddress === divaContractAddressOld
+					campaign.divaContractAddress === divaContractAddressOld &&
+					chainId === 137
 						? DivaABIold
 						: DivaABI,
 				signerOrProvider: wagmiProvider,
 			})
 
 			Promise.all(
-				campaign.pools.map((pool) =>
+				campaign.pools.map((pool: CampaignPool) =>
 					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
 						return {
-							collateralBalance: res.collateralBalance,
-							capacity: res.capacity,
-							expiryTime: res.expiryTime,
+							poolParams: res,
+							beneficiarySide: pool.beneficiarySide,
 						}
 					})
 				)
-			).then((poolData) => {
+			).then((poolData: PoolExtended[]) => {
 				// Assumes that `expiryTime` for all linked pools is the same.
-				setExpiryTime(Number(poolData[0].expiryTime) * 1000)
+				setExpiryTime(Number(poolData[0].poolParams.expiryTime) * 1000)
 
-				// Aggregate the raised amount across the pools linked to the campaign. Note that using
-				// `collateralBalance` may not equal to raised amount if users choose a different recipient
-				// address during add liquidity.
-				const sumRaisedPools = Number(
-					formatUnits(
-						poolData.reduce(
-							(acc, data) => acc.add(data.collateralBalance),
-							ethers.BigNumber.from(0)
-						),
-						decimals
-					)
-				)
-				setRaised(sumRaisedPools)
+				// Create an array to store promises for fetching beneficiary token balances
+				const balancePromises = poolData.map((pool) => {
+					const beneficiaryTokenContract = getContract({
+						address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
+						abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
+						signerOrProvider: wagmiProvider,
+					})
+					return beneficiaryTokenContract.balanceOf(campaign.donationRecipients[0].address) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
+				})
 
-				// Aggregate the total pool capacity
-				let sumCapacityPools: number | 'Unlimited'
-				if (isUnlimited(poolData[0].capacity)) {
-					sumCapacityPools = 'Unlimited'
-				} else {
-					sumCapacityPools = Number(
-						formatUnits(
-							poolData.reduce(
-								(acc, data) => acc.add(data.capacity),
-								ethers.BigNumber.from(0)
-							),
-							decimals
+				// Use Promise.all to fetch the beneficiary token balances for all pools
+				return Promise.all(balancePromises)
+					.then((beneficiaryTokenBalances: string[]) => {	
+						// Aggregate the raised amount across the pools linked to the campaign. Note that using
+						// `collateralBalance` may not equal to raised amount if users choose a different recipient
+						// address during add liquidity.
+						sumRaisedPools = Number(
+							formatUnits(
+								beneficiaryTokenBalances.reduce(
+									(acc, data) => acc.add(data),
+									ethers.BigNumber.from(0)
+								),
+								decimals
+							)
 						)
-					)
-				}
-				setGoal(sumCapacityPools)
+						if (campaign.raised !== '') {
+							sumRaisedPools = Number(campaign.raised)
+						}
+						setRaised(sumRaisedPools)
 
-				// Derive ToGo from `sumCapacityPools` and `sumRaisedPools`
-				let sumToGoPools: number | 'Unlimited'
-				if (sumCapacityPools === 'Unlimited') {
-					sumToGoPools = 'Unlimited'
-				} else {
-					sumToGoPools = sumCapacityPools - sumRaisedPools
-				}
-				setToGo(sumToGoPools)
+						// Aggregate the total pool capacity						
+						if (isUnlimited(poolData[0].poolParams.capacity)) {
+							sumCapacityPools = 'Unlimited'
+						} else {
+							sumCapacityPools = Number(
+								formatUnits(
+									poolData.reduce(
+										(acc, data) => acc.add(data.poolParams.capacity),
+										ethers.BigNumber.from(0)
+									),
+									decimals
+								)
+							)
+						}
+						if (campaign.goal !== '') {
+							sumCapacityPools = Number(campaign.goal)
+						}
+						setGoal(sumCapacityPools)
+
+						// Derive ToGo from `sumCapacityPools` and `sumRaisedPools`
+						if (sumCapacityPools === 'Unlimited') {
+							sumToGoPools = 'Unlimited'
+						} else {
+							sumToGoPools = sumCapacityPools - sumRaisedPools
+						}
+						setToGo(sumToGoPools)
+					})
 			})
 		}
 	}, [chainId, donateLoading, activeAddress, collateralTokenContract])

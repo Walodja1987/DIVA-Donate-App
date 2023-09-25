@@ -18,6 +18,7 @@ export interface Campaign {
   title: string;
   desc: string;
   donationRecipients: DonationRecipient[];
+  goal: string;
   raised: string;
   donated: string;
   collateralToken: string;
