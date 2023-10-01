@@ -39,7 +39,10 @@ export default function HeroSection() {
 							style={{
 								margin: 0,
 							}}>
-							<button className="inline-block font-openSans rounded-lg px-10 py-4 text-base font-semibold text-[#042940] ring-1 ring-[#042940] w-full">
+							<button
+								className="inline-block font-openSans rounded-lg px-10 py-4 text-base font-semibold text-[#042940] ring-1 ring-[#042940] w-full"
+								style={{ whiteSpace: 'nowrap' }}
+							>
 								Learn More
 							</button>
 						</Link>
