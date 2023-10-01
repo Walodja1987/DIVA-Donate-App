@@ -41,7 +41,7 @@ export default function HeroSection() {
 							}}>
 							<button
 								className="inline-block font-openSans rounded-lg px-10 py-4 text-base font-semibold text-[#042940] ring-1 ring-[#042940] w-full"
-								style={{ whiteSpace: 'nowrap' }}
+								style={{ whiteSpace: 'nowrap' }} // Prevents text from wrapping on smaller screens
 							>
 								Learn More
 							</button>
