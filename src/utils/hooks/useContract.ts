@@ -42,6 +42,7 @@ export function useERC20Contract(contractAddress: string): any {
   // console.log("provider", provider)
   if (typeof window != "undefined" && typeof window?.ethereum != "undefined") {
     // running on client and window + ethereum is avail
+    // @todo replace with wagmi?
     const provider = new ethers.providers.Web3Provider(
       (window as any).ethereum
     );

@@ -1,25 +1,26 @@
-import Layout from "../components/Layout/Layout";
-import HeroSection from "../components/Section/HeroSection";
-import { InfoSection } from "../components/Section/InfoSection";
-import { FeatureSection } from "../components/Section/FeatureSection";
-import { CampaignSection } from "../components/Section/CampaignSection";
-import { WorkSection } from "../components/Section/WorkSection";
-import {InfoCard} from "../components/InfoCard";
-import {FooterSection} from "../components/Section/FooterSection";
+import Layout from '../components/Layout/Layout'
+import HeroSection from '../components/Section/HeroSection'
+import { InfoSection } from '../components/Section/InfoSection'
+import { FeatureSection } from '../components/Section/FeatureSection'
+import { CampaignSection } from '../components/Section/CampaignSection'
+import { WorkSection } from '../components/Section/WorkSection'
 
+// @todo Add FooterSection?
 export default function Home() {
-  return (
-    <main className="h-full w-full relative">
-          <div className="invisible hidden sm:block sm:visible">
-              <Layout>
-                <HeroSection />
-                <InfoSection />
-                <FeatureSection />
-                <CampaignSection />
-                <WorkSection />
-              </Layout>
-          </div>
-          <div className="pt-[20rem] sm:invisible sm:hidden">
+	return (
+		<main className="h-full w-full">
+			<div className="sm:block sm:visible">
+				<Layout>
+					<div className="w-full overflow-x-hidden pt-20 lg:pt-0">
+						<HeroSection />
+						<InfoSection />
+						<FeatureSection />
+						<CampaignSection />
+						<WorkSection />
+					</div>
+				</Layout>
+			</div>
+			{/* <div className="pt-[20rem] sm:invisible sm:hidden">
               <InfoCard
                   cardPadding="p-4 md:p-8"
                   cardWidth="w-auto md:w-full text-center"
@@ -32,7 +33,7 @@ export default function Home() {
                   titleColor="text-[#042940]"
                   cardColor="bg-[#DEEFE7]"
               />
-          </div>
-    </main>
-  );
+          </div> */}
+		</main>
+	)
 }

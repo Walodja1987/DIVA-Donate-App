@@ -1,0 +1,35 @@
+[
+    {
+      "poolId": "8",
+      "beneficiarySide": "short",
+      "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1",
+      "img": "/Images/pastrolists400pxVertical.png",
+      "path": "/campaign/pastoralists",
+      "title": "Fortune DIVA",
+      "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya to financially assist them in case of drought.",
+      "donationRecipients" : [
+        {
+          "name": "DIVA",
+          "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
+          "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+        }
+      ]
+
+    },
+    {
+      "poolId": "0xf9ea1671ddca4aaad1df33257cd2040c656064c9bb628102dd3c68431d1baaaf",
+      "beneficiarySide": "long",
+      "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
+      "img": "/Images/joehotezrfk.png",
+      "path": "/campaign/pastoralists-2",
+      "title": "Hotez vs. RFK debate",
+      "desc": "Donate to charity if Peter Hotez and RFK Jr debate each other on the controversial topic of Covid vaccines on the Joe Rogan podcast by 30 September 2023.",
+      "donationRecipients" : [
+        {
+          "name": "DIVA",
+          "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
+          "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+        }
+      ]
+    }
+]
