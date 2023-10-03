@@ -296,7 +296,9 @@ const UnsupportedNetworkModal: React.FC<any> = ({
 		</div>
 		<div className="text-xl font-lora text-[#042940]">Unsupported Network</div>
 		<Button
-			className=" bg-blue-600 text-white rounded-xl"
+			className="bg-blue-600 text-white rounded-xl"
+			bg="blue.600"
+			_hover={{ bg: 'blue.700' }}
 			onClick={openConnectModal}>
 			Switch to {chainConfig.name}
 		</Button>
