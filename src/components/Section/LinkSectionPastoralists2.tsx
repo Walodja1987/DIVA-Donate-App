@@ -99,9 +99,9 @@ export const LinkSectionPastoralists2 = () => (
 				</a>
 			</div>
 
-			{/* <div>
+			<div>
 				<a
-					href="https://www.divaprotocol.io/posts/diva-how-diva-protocol-can-help-unlock-affordable-insurance-for-farmers"
+					href="https://x.com/DIVADonate_xyz/status/1709309125773922596?s=20"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3 "
 					target={'_blank'}
 					rel="noreferrer">
@@ -133,14 +133,14 @@ export const LinkSectionPastoralists2 = () => (
 							</defs>
 						</svg>
 						<h3 className="text-[#005C53] font-['lora'] text-2xl font-semibold">
-							Blog
+							Twitter thread
 						</h3>
 					</div>
 					<p className="text-[#042940] font-semibold text-base">
-						How DIVA Protocol can help unlock affordable insurance for farmers
+						Launch announcement of the campaign by the DIVA Donate team on Twitter
 					</p>
 				</a>
-			</div> */}
+			</div>
 		</div>
 	</div>
 )
