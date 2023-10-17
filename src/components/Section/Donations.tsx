@@ -431,7 +431,6 @@ export default function Donations() {
 				const results = pools.results
 				const poolsObj = JSON.parse(JSON.stringify(results))
 				const poolsKeys = Object.keys(poolsObj)
-				let sumDonated = ethers.BigNumber.from(0)
 				let campaignBalanceHex = new Map()
 				const campaignDonatedSumHex = new Map()
 					poolsKeys.map((pool) => {
@@ -477,13 +476,11 @@ export default function Donations() {
 											// @todo Assumes that the beneficiary side for all the pools linked to a campaign are the same
 											if (campaignPool.beneficiarySide === 'short') {
 												const payoutShort = poolParameters[enumPoolParameters.payoutShort]
-												sumDonated = sumDonated.add((balance).mul(payoutShort))
 												let sumHex = campaignDonatedSumHex.get(campaignId)
 												sumHex = sumHex.add((balance).mul(payoutShort))
 												campaignDonatedSumHex.set(campaignId, sumHex)
 											} else {
 												const payoutLong = poolParameters[enumPoolParameters.payoutLong]
-												sumDonated = sumDonated.add((balance).mul(payoutLong))
 												let sumHex = campaignDonatedSumHex.get(campaignId)
 												sumHex = sumHex.add((balance).mul(payoutLong))
 												campaignDonatedSumHex.set(campaignId, sumHex)
