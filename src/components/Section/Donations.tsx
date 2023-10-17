@@ -123,7 +123,7 @@ export default function Donations() {
 			ethersProvider: provider,
 			tryAggregate: true,
 		})
-
+		
 		let multicallArgs: any[] = []
 		campaigns.forEach((campaign, indexCampaign) => {
 			campaign.pools.forEach((pool, indexPool) => {
@@ -152,7 +152,7 @@ export default function Donations() {
 		const results: ContractCallResults = await multicall.call(
 			contractCallContext
 		)
-		console.log('results poolParams', results)
+		
 		return results
 	}
 
@@ -195,7 +195,7 @@ export default function Donations() {
 		const results: ContractCallResults = await multicall.call(
 			contractCallContext
 		)
-		console.log('results token balances', results)
+		
 		return results
 	}
 
@@ -210,7 +210,6 @@ export default function Donations() {
 
 			// Convert the array of values into an array of objects
 			const valueObjects = returnValues.map((value) => ({ value }))
-
 			res.push(valueObjects)
 		}
 		// console.log('data', data)
@@ -429,34 +428,31 @@ export default function Donations() {
 			let campaignBalance = new Map<string, number>()
 			let campaignsParticipatedCount = 0
 			fetchPoolParams(chainId, wagmiProvider, campaigns).then((pools) => {
-				
 				const results = pools.results
 				const poolsObj = JSON.parse(JSON.stringify(results))
 				const poolsKeys = Object.keys(poolsObj)
 				let sumDonated = ethers.BigNumber.from(0)
 				let campaignBalanceHex = new Map()
-				//Promise.all(
+				const campaignDonatedSumHex = new Map()
 					poolsKeys.map((pool) => {
 						const poolObj = poolsObj[pool]
 						const poolId = poolObj.callsReturnContext[0].methodParameters[0]
 						campaigns.forEach(campaign => {
 							const campaignId = campaign.campaignId
 							campaignBalanceHex.set(campaignId, ethers.BigNumber.from(0))
+							campaignDonatedSumHex.set(campaignId, ethers.BigNumber.from(0))
 							let campaignPools: any[] = campaign.pools
-							//Promise.all(
 							campaignPools.map(campaignPool => {
 								if(poolId === campaignPool.poolId) {
 									const poolParameters = poolObj.callsReturnContext[0].returnValues
 									const donorPositionToken =
 									campaignPool.beneficiarySide === 'short'
 										? poolParameters[enumPoolParameters.longToken] : poolParameters[enumPoolParameters.shortToken]
-									
 									const positionTokenContract = getContract({
 										address: donorPositionToken,
 										abi: ERC20ABI,
 										signerOrProvider: wagmiProvider,
 									})
-									
 									return getTokenBalance(positionTokenContract, activeAddress).then(
 										(res) => {
 											const balance = res?.balance
@@ -464,7 +460,6 @@ export default function Donations() {
 											campaignBalHex = campaignBalHex.add(balance)
 											campaignBalanceHex.set(campaignId, campaignBalHex)
 											const tokenBalanceFormatted = Number(formatUnits(campaignBalHex, campaign.decimals))
-											
 											updateCampaignBalance(
 												campaign.campaignId,
 												tokenBalanceFormatted
@@ -483,21 +478,28 @@ export default function Donations() {
 											if (campaignPool.beneficiarySide === 'short') {
 												const payoutShort = poolParameters[enumPoolParameters.payoutShort]
 												sumDonated = sumDonated.add((balance).mul(payoutShort))
+												let sumHex = campaignDonatedSumHex.get(campaignId)
+												sumHex = sumHex.add((balance).mul(payoutShort))
+												campaignDonatedSumHex.set(campaignId, sumHex)
 											} else {
 												const payoutLong = poolParameters[enumPoolParameters.payoutLong]
 												sumDonated = sumDonated.add((balance).mul(payoutLong))
+												let sumHex = campaignDonatedSumHex.get(campaignId)
+												sumHex = sumHex.add((balance).mul(payoutLong))
+												campaignDonatedSumHex.set(campaignId, sumHex)
 											}
 											const sumDonatedFormatted = Number(
-												formatUnits(sumDonated.div(parseUnits('1', campaign.decimals)), campaign.decimals)
+												formatUnits(campaignDonatedSumHex.get(campaignId).div(parseUnits('1', campaign.decimals)), campaign.decimals)
 											)
 											updateDonated(campaign.campaignId, sumDonatedFormatted)
+											const campaignPercentageDonated = (sumDonatedFormatted / tokenBalanceFormatted) * 100
 											updatePercentageDonated(
 												campaign.campaignId,
-												(sumDonatedFormatted / tokenBalanceFormatted) * 100
-											)
+												campaignPercentageDonated
+											)	
 											updateExpiryTime(
 												campaign.campaignId,
-												Number(poolParameters[enumPoolParameters.expiryTime]) * 1000
+												Number(poolParameters[enumPoolParameters.expiryTime].hex) * 1000
 											)
 											const currentStatusFinalReferenceValue =
 											poolParameters[enumPoolParameters.statusFinalReferenceValue]
@@ -515,9 +517,9 @@ export default function Donations() {
 										}
 									)
 								}
-							})//)
+							})
 						})
-					})//)
+					})
 				})
 			// Variable used as a flag to display "Explore campaigns" message if user didn't make any donations
 			// yet or has already re-claimed the funds from previous campaigns.

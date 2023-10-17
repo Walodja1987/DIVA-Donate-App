@@ -3,14 +3,14 @@
     "campaignId": "pastoralists_1",
     "pools": [
       {
-        "poolId": "8",
+        "poolId": "0xacc480f9d8eba6df3c995f0542ba15b33bc9f0163412ef05e3ebf836db6d45f6",
         "beneficiarySide": "short",
-        "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1"
+        "positionToken": "0xCb8c2a2C5d6871B7C8979C3808A34c896506C9fE"
       }
-    ],
+    ],      
     "img": "/Images/pastrolists400pxVertical.png",
     "path": "/campaign/pastoralists-1",
-    "title": "Pastoralists",
+    "title": "Pastoralists 3.0",
     "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya (Marsabit region) to financially assist them in case of drought.",
     "donationRecipients" : [
       {
@@ -20,30 +20,30 @@
       }
     ],
     "goal": "15000",
-    "raised": "5367",
-    "donated": "0",
-    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    "raised": "10",
+    "donated": "6",
+    "collateralToken": "0xbA99068Cb134ADdf11d437dbD99e9ae5032832c5",
     "decimals": "6",
-    "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
-    "chainId": "137"
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "80001"
   },
   {
     "campaignId": "pastoralists_2",
     "pools": [
       {
-        "poolId": "0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0",
+        "poolId": "0x47d327d6ba095f015feac8705a44852e501cc741d1a746d9b3d1f32114fbdc28",
         "beneficiarySide": "short",
-        "positionToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59"
+        "positionToken": "0x183714f60C659EAE1BAC73Cb37D7f48fb531812E"
       },
       {
-        "poolId": "0x8456bb83c6fb307cdbeb79a1308e6a4fefd5f2a706a755302850fcf3607acbf4",
+        "poolId": "0x72827eaa6a6f9f50d1cb9706fc87c4ef2daee7ccfa71845fb402609f77f79ae8",
         "beneficiarySide": "short",
-        "positionToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB"
+        "positionToken": "0x2b5706c1ddB8013E9A8407ecB039bc8EDb20F56F"
       }
     ],
     "img": "/Images/pastoralists_mcv_pilot.png",
     "path": "/campaign/pastoralists-mcv",
-    "title": "Pastoralists (MCV Pilot)",
+    "title": "Pastoralists in Kenya (MCV Pilot)",
     "desc": "A pilot with Mercy Corps Ventures (MCV) to provide anticipatory cash transfers to pastoralist communities in two Kenyan counties: Kajiado and Laikipia.",
     "donationRecipients" : [
       {
@@ -55,9 +55,42 @@
     "goal": "25000",
     "raised": "",
     "donated": "",
-    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    "collateralToken": "0xbA99068Cb134ADdf11d437dbD99e9ae5032832c5",
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-    "chainId": "137"
+    "chainId": "80001"
+  },
+  {
+    "campaignId": "pastoralists_3",
+    "pools": [
+      {
+        "poolId": "0x1dba16ebb34efd67ab07c6bb0aea81b37eb81ca66fce0eb8d640da526685f7e3",
+        "beneficiarySide": "short",
+        "positionToken": "0xb68Ca5960D6B94892a8B74595a6EdFab75b9f7C6"
+      },
+      {
+        "poolId": "0xc388171a3d8c8c0522cfa014bd15411ce8b671c087a3f32bf4a5fad3ee17d8f7",
+        "beneficiarySide": "short",
+        "positionToken": "0x274B8a54369744a250a733feFA1C689Ec7C3ec1e"
+      }
+    ],
+    "img": "/Images/pastrolists400pxVertical.png",
+    "path": "/campaign/pastoralists-3",
+    "title": "Pastoralists 3.0",
+    "desc": "A conditional donation campaign to provide livestock insurance to 500 pastoralists in Kenya (Kajiado and Laikipia region) to financially assist them in the event of drought.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
+        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "goal": "",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xbA99068Cb134ADdf11d437dbD99e9ae5032832c5",
+    "decimals": "6",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "80001"
   }
 ]
