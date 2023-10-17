@@ -433,7 +433,7 @@ export default function Donations() {
 				const poolsKeys = Object.keys(poolsObj)
 				let campaignBalanceHex = new Map()
 				const campaignDonatedSumHex = new Map()
-					poolsKeys.map((pool) => {
+					poolsKeys.forEach((pool) => {
 						const poolObj = poolsObj[pool]
 						const poolId = poolObj.callsReturnContext[0].methodParameters[0]
 						campaigns.forEach(campaign => {
@@ -441,7 +441,7 @@ export default function Donations() {
 							campaignBalanceHex.set(campaignId, ethers.BigNumber.from(0))
 							campaignDonatedSumHex.set(campaignId, ethers.BigNumber.from(0))
 							let campaignPools: any[] = campaign.pools
-							campaignPools.map(campaignPool => {
+							campaignPools.forEach(campaignPool => {
 								if(poolId === campaignPool.poolId) {
 									const poolParameters = poolObj.callsReturnContext[0].returnValues
 									const donorPositionToken =
@@ -452,7 +452,7 @@ export default function Donations() {
 										abi: ERC20ABI,
 										signerOrProvider: wagmiProvider,
 									})
-									return getTokenBalance(positionTokenContract, activeAddress).then(
+									getTokenBalance(positionTokenContract, activeAddress).then(
 										(res) => {
 											const balance = res?.balance
 											let campaignBalHex = campaignBalanceHex.get(campaignId)
