@@ -24,12 +24,12 @@ const CookieBanner = () => {
     <div className="bg-blue-500 p-4 fixed bottom-0 w-full text-white">
       <div className="container mx-auto text-center">
         <p className="text-sm">
-          We use cookies to improve your experience.{' '}
+          We use cookies to improve your experience. By continuing to use this website, you agree to our cookie policy{' '}
           <button
             onClick={acceptCookies}
             className="bg-yellow-500 text-blue-500 py-1 px-2 rounded hover:bg-yellow-400"
           >
-            Accept
+            Accept and Continue
           </button>
         </p>
       </div>
