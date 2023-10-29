@@ -64,7 +64,7 @@ const CookieBanner = () => {
 
   return (
     <>
-    <div className="bg-blue-500 p-4 fixed bottom-0 w-full text-white">
+    <div className="bg-blue-500 p-4 fixed bottom-0 w-full text-white z-[20]">
       <div className="container mx-auto text-center">
         <p className="text-sm">
           We use cookies to improve your experience. By continuing to use
