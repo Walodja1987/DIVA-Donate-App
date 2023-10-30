@@ -51,11 +51,11 @@ const FortuneDiva: React.FC<{
 						{/* todo: improve the green bar on mobile */}
 						<div className='absolute w-full bottom-0 left-0 h-56 sm:h-52 bg-[#005C53]/75 rounded-bl-[20px] rounded-br-[20px]'>
 						</div>
-						<h5 className="font-semibold text-4xl font-['lora'] z-[10]">
+						<h5 className="font-semibold text-4xl font-['lora'] z-[9]">
 							{campaign?.title}
 						</h5>
-						<p className="card-text text-sm font-openSans z-[10]">{campaign?.desc}</p>
-						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center z-[10]">
+						<p className="card-text text-sm font-openSans z-[9]">{campaign?.desc}</p>
+						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center z-[9]">
 							<img src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" />
 							<div>
 								<b>Expiry:</b> {expiryTime}
