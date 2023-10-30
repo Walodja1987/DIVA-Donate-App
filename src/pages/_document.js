@@ -16,6 +16,21 @@ class MyDocument extends Document {
 						rel="stylesheet"
 					/>
 					<link rel="icon" href="/favicon.svg" />
+
+					{/* Google tag (gtag.js) */}
+					<script 
+						async
+						src="https://www.googletagmanager.com/gtag/js?id=G-1PSDJ6GTTQ">
+					</script>
+					<script>
+						{`
+							window.dataLayer = window.dataLayer || [];
+							function gtag(){dataLayer.push(arguments);}
+							gtag('js', new Date());
+
+							gtag('config', 'G-1PSDJ6GTTQ');
+						`}
+					</script>
 				</Head>
 				<body>
 					<Main />
