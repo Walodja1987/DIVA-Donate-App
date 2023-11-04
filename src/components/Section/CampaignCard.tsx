@@ -43,25 +43,26 @@ const FortuneDiva: React.FC<{
 
 	return (
 		campaign && (
-			<div className="mx-auto lg:w-[732px] lg:mt-0 lg:col-span-4 lg:flex">
+			<div className="mx-auto xl:w-[500px] 2xl:w-[732px] lg:mt-0 lg:col-span-4 lg:flex">
 				<div
 					className={`sm-bg-auto h-[403px] lg:h-[660px] bg-cover bg-center bg-no-repeat rounded-[20px]`}
 					style={{ backgroundImage: `url('${campaign?.img}')` }}>
 					<div className="relative py-6 lg:py-12 lg:px-10 px-4 text-[#DEEFE7] h-full flex flex-col justify-end gap-2">
 						{/* todo: improve the green bar on mobile */}
-						<div className='absolute w-full bottom-0 left-0 h-56 sm:h-52 bg-[#005C53]/75 rounded-bl-[20px] rounded-br-[20px]'>
-						</div>
-						<h5 className="font-semibold text-4xl font-['lora'] z-[9]">
+						<div className="absolute w-full bottom-0 left-0 h-56 sm:h-52 bg-[#005C53]/75 rounded-bl-[20px] rounded-br-[20px]"></div>
+						<h5 className="font-semibold text-2xl 2xl:text-4xl font-['lora'] z-[9]">
 							{campaign?.title}
 						</h5>
-						<p className="card-text text-sm font-openSans z-[9]">{campaign?.desc}</p>
+						<p className="card-text text-sm font-openSans z-[9]">
+							{campaign?.desc}
+						</p>
 						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center z-[9]">
 							<img src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" />
 							<div>
 								<b>Expiry:</b> {expiryTime}
 							</div>
 						</span>
-					</div>					
+					</div>
 				</div>
 			</div>
 		)
@@ -194,16 +195,21 @@ export const CampaignCard: React.FC<{
 				// Create an array to store promises for fetching beneficiary token balances
 				const balancePromises = poolData.map((pool) => {
 					const beneficiaryTokenContract = getContract({
-						address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
+						address:
+							pool.beneficiarySide === 'short'
+								? pool.poolParams.shortToken
+								: pool.poolParams.longToken,
 						abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
 						signerOrProvider: wagmiProvider,
 					})
-					return beneficiaryTokenContract.balanceOf(campaign.donationRecipients[0].address) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
+					return beneficiaryTokenContract.balanceOf(
+						campaign.donationRecipients[0].address
+					) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
 				})
 
 				// Use Promise.all to fetch the beneficiary token balances for all pools
-				return Promise.all(balancePromises)
-					.then((beneficiaryTokenBalances: string[]) => {	
+				return Promise.all(balancePromises).then(
+					(beneficiaryTokenBalances: string[]) => {
 						// Aggregate the raised amount across the pools linked to the campaign. Note that using
 						// `collateralBalance` may not equal to raised amount if users choose a different recipient
 						// address during add liquidity.
@@ -221,7 +227,7 @@ export const CampaignCard: React.FC<{
 						}
 						setRaised(sumRaisedPools)
 
-						// Aggregate the total pool capacity						
+						// Aggregate the total pool capacity
 						if (isUnlimited(poolData[0].poolParams.capacity)) {
 							sumCapacityPools = 'Unlimited'
 						} else {
@@ -247,7 +253,8 @@ export const CampaignCard: React.FC<{
 							sumToGoPools = sumCapacityPools - sumRaisedPools
 						}
 						setToGo(sumToGoPools)
-					})
+					}
+				)
 			})
 		}
 	}, [chainId, donateLoading, activeAddress, collateralTokenContract])
@@ -386,7 +393,7 @@ export const CampaignCard: React.FC<{
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
-			<div className="px-4 lg:px-0 gap-6 lg:py-16 flex flex-col lg:flex-row max-w-screen-2xl">
+			<div className="px-4 xl:px-0 gap-6 lg:py-16  flex flex-col lg:flex-row max-w-screen-2xl">
 				<FortuneDiva
 					expiryTimeInMilliseconds={expiryTime}
 					campaign={campaign}

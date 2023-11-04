@@ -68,7 +68,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	handleOpen,
 }) => {
 	return (
-		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[777px]">
+		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px] xl:w-[777px]">
 			<div className="mb-10">
 				<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
 					{thankYouMessage}
@@ -104,9 +104,15 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 								</ProgressLabel>
 							</Progress>
 							<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-10 font-lora">
-								<GoalComponent title="Goal" value={goal === 'Unlimited' ? 'Unlimited' : Number(goal)} />
+								<GoalComponent
+									title="Goal"
+									value={goal === 'Unlimited' ? 'Unlimited' : Number(goal)}
+								/>
 								<GoalComponent title="Raised" value={Number(raised)} />
-								<GoalComponent title="To Go" value={goal === 'Unlimited' ? 'Unlimited' : Number(toGo)} />
+								<GoalComponent
+									title="To Go"
+									value={goal === 'Unlimited' ? 'Unlimited' : Number(toGo)}
+								/>
 							</div>
 							<div className="mb-3">
 								<p className="font-semibold text-base lg:text-2xl font-['lora'] text-left text-[#042940]">
@@ -254,14 +260,16 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 	</Modal>
 )
 
-const GoalComponent: React.FC<{ title: string; value: number | 'Unlimited'}> = ({
-	title,
-	value,
-}) => (
+const GoalComponent: React.FC<{
+	title: string
+	value: number | 'Unlimited'
+}> = ({ title, value }) => (
 	<div className="flex flex-col items-center justify-center">
 		<dt className="mb-2 font-medium text-xl text-[#042940]">{title}</dt>
 		<dd className="font-normal text-base text-[#042940]">
-		{value === 'Unlimited' ? 'Unlimited' : '$' + formatNumberWithCommas(value.toFixed(0))}
+			{value === 'Unlimited'
+				? 'Unlimited'
+				: '$' + formatNumberWithCommas(value.toFixed(0))}
 		</dd>
 	</div>
 )
