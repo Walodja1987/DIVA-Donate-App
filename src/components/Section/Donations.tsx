@@ -112,7 +112,7 @@ export default function Donations() {
 	 * @param chainId Chain id. Only used to identify the `pastoralists_1` campaign on Polygon.
 	 * @param provider Web3 provider.
 	 * @param campaigns Array of campaign objects (including `pools` field).
-	 * @return Multicall results object.
+	 * @return Multicall results object.-
 	 */
 	const fetchPoolParams = async (
 		chainId: number,
@@ -153,6 +153,8 @@ export default function Donations() {
 			contractCallContext
 		)
 		
+		//TODO: Add beneficiary side?
+
 		return results
 	}
 
@@ -417,6 +419,82 @@ export default function Donations() {
 		}
 	}
 
+	// @todo: specify object type in separate interface and replay "any"
+	/**
+	 * Extracts pool parameters from a multicall result object and creates a mapping from poolId to pool parameters.
+	 * @param pools - The raw `getPoolParameters` multicall result object containing pool data.
+	 * @returns A mapping object where keys are poolIds and values are pool parameters.
+	 */
+	const extractPoolsFromMulticallResult = (poolsMulticallResult: any) => {
+		// Get keys from the 'poolsMulticallResult' object (pool-0-0, pool-1-0, pool-1-1, etc.)
+		const poolsKeys = Object.keys(poolsMulticallResult)
+
+		// Initialize an empty object to store the mapping from poolId to pool parameters
+		const poolMapping: { [key: string]: any } = {};
+
+		// Iterate through each pool inside the multicall result object and construct the 
+		// mapping object where keys are poolIds and values are pool parameters
+		poolsKeys.forEach((multicallItem) => {
+			const poolMulticallItem = poolsMulticallResult[multicallItem]
+			const poolParameters = poolMulticallItem.callsReturnContext[0].returnValues
+			const poolId = poolMulticallItem.callsReturnContext[0].methodParameters[0]			
+
+			poolMapping[poolId] = poolParameters;
+		})
+
+		return poolMapping;
+	}
+
+	/**
+	 * Extracts donor position tokens from a mapping of pool parameters.
+	 * @param poolMapping - A mapping object where keys are poolIds and values are pool parameters.
+	 * @returns An array of donor position tokens.
+	 */
+	const getDonorPositionTokens = (poolMapping: { [key: string]: any }): string[] => {
+		// Initialize an array to store the extracted donor position tokens
+		const donorPositionTokens: string[] = [];
+	
+		// Iterate through the poolMapping object to extract long tokens
+		for (const poolId in poolMapping) {
+			const poolParameters = poolMapping[poolId];
+			
+			// Add the longToken to the array
+			donorPositionTokens.push(poolParameters[enumPoolParameters.longToken]);
+		}
+	
+		// TODO: I think in fetchPoolParams, you have to also store the beneficiary side
+
+		return donorPositionTokens;
+	};
+  
+	}
+
+	const fetchTokenBalancesMulticall = async (
+		tokens: any[]
+	) => {
+
+	}
+
+	useEffect(() => {
+		fetchPoolParams(chainId, wagmiProvider, campaigns).then((poolsMulticallResult) => {
+			const poolMapping = extractPoolsFromMulticallResult(poolsMulticallResult)
+			const donorPositionTokens = getDonorPositionTokens(poolMapping)
+			fetchTokenBalancesMulticall()
+		})
+		
+		
+	}, 
+	[
+		chainId,
+		activeAddress,
+		pools,
+		!campaignBalance,
+		claimEnabled == null,
+		isOpen === false,
+	])
+	
+
+
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
 		if (
@@ -429,94 +507,100 @@ export default function Donations() {
 			let campaignsParticipatedCount = 0
 			fetchPoolParams(chainId, wagmiProvider, campaigns).then((pools) => {
 				const results = pools.results
+				console.log('results', results)
+
+				// @question: Copy created to not modify the results variable?
 				const poolsObj = JSON.parse(JSON.stringify(results))
+				console.log('poolsObj', poolsObj)
 				const poolsKeys = Object.keys(poolsObj)
-				let campaignBalanceHex = new Map()
+				console.log('poolsKeys', poolsKeys)
+				let campaignBalanceHex = new Map() // @question: Is it common to append "Hex" to a mapping variable?
+				console.log('campaignBalanceHex', campaignBalanceHex)
 				const campaignDonatedSumHex = new Map()
-					poolsKeys.forEach((pool) => {
-						const poolObj = poolsObj[pool]
-						const poolId = poolObj.callsReturnContext[0].methodParameters[0]
-						campaigns.forEach(campaign => {
-							const campaignId = campaign.campaignId
-							campaignBalanceHex.set(campaignId, ethers.BigNumber.from(0))
-							campaignDonatedSumHex.set(campaignId, ethers.BigNumber.from(0))
-							let campaignPools: any[] = campaign.pools
-							campaignPools.forEach(campaignPool => {
-								if(poolId === campaignPool.poolId) {
-									const poolParameters = poolObj.callsReturnContext[0].returnValues
-									const donorPositionToken =
-									campaignPool.beneficiarySide === 'short'
-										? poolParameters[enumPoolParameters.longToken] : poolParameters[enumPoolParameters.shortToken]
-									const positionTokenContract = getContract({
-										address: donorPositionToken,
-										abi: ERC20ABI,
-										signerOrProvider: wagmiProvider,
-									})
-									getTokenBalance(positionTokenContract, activeAddress).then(
-										(res) => {
-											const balance = res?.balance
-											let campaignBalHex = campaignBalanceHex.get(campaignId)
-											campaignBalHex = campaignBalHex.add(balance)
-											campaignBalanceHex.set(campaignId, campaignBalHex)
-											const tokenBalanceFormatted = Number(formatUnits(campaignBalHex, campaign.decimals))
-											updateCampaignBalance(
-												campaign.campaignId,
-												tokenBalanceFormatted
-											)
-											if(tokenBalanceFormatted > 0) {
-												//campaignBalance use this map to store the pools with +ve 
-												//balance pools which can be used to calculated campaigns participated
-												const positiveBalanceCounted = campaignBalance.get(campaignId)
-												if(positiveBalanceCounted == null) {
-													campaignsParticipatedCount = campaignsParticipatedCount + 1
-													setCampaignsParticipated(campaignsParticipatedCount)
-													campaignBalance.set(campaignId, tokenBalanceFormatted)
-												}
+				poolsKeys.forEach((pool) => {
+					const poolObj = poolsObj[pool]
+					const poolId = poolObj.callsReturnContext[0].methodParameters[0]
+					campaigns.forEach(campaign => {
+						const campaignId = campaign.campaignId
+						campaignBalanceHex.set(campaignId, ethers.BigNumber.from(0))
+						campaignDonatedSumHex.set(campaignId, ethers.BigNumber.from(0))
+						let campaignPools: any[] = campaign.pools
+						campaignPools.forEach(campaignPool => {
+							if(poolId === campaignPool.poolId) {
+								const poolParameters = poolObj.callsReturnContext[0].returnValues
+								const donorPositionToken =
+								campaignPool.beneficiarySide === 'short'
+									? poolParameters[enumPoolParameters.longToken] : poolParameters[enumPoolParameters.shortToken]
+								const positionTokenContract = getContract({
+									address: donorPositionToken,
+									abi: ERC20ABI,
+									signerOrProvider: wagmiProvider,
+								})
+								getTokenBalance(positionTokenContract, activeAddress).then(
+									(res) => {
+										const balance = res?.balance
+										let campaignBalHex = campaignBalanceHex.get(campaignId)
+										campaignBalHex = campaignBalHex.add(balance)
+										campaignBalanceHex.set(campaignId, campaignBalHex)
+										const tokenBalanceFormatted = Number(formatUnits(campaignBalHex, campaign.decimals))
+										updateCampaignBalance(
+											campaign.campaignId,
+											tokenBalanceFormatted
+										)
+										if(tokenBalanceFormatted > 0) {
+											//campaignBalance use this map to store the pools with +ve 
+											//balance pools which can be used to calculated campaigns participated
+											const positiveBalanceCounted = campaignBalance.get(campaignId)
+											if(positiveBalanceCounted == null) {
+												campaignsParticipatedCount = campaignsParticipatedCount + 1
+												setCampaignsParticipated(campaignsParticipatedCount)
+												campaignBalance.set(campaignId, tokenBalanceFormatted)
 											}
-											// @todo Assumes that the beneficiary side for all the pools linked to a campaign are the same
-											if (campaignPool.beneficiarySide === 'short') {
-												const payoutShort = poolParameters[enumPoolParameters.payoutShort]
-												let sumHex = campaignDonatedSumHex.get(campaignId)
-												sumHex = sumHex.add((balance).mul(payoutShort))
-												campaignDonatedSumHex.set(campaignId, sumHex)
-											} else {
-												const payoutLong = poolParameters[enumPoolParameters.payoutLong]
-												let sumHex = campaignDonatedSumHex.get(campaignId)
-												sumHex = sumHex.add((balance).mul(payoutLong))
-												campaignDonatedSumHex.set(campaignId, sumHex)
-											}
-											const sumDonatedFormatted = Number(
-												formatUnits(campaignDonatedSumHex.get(campaignId).div(parseUnits('1', campaign.decimals)), campaign.decimals)
-											)
-											updateDonated(campaign.campaignId, sumDonatedFormatted)
-											const campaignPercentageDonated = (sumDonatedFormatted / tokenBalanceFormatted) * 100
-											updatePercentageDonated(
-												campaign.campaignId,
-												campaignPercentageDonated
-											)	
-											updateExpiryTime(
-												campaign.campaignId,
-												Number(poolParameters[enumPoolParameters.expiryTime].hex) * 1000
-											)
-											const currentStatusFinalReferenceValue =
-											poolParameters[enumPoolParameters.statusFinalReferenceValue]
-											currentStatusFinalReferenceValue === 3 &&
-											Math.floor(
-												tokenBalanceFormatted * 0.997 - sumDonatedFormatted
-											) > 0
-											? updateClaimEnabled(campaign.campaignId, true)
-											: updateClaimEnabled(campaign.campaignId, false)
-							
-											updateStatusFinalReferenceValue(
-												campaign.campaignId,
-												currentStatusFinalReferenceValue
-											)
 										}
-									)
-								}
-							})
+										// @todo Assumes that the beneficiary side for all the pools linked to a campaign are the same
+										if (campaignPool.beneficiarySide === 'short') {
+											const payoutShort = poolParameters[enumPoolParameters.payoutShort]
+											let sumHex = campaignDonatedSumHex.get(campaignId)
+											sumHex = sumHex.add((balance).mul(payoutShort))
+											campaignDonatedSumHex.set(campaignId, sumHex)
+										} else {
+											const payoutLong = poolParameters[enumPoolParameters.payoutLong]
+											let sumHex = campaignDonatedSumHex.get(campaignId)
+											sumHex = sumHex.add((balance).mul(payoutLong))
+											campaignDonatedSumHex.set(campaignId, sumHex)
+										}
+										const sumDonatedFormatted = Number(
+											formatUnits(campaignDonatedSumHex.get(campaignId).div(parseUnits('1', campaign.decimals)), campaign.decimals)
+										)
+										updateDonated(campaign.campaignId, sumDonatedFormatted)
+										const campaignPercentageDonated = (sumDonatedFormatted / tokenBalanceFormatted) * 100
+										updatePercentageDonated(
+											campaign.campaignId,
+											campaignPercentageDonated
+										)	
+										updateExpiryTime(
+											campaign.campaignId,
+											Number(poolParameters[enumPoolParameters.expiryTime].hex) * 1000
+										)
+										const currentStatusFinalReferenceValue =
+										poolParameters[enumPoolParameters.statusFinalReferenceValue]
+										currentStatusFinalReferenceValue === 3 &&
+										Math.floor(
+											tokenBalanceFormatted * 0.997 - sumDonatedFormatted
+										) > 0
+										? updateClaimEnabled(campaign.campaignId, true)
+										: updateClaimEnabled(campaign.campaignId, false)
+						
+										updateStatusFinalReferenceValue(
+											campaign.campaignId,
+											currentStatusFinalReferenceValue
+										)
+									}
+								)
+							}
 						})
 					})
+				})
 				})
 			// Variable used as a flag to display "Explore campaigns" message if user didn't make any donations
 			// yet or has already re-claimed the funds from previous campaigns.
