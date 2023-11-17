@@ -25,7 +25,8 @@
     "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     "decimals": "6",
     "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
-    "chainId": "137"
+    "chainId": "137",
+    "expiryTimestamp": "1686463200"
   },
   {
     "campaignId": "pastoralists_2",
@@ -58,6 +59,7 @@
     "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-    "chainId": "137"
+    "chainId": "137",
+    "expiryTimestamp": "1704106740"
   }
 ]

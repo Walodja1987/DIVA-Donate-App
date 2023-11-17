@@ -47,9 +47,6 @@ export default function Donations() {
 	const [percentageDonated, setPercentageDonated] = useState<{
 		[campaignId: string]: number
 	}>({})
-	const [expiryTime, setExpiryTime] = useState<{
-		[campaignId: string]: number
-	}>({})
 	const [claimEnabled, setClaimEnabled] = useState<{
 		[campaignId: string]: boolean
 	}>({})
@@ -252,16 +249,6 @@ export default function Donations() {
 		setDonated((prev) => ({
 			...prev,
 			[campaignId]: value,
-		}))
-	}
-
-	const updateExpiryTime = (
-		campaignId: string,
-		expiryTimeInMilliseconds: number
-	) => {
-		setExpiryTime((prev) => ({
-			...prev,
-			[campaignId]: expiryTimeInMilliseconds,
 		}))
 	}
 
@@ -506,14 +493,6 @@ export default function Donations() {
 								(sumDonatedFormatted / sumTokenBalanceFormatted) * 100
 							) // @todo Update with actual value
 
-							// Assumes that `expiryTime` for all linked pools is the same.
-							// `campaignId` is the same for all items in the `data` array, hence it's
-							// ok to use the `campaignId` of the first item (`data[0]`)
-							updateExpiryTime(
-								campaign.campaignId,
-								Number(poolResults[0].poolParams.expiryTime) * 1000
-							)
-
 							// Enable claim button only if the final value has been confirmed and there is something to claim.
 							// Accounts for 0.3% fee that is withheld by DIVA Protocol at claim time.
 							const currentStatusFinalReferenceValue =
@@ -568,6 +547,7 @@ export default function Donations() {
 			)}
 			<div className="flex flex-row flex-wrap gap-10 justify-center">
 				{campaigns.map((campaign) => {
+					const expiryTimestamp = Number(campaign.expiryTimestamp)*1000
 					if (campaignBalance[campaign.campaignId] > 0) {
 						return (
 							// eslint-disable-next-line react/jsx-key
@@ -586,27 +566,22 @@ export default function Donations() {
 										<div
 											className={`
 										${
-											expiryTime[campaign.campaignId] && isConnected
-												? ''
-												: 'invisible'
-										} // Add 'invisible' class conditionally
-										${
-											isExpired(expiryTime[campaign.campaignId])
+											isExpired(expiryTimestamp)
 												? 'bg-[#005C53] text-white'
 												: 'bg-[#DBF227] text-green-[#042940]'
 										}
 										text-2xs pt-1 pl-2 w-[320px] h-[40px] rounded-tr-[3.75rem] text-left
 									`}>
-											{expiryTime[campaign.campaignId] && (
+											{expiryTimestamp && (
 												<span className="mt-1 inline-block align-middle">
 													<b>
-														{isExpired(expiryTime[campaign.campaignId])
+														{isExpired(expiryTimestamp)
 															? 'Completed'
 															: 'Expiry:'}
 													</b>
-													{isExpired(expiryTime[campaign.campaignId])
+													{isExpired(expiryTimestamp)
 														? null
-														: ` ${formatDate(expiryTime[campaign.campaignId])}`}
+														: ` ${formatDate(expiryTimestamp)}`}
 												</span>
 											)}
 										</div>
@@ -770,7 +745,7 @@ export default function Donations() {
 											onClick={() => handleRedeemPositionToken(campaign)}
 											type="button"
 											className="disabled:hover:bg-[#042940] disabled:opacity-25 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
-											{isExpired(expiryTime[campaign.campaignId]) &&
+											{isExpired(expiryTimestamp) &&
 											statusFinalReferenceValue[campaign.campaignId] !== 3
 												? 'In Settlement'
 												: 'Claim Unfunded Amount'}

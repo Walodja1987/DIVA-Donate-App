@@ -25,6 +25,7 @@ export interface Campaign {
   decimals: string;
   divaContractAddress: string;
   chainId: string;
+  expiryTimestamp: string;
 }
 
 // Tell TypeScript how to type-check the JSON files without needing explicit imports.

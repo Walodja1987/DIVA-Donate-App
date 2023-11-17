@@ -117,6 +117,10 @@ export const CampaignCard: React.FC<{
 	}
 
 	useEffect(() => {
+		setExpiryTime(Number(campaign.expiryTimestamp)*1000)
+	}, [])
+
+	useEffect(() => {
 		if (chain) {
 			setChainId(chain.id)
 		}
@@ -189,9 +193,6 @@ export const CampaignCard: React.FC<{
 					})
 				)
 			).then((poolData: PoolExtended[]) => {
-				// Assumes that `expiryTime` for all linked pools is the same.
-				setExpiryTime(Number(poolData[0].poolParams.expiryTime) * 1000)
-
 				// Create an array to store promises for fetching beneficiary token balances
 				const balancePromises = poolData.map((pool) => {
 					const beneficiaryTokenContract = getContract({

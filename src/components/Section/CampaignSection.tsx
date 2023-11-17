@@ -38,9 +38,6 @@ export const CampaignSection = () => {
 	const [percentage, setPercentage] = useState<{
 		[campaignId: string]: number
 	}>({})
-	const [expiryTime, setExpiryTime] = useState<{
-		[campaignId: string]: number
-	}>({})
 
 	const { address: activeAddress, isConnected, connector } = useAccount()
 	const { chain } = useNetwork()
@@ -79,16 +76,6 @@ export const CampaignSection = () => {
 		setGoal((prev) => ({
 			...prev,
 			[campaignId]: tokenAmount,
-		}))
-	}
-
-	const updateExpiryTime = (
-		campaignId: string,
-		expiryTimeInMilliseconds: number
-	) => {
-		setExpiryTime((prev) => ({
-			...prev,
-			[campaignId]: expiryTimeInMilliseconds,
 		}))
 	}
 
@@ -279,12 +266,6 @@ export const CampaignSection = () => {
 							updateToGo(campaign.campaignId, totalToGo)
 							updatePercentage(campaign.campaignId, percentageProgress)
 							updateDonated(campaign.campaignId, totalDonated)
-
-							// Assumes that `expiryTime` is the same for all the pools linked to a campaign
-							updateExpiryTime(
-								campaign.campaignId,
-								Number(poolResults[0].poolParams.expiryTime) * 1000
-							)
 						})
 					})									
 				.catch((error) => {
@@ -308,6 +289,7 @@ export const CampaignSection = () => {
 				</div>
 				<div className="flex flex-row flex-wrap md:gap-10 justify-center ">
 					{campaigns.map((campaign) => {
+						const expiryTimestamp = Number(campaign.expiryTimestamp)*1000
 						return (
 							// eslint-disable-next-line react/jsx-key
 							<div
@@ -325,27 +307,22 @@ export const CampaignSection = () => {
 										<div
 											className={`
 											${
-												expiryTime[campaign.campaignId] && isConnected
-													? ''
-													: 'invisible'
-											} // Add 'invisible' class conditionally
-											${
-												isExpired(expiryTime[campaign.campaignId])
+												isExpired(expiryTimestamp)
 													? 'bg-[#005C53] text-white'
 													: 'bg-[#DBF227] text-green-[#042940]'
 											}
 											text-2xs pt-1 pl-2 w-[320px] h-[40px] rounded-tr-[3.75rem] text-left
 										`}>
-											{expiryTime[campaign.campaignId] && (
+											{expiryTimestamp && (
 												<span className="mt-1 inline-block align-middle">
 													<b>
-														{isExpired(expiryTime[campaign.campaignId])
+														{isExpired(expiryTimestamp)
 															? 'Completed'
 															: 'Expiry:'}
 													</b>
-													{isExpired(expiryTime[campaign.campaignId])
+													{isExpired(expiryTimestamp)
 														? null
-														: ` ${formatDate(expiryTime[campaign.campaignId])}`}
+														: ` ${formatDate(expiryTimestamp)}`}
 												</span>
 											)}
 										</div>
@@ -409,7 +386,7 @@ export const CampaignSection = () => {
 														</dd>
 													</div>
 													{/* Add "Donated" box  */}
-													{!isExpired(expiryTime[campaign.campaignId]) ? (
+													{!isExpired(expiryTimestamp) ? (
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
 																To Go
