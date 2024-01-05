@@ -497,10 +497,8 @@ export default function Donations() {
 							// Accounts for 0.3% fee that is withheld by DIVA Protocol at claim time.
 							const currentStatusFinalReferenceValue =
 								poolResults[0].poolParams.statusFinalReferenceValue
-							currentStatusFinalReferenceValue === 3 &&
-							Math.floor(
-								sumTokenBalanceFormatted * 0.997 - sumDonatedFormatted
-							) > 0
+							
+							currentStatusFinalReferenceValue === 3 && sumTokenBalanceFormatted * 0.997 - sumDonatedFormatted > 0
 								? updateClaimEnabled(campaign.campaignId, true)
 								: updateClaimEnabled(campaign.campaignId, false)
 							updateStatusFinalReferenceValue(
