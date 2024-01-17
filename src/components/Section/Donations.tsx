@@ -389,7 +389,8 @@ export default function Donations() {
 			chainId === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window !== 'undefined' &&
-			typeof window.ethereum !== 'undefined'
+			typeof window.ethereum !== 'undefined' &&
+			isOpen === false
 		) {
 			// Variable used as a flag to display "Explore campaigns" message if user didn't make any donations
 			// yet or has already re-claimed the funds from previous campaigns.
@@ -518,7 +519,7 @@ export default function Donations() {
 		pools,
 		!campaignBalance,
 		claimEnabled == null,
-		isOpen === false,
+		isOpen
 	])
 
 	// @todo Navigating from Donations to Home breaks the app
@@ -531,7 +532,7 @@ export default function Donations() {
 				<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
 			</div>
 			{/* @todo improve that part as it will show this message even when wallet is disconnected */}
-			{campaignsParticipated === 0 && (
+			{(campaignsParticipated === 0 && !isOpen) && (
 				<div className="pb-[23rem] flex flex-col items-center justify-center">
 					<p className="mt-[60px]">{`You have already claimed your donations or you haven't made any donations yet`}</p>
 					<Link href="/">
