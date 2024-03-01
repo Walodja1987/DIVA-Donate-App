@@ -54,8 +54,8 @@
       }
     ],
     "goal": "25000",
-    "raised": "",
-    "donated": "",
+    "raised": "20235.42",
+    "donated": "11744.40",
     "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
