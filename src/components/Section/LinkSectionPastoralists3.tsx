@@ -14,7 +14,7 @@ export const LinkSectionPastoralists3 = () => (
 		<div className="grid grid-rows-2 gap-6 pb-16 lg:grid-cols-2">
 			<div>
 				<a
-					href="https://www.divaprotocol.io/posts"
+					href="https://www.divaprotocol.io/posts/diva-conditional-donations-pastoralists-3"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3"
 					target={'_blank'}
 					rel="noreferrer">
@@ -50,7 +50,7 @@ export const LinkSectionPastoralists3 = () => (
 						</h3>
 					</div>
 					<p className="text-[#042940] font-semibold text-base">
-						... Some text ...
+						Empowering pastoralists in Kenya - The third DIVA Donate campaign
 					</p>
 				</a>
 			</div>
@@ -93,12 +93,12 @@ export const LinkSectionPastoralists3 = () => (
 						</h3>
 					</div>
 					<p className="text-[#042940] font-semibold text-base">
-						... Some text ...
+						A description of the NDVI eVIRRS dataset used for the campaign
 					</p>
 				</a>
 			</div>
 
-			<div>
+			{/* <div>
 				<a
 					href="https://x.com/DIVADonate_xyz/status/1709309125773922596?s=20"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3 "
@@ -139,7 +139,7 @@ export const LinkSectionPastoralists3 = () => (
 						Launch announcement of the campaign by the DIVA Donate team on Twitter
 					</p>
 				</a>
-			</div>
+			</div> */}
 		</div>
 	</div>
 )
