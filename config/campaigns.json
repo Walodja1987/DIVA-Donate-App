@@ -54,12 +54,41 @@
       }
     ],
     "goal": "25000",
+    "raised": "20235.42",
+    "donated": "11744.40",
+    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    "decimals": "6",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "137",
+    "expiryTimestamp": "1704106740"
+  },
+  {
+    "campaignId": "pastoralists_3",
+    "pools": [
+      {
+        "poolId": "0x8c85108a28a163d1722c2140eea57f9d1cb7f83f69dfc04eb0d9e51298dea2b6",
+        "beneficiarySide": "short",
+        "positionToken": "0xC6426753264774EAB988d91DD29CfE6a626b14a0"
+      }
+    ],
+    "img": "/Images/pastoralists_mar_may_2024.jpg",
+    "path": "/campaign/pastoralists-3",
+    "title": "Pastoralists Mar-May 2024",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
+        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "goal": "10000",
     "raised": "",
     "donated": "",
     "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
-    "expiryTimestamp": "1704106740"
+    "expiryTimestamp": "1718042400"
   }
 ]
