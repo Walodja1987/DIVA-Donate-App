@@ -98,9 +98,9 @@ export const LinkSectionPastoralists3 = () => (
 				</a>
 			</div>
 
-			{/* <div>
+			<div>
 				<a
-					href="https://x.com/DIVADonate_xyz/status/1709309125773922596?s=20"
+					href="https://x.com/DIVADonate_xyz/status/1764404192339280051?s=20"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3 "
 					target={'_blank'}
 					rel="noreferrer">
@@ -136,10 +136,10 @@ export const LinkSectionPastoralists3 = () => (
 						</h3>
 					</div>
 					<p className="text-[#042940] font-semibold text-base">
-						Launch announcement of the campaign by the DIVA Donate team on Twitter
+						Launch announcement on the DIVA Donate Twitter
 					</p>
 				</a>
-			</div> */}
+			</div>
 		</div>
 	</div>
 )
