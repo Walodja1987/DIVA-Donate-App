@@ -35,10 +35,13 @@ export default function HeroSection() {
 							<span className="font-openSans">Donate</span>
 						</button>
 						<Link
-							href="/faq"
+							href="https://docs.divadonate.xyz/"
+							target="_blank"
+							rel="noopener noreferrer"
 							style={{
 								margin: 0,
-							}}>
+							}}
+						>
 							<button
 								className="inline-block font-openSans rounded-lg px-10 py-4 text-base font-semibold text-[#042940] ring-1 ring-[#042940] w-full"
 								style={{ whiteSpace: 'nowrap' }} // Prevents text from wrapping on smaller screens

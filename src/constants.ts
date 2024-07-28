@@ -41,8 +41,10 @@ export const links: NavItemType[] = [
         name: "My Donations",
     },
     {
-        to: "/faq",
-        name: "FAQs",
+        to: "https://docs.divadonate.xyz/",
+        name: "Docs",
+        target: "_blank",
+        rel: "noopener noreferrer",
     },
 
 ];

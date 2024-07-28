@@ -32,8 +32,13 @@ export const FooterSection = () => (
 							</a>
 						</li>
 						<li>
-							<a href="faq" className="hover:underline">
-								FAQs
+							<a 
+								href="https://docs.divadonate.xyz/" 
+								className="hover:underline"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Docs
 							</a>
 						</li>
 					</ul>
