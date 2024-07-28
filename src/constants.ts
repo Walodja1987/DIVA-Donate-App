@@ -22,6 +22,8 @@ export type NavItemType = {
     name: string;
     isDropdown?: boolean;
     dropdownItems?: any[];
+    target?: string;
+    rel?: string;
 };
 
 
