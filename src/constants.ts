@@ -52,7 +52,7 @@ export const links: NavItemType[] = [
         rel: "noopener noreferrer",
     },
     {
-        to: "/blog",
+        to: "/posts",
         name: "Blog",
     },
 ];

@@ -29,7 +29,7 @@ const FeaturedBlogPost = ({ post }: { post: Post }) => {
 						Featured Blog Post
 					</h1>
 				</Box>
-				<Link href={`/posts/${post.slug}`} passHref>
+				<Link href={`/posts/${post.slug}`} passHref legacyBehavior>
 					<a className="z-10">
 						<Heading
 							lineHeight={1.1}
