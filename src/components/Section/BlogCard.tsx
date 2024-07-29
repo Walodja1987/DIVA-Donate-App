@@ -40,7 +40,7 @@ const BlogCard = ({
 				<Heading
 					fontSize="22px"
 					fontWeight="bold"
-					color="white"
+					color="black"
 					_hover={{ textDecoration: 'underline' }}
 					className="text-left">
 					{title}

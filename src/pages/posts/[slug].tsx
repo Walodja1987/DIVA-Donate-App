@@ -28,37 +28,37 @@ type PostPageProps = {
 
 const components = {
 	h2: (props) => (
-		<h2 {...props} className="text-white font-serif">
+		<h2 {...props} className="text-black font-serif">
 			{props.children}
 		</h2>
 	),
 	h3: (props) => (
-		<h3 {...props} className="text-white font-serif">
+		<h3 {...props} className="text-black font-serif">
 			{props.children}
 		</h3>
 	),
 	p: (props) => (
-		<p {...props} className="text-white opacity-80 font-serif">
+		<p {...props} className="text-black opacity-80 font-serif">
 			{props.children}
 		</p>
 	),
 	ul: (props) => (
-		<ul {...props} className="text-white opacity-80 font-serif">
+		<ul {...props} className="text-black opacity-80 font-serif">
 			{props.children}
 		</ul>
 	),
 	a: (props) => (
-		<a {...props} className="text-white font-serif">
+		<a {...props} className="text-black font-serif">
 			{props.children}
 		</a>
 	),
 	li: (props) => (
-		<li {...props} className="text-white font-serif">
+		<li {...props} className="text-black font-serif">
 			{props.children}
 		</li>
 	),
 	strong: (props) => (
-		<strong {...props} className="text-white font-serif">
+		<strong {...props} className="text-black font-serif">
 			{props.children}
 		</strong>
 	),
@@ -110,7 +110,7 @@ const PostPage = ({ source, post }: PostPageProps) => {
 				<link rel="icon" href="/logo.svg" />
 				<meta
 					name="twitter:title"
-					content="DIVA Protocol - Derivatives on the Ethereum blockchain"
+					content="DIVA Donate - Parametric conditional donations"
 				/>
 			</Head>
 			<article className="pb-12 relative mt-10 flex flex-col text-left items-center">
@@ -121,9 +121,9 @@ const PostPage = ({ source, post }: PostPageProps) => {
 					height={post.coverImageHeight}
 					className="rounded-2xl"
 				/>
-				<div className="pt-12 prose w-[100%] md:max-w-2xl m-auto text-white md:px-10">
-					<h1 className="text-white">{post.title}</h1>
-					<p className="text-slate text-white opacity-50">
+				<div className="pt-12 prose w-[100%] md:max-w-2xl m-auto text-black md:px-10">
+					<h1 className="text-black">{post.title}</h1>
+					<p className="text-slate text-black opacity-50">
 						By{' '}
 						<strong className="text-[#E0E0E0] opacity-100">
 							{post.author}

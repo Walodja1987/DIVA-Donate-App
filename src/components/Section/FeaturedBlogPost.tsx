@@ -1,6 +1,6 @@
 import { Stack, Flex, Box, Heading, Button, Image } from '@chakra-ui/react'
 import Link from 'next/link'
-import { Post } from '../../pages'
+import { Post } from '..'
 import BlogMeta from './BlogMeta'
 
 const FeaturedBlogPost = ({ post }: { post: Post }) => {
@@ -29,18 +29,16 @@ const FeaturedBlogPost = ({ post }: { post: Post }) => {
 						Featured Blog Post
 					</h1>
 				</Box>
-				<Link href={`/posts/${post.slug}`} passHref legacyBehavior>
-					<a className="z-10">
-						<Heading
-							lineHeight={1.1}
-							fontWeight={500}
-							fontSize={{ base: '20px', sm: '30px', lg: '40px' }}
-							color="white"
-							className="p-0 m-0 mb-6 text-left">
-							{post.title}
-						</Heading>
-						<BlogMeta author={post.author} publishedAt={post.date} />
-					</a>
+				<Link href={`/posts/${post.slug}`} passHref className="z-10">
+					<Heading
+						lineHeight={1.1}
+						fontWeight={500}
+						fontSize={{ base: '20px', sm: '30px', lg: '40px' }}
+						color="black"
+						className="p-0 m-0 mb-6 text-left">
+						{post.title}
+					</Heading>
+					<BlogMeta author={post.author} publishedAt={post.date} />
 				</Link>
 			</Stack>
 		</Stack>
