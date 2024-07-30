@@ -3,7 +3,7 @@ import { getAllPosts } from '../api/getPosts'
 import Layout from '@/components/Layout/Layout'
 import BlogCard from '@/components/Section/BlogCard'
 import FeaturedBlogPost from '@/components/Section/FeaturedBlogPost'
-import { Post } from '..'
+import { Post } from '@/pages'
 // import Link from 'next/link'
 import { format } from 'date-fns'
 
@@ -35,7 +35,7 @@ export default function Blog({ posts }: { posts: Post[] }) {
 					w="100%">
 					{featured != null && <FeaturedBlogPost post={featured} />}
 					<Stack className="mb-6">
-						<h1 className="rounded font-serif px-4 py-2 bg-white bg-opacity-10 w-min whitespace-nowrap text-white text-sm">
+						<h1 className="rounded font-serif px-4 py-2 bg-black bg-opacity-10 w-min whitespace-nowrap text-black text-sm">
 							All Articles
 						</h1>
 					</Stack>

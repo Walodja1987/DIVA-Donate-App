@@ -31,7 +31,7 @@ const BlogCard = ({
 			borderRadius={8}
 			className="z-10">
 			<Image
-				src={`images/posts/${coverImage}`}
+				src={`Images/posts/${coverImage}`}
 				width="full"
 				alt={coverImageAlt}
 				className="rounded-2xl"

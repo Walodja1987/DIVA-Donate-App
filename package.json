@@ -15,9 +15,6 @@
     "@emotion/styled": "^11.10.5",
     "@rainbow-me/rainbowkit": "^0.8.1",
     "@tailwindcss/typography": "^0.5.8",
-    "@types/node": "18.11.9",
-    "@types/react": "18.0.25",
-    "@types/react-dom": "18.0.9",
     "autoprefixer": "^10.4.13",
     "clsx": "^2.0.0",
     "date-fns": "^3.6.0",
@@ -36,6 +33,9 @@
     "react-tweet-embed": "^2.0.0",
     "tailwindcss": "^3.2.4",
     "typescript": "4.9.3",
-    "wagmi": "^0.9.6"
+    "wagmi": "^0.9.6",
+    "@types/node": "18.11.9",
+    "@types/react": "18.0.25",
+    "@types/react-dom": "18.0.9"
   }
 }

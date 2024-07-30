@@ -1,6 +1,6 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { Post } from '..'
+import { Post } from '@/pages'
 import { format, parseISO } from 'date-fns'
 import Tweet from 'react-tweet-embed'
 import { HOME, IMAGE_PATH } from '../../constants'
@@ -125,7 +125,7 @@ const PostPage = ({ source, post }: PostPageProps) => {
 					<h1 className="text-black">{post.title}</h1>
 					<p className="text-slate text-black opacity-50">
 						By{' '}
-						<strong className="text-[#E0E0E0] opacity-100">
+						<strong className="text-[#000000] opacity-100">
 							{post.author}
 						</strong>{' '}
 						at <time>{format(parseISO(post.date), 'MMMM dd, yyyy')}</time>

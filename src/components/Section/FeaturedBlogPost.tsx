@@ -1,6 +1,6 @@
 import { Stack, Flex, Box, Heading, Button, Image } from '@chakra-ui/react'
 import Link from 'next/link'
-import { Post } from '..'
+import { Post } from '@/pages'
 import BlogMeta from './BlogMeta'
 
 const FeaturedBlogPost = ({ post }: { post: Post }) => {
@@ -19,13 +19,13 @@ const FeaturedBlogPost = ({ post }: { post: Post }) => {
 					align={'center'}
 					w={'100%'}
 					h={'100%'}
-					src={`/images/posts/${post.coverImage}`}
+					src={`/Images/posts/${post.coverImage}`}
 					className="rounded-2xl"
 				/>
 			</Flex>
 			<Stack spacing={{ base: 5, md: 10 }} className="py-6 order-1">
 				<Box>
-					<h1 className="rounded font-serif px-4 py-2 bg-white bg-opacity-10 w-min whitespace-nowrap text-white text-sm">
+					<h1 className="rounded font-serif px-4 py-2 bg-black bg-opacity-10 w-min whitespace-nowrap text-black text-sm">
 						Featured Blog Post
 					</h1>
 				</Box>
