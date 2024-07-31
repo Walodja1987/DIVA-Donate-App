@@ -67,6 +67,7 @@ export default function Blog({ posts }: { posts: Post[] }) {
 							'linear-gradient(116.38deg, rgba(0, 56, 255, 0.3) 6.37%, rgba(22, 227, 216, 0.3) 89.66%)',
 						filter: 'blur(131.902px)',
 						transform: 'matrix(-1, 0, 0, 1, 0, 0)',
+						zIndex: -1
 					}}></div>
 				<div
 					style={{
@@ -79,6 +80,7 @@ export default function Blog({ posts }: { posts: Post[] }) {
 							'linear-gradient(116.38deg, rgba(0, 56, 255, 0.3) 6.37%, rgba(22, 227, 216, 0.3) 89.66%)',
 						filter: 'blur(131.902px)',
 						transform: 'matrix(-1, 0, 0, 1, 0, 0)',
+						zIndex: -1
 					}}></div>
 				<div
 					style={{
@@ -91,6 +93,7 @@ export default function Blog({ posts }: { posts: Post[] }) {
 							'linear-gradient(116.38deg, rgba(0, 56, 255, 0.2) 6.37%, rgba(22, 227, 216, 0.2) 89.66%)',
 						filter: 'blur(131.902px)',
 						transform: 'matrix(-1, 0, 0, 1, 0, 0)',
+						zIndex: -1
 					}}></div>
 			</div>
 		</Layout>
