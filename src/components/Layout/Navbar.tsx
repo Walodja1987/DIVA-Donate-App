@@ -17,7 +17,7 @@ export default function NavBar() {
 	return (
 		<>
 			<Sidebar isOpen={isOpen} onClose={onClose} />
-			<nav className="px-4 md:px-6 sm:px-4 py-6 w-full bg-[#F3FDF8] border-b-2 border-[#D6D58E] fixed top-0 left-0 z-10">
+			<nav className="px-4 md:px-6 sm:px-4 py-6 w-full bg-[#F3FDF8] border-b-2 border-[#D6D58E] fixed top-0 left-0 z-20">
 				<div className="mx-auto lg:max-w-screen-2xl flex items-center md:px-0 justify-between">
 					<div className="flex gap-2 max-w-fit items-center outline-none py-2 md:py-0 lg:block">
 						<button

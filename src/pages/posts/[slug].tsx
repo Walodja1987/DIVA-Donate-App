@@ -113,7 +113,7 @@ const PostPage = ({ source, post }: PostPageProps) => {
 					content="DIVA Donate - Parametric conditional donations"
 				/>
 			</Head>
-			<article className="pb-12 relative mt-10 flex flex-col text-left items-center">
+			<article className="pb-12 relative mt-40 flex flex-col text-left items-center">
 				<Image
 					src={`${IMAGE_PATH}${post.coverImage}`}
 					alt={post.coverImageDescription}

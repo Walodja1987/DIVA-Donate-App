@@ -28,7 +28,7 @@ export default function Blog({ posts }: { posts: Post[] }) {
 	const featured = posts.find((v) => v.featured === true)
 	return (
 		<Layout>
-			<div className="relative">
+			<div className="relative mt-20 mb-20">
 				<Box
 					px={['0px', '30px', '50px', '65px', '80px']}
 					justifyContent="center"
