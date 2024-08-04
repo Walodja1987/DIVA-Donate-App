@@ -28,7 +28,7 @@ export default function Pastoralists() {
 				/>
 				<AboutSectionPastoralists2 />
 				<DonationSectionMulti />
-				<TopDonorsTable />
+				<TopDonorsTable campaign={campaign} />
 				<LinkSectionPastoralists2 />
 			</main>
 		</Layout>
