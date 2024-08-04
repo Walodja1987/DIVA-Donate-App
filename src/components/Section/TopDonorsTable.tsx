@@ -109,20 +109,20 @@ const totalAmount = summedData.reduce((total, donor) => total + Number(formatUni
               <th></th> {/* Empty header for the numbering column */}
               <th className="text-left font-normal">Address</th>
               {/* <th>Date</th> */}
-              <th className="text-right font-normal">Amount</th>
+              <th className="text-left font-normal">Amount</th>
             </tr>
           </thead>
           <tbody>
             {summedData.map((donor, index) => (
-              <tr key={index}>
-                <td className="text-center">
+              <tr key={index} className={index % 2 === 0 ? 'bg-green-100' : 'bg-white'}>
+                <td className="pl-10 rounded-l-lg">
                   <span className="inline-block bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
                     {index + 1}
                   </span>
                 </td> {/* Row number */}
                 <td className="text-left w-40">{getShortenedAddress(donor.msgSender)}</td>
                 {/* <td>{new Date(parseInt(donor.timestamp) * 1000).toLocaleDateString()}</td> */}
-                <td className="text-right font-bold text-lg w-36">${Number(formatUnits(donor.collateralAmount, decimals)).toFixed(0)}</td>
+                <td className="text-left font-bold text-lg w-36 rounded-r-lg">${Number(formatUnits(donor.collateralAmount, decimals)).toFixed(0)}</td>
               </tr>
             ))}
           </tbody>
