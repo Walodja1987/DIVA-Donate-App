@@ -127,10 +127,10 @@ const totalAmount = summedData.reduce((total, donor) => total + Number(formatUni
             ))}
           </tbody>
           <tfoot>
-            <tr className="text-xl">
+            <tr className="text-xl bg-green-100">
               <td></td>
               <td colSpan={1} className="text-left">Total:</td>
-              <td className="font-bold text-right">${totalAmount}</td>
+              <td className="font-bold text-left">${totalAmount}</td>
             </tr>
           </tfoot>
         </table>
