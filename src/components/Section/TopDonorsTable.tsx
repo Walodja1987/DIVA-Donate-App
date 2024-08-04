@@ -35,7 +35,9 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
 //   const [page, setPage] = useState(1);
 //   const perPage = 10;
 
-const poolId = '0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0'
+const poolId = '0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0' // @todo add handling of multiple pools within a campaign
+
+const decimals = campaign.decimals
 console.log(poolId)
 const {
     data,
@@ -72,12 +74,12 @@ const sumByMsgSender = data.reduce((acc, item) => {
 
 // Convert sumByMsgSender object into an array in order to be able to use map function for rendering.
 // Each item in the array is an object with msgSender and collateralAmount properties.
-const summedData = Object.entries(sumByMsgSender).map(([msgSender, collateralAmount]) => ({
-  msgSender,
-  collateralAmount: BigNumber.from(collateralAmount), // Cast to BigNumber
-}));
-
-const decimals = campaign.decimals
+const summedData = Object.entries(sumByMsgSender)
+  .map(([msgSender, collateralAmount]) => ({
+    msgSender,
+    collateralAmount: BigNumber.from(collateralAmount), // Cast to BigNumber
+  }))
+  .sort((a, b) => b.collateralAmount.sub(a.collateralAmount).toNumber());
 
 
   
@@ -92,32 +94,48 @@ const decimals = campaign.decimals
 const totalAmount = summedData.reduce((total, donor) => total + Number(formatUnits(donor.collateralAmount, decimals)), 0).toFixed(0);
 
   return (
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>Address</th>
-            {/* <th>Date</th> */}
-            <th>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {summedData.map((donor, index) => (
-            <tr key={index}>
-              <td>{getShortenedAddress(donor.msgSender)}</td>
-              {/* <td>{new Date(parseInt(donor.timestamp) * 1000).toLocaleDateString()}</td> */}
-              <td>${Number(formatUnits(donor.collateralAmount, decimals)).toFixed(0)}</td>
+    <div className="container justify-center mx-auto mt-10">
+      <div className="mx-auto max-w-7xl py-4 px-4 sm:px-6 text-center lg:items-center lg:justify-between">
+			<h1 className="font-semibold text-4xl sm:text-6xl md:text-6l lg:text-6xl xl:text-6xl leading-[4.75rem] text-[#042940]">
+				Top Donors
+			</h1>
+			<hr className="w-[9rem] h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] my-2" />
+		</div>
+
+      <div className="flex justify-center">
+        <table>
+          <thead>
+            <tr className="text-sm">
+              <th></th> {/* Empty header for the numbering column */}
+              <th className="text-left font-normal">Address</th>
+              {/* <th>Date</th> */}
+              <th className="text-right font-normal">Amount</th>
             </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colSpan={1}>Total:</td>
-            <td>${totalAmount}</td>
-          </tr>
-        </tfoot>
-      </table>
-      {/* <button onClick={() => setPage(page + 1)}>Show more</button> */}
+          </thead>
+          <tbody>
+            {summedData.map((donor, index) => (
+              <tr key={index}>
+                <td className="text-center">
+                  <span className="inline-block bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                    {index + 1}
+                  </span>
+                </td> {/* Row number */}
+                <td className="text-left w-40">{getShortenedAddress(donor.msgSender)}</td>
+                {/* <td>{new Date(parseInt(donor.timestamp) * 1000).toLocaleDateString()}</td> */}
+                <td className="text-right font-bold text-lg w-36">${Number(formatUnits(donor.collateralAmount, decimals)).toFixed(0)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr className="text-xl">
+              <td></td>
+              <td colSpan={1} className="text-left">Total:</td>
+              <td className="font-bold text-right">${totalAmount}</td>
+            </tr>
+          </tfoot>
+        </table>
+        {/* <button onClick={() => setPage(page + 1)}>Show more</button> */}
+      </div>
     </div>
   );
 };
