@@ -3,7 +3,7 @@ import { useQuery } from 'react-query';
 import { formatUnits } from 'ethers/lib/utils';
 import request, { gql } from 'graphql-request'
 import { chainConfig } from '../../constants'
-import { getShortenedAddress, ZERO } from '../../utils/general'
+import { getShortenedAddress } from '../../utils/general'
 import { BigNumber } from 'ethers';
 import { Campaign } from '../../types/campaignTypes'
 
