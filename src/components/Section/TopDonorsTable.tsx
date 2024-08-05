@@ -119,7 +119,7 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
           <tfoot>
             <tr className="text-xl bg-[#DEEFE7] h-14">
               <td className="rounded-l-lg"></td>
-              <td colSpan={1} className="text-left font-bold text-[#005C53] rounded-l-lg">Total:</td>
+              <td colSpan={1} className="text-left font-bold text-[#005C53]">Total:</td>
               <td className="font-bold text-left rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(totalAmount))}</td>
             </tr>
           </tfoot>
