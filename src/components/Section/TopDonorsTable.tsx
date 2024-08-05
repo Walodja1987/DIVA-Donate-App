@@ -7,6 +7,7 @@ import { getShortenedAddress, ZERO } from '../../utils/general'
 import { BigNumber } from 'ethers';
 import { Campaign } from '../../types/campaignTypes'
 
+// GraphQL query to fetch liquidity events for multiple pool IDs
 export const queryDIVALiquidity = (poolIds: string[]) => gql`
   {
     liquidities(where: {pool_in: [${poolIds.map(id => `"${id}"`).join(', ')}]}) {
@@ -24,13 +25,15 @@ export const queryDIVALiquidity = (poolIds: string[]) => gql`
   }
 `
 
+// TopDonorsTable component to display top donors for a campaign
 export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
-  const [page, setPage] = useState(1);
-  const perPage = 10;
+  const [page, setPage] = useState(1); // State to manage pagination
+  const perPage = 10; // Number of items per page
 
-  const poolIds = campaign.pools.map(pool => pool.poolId);
-  const decimals = campaign.decimals;
+  const poolIds = campaign.pools.map(pool => pool.poolId); // Extract pool IDs from the campaign
+  const decimals = campaign.decimals; // Get the decimals for formatting amounts
 
+  // Fetch liquidity data using react-query
   const {
       data,
       isLoading,
@@ -50,10 +53,11 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
       return response;
   });
 
+  // Display loading or error messages
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading data</div>;
 
-  // Sum contributed amount by msgSender.
+  // Sum contributed amount by msgSender
   const sumByMsgSender = data.reduce((acc, item) => {
     if (item.eventType === 'Added' || item.eventType === 'Issued') {
       if (!acc[item.msgSender]) {
@@ -64,15 +68,15 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
     return acc;
   }, {});
 
-  // Convert sumByMsgSender object into an array in order to be able to use map function for rendering.
-  // Each item in the array is an object with msgSender and collateralAmount properties.
+  // Convert sumByMsgSender object into an array for rendering
   const summedData = Object.entries(sumByMsgSender)
     .map(([msgSender, collateralAmount]) => ({
       msgSender,
       collateralAmount: BigNumber.from(collateralAmount), // Cast to BigNumber
     }))
-    .sort((a, b) => b.collateralAmount.sub(a.collateralAmount).toNumber());
+    .sort((a, b) => b.collateralAmount.sub(a.collateralAmount).toNumber()); // Sort by amount
 
+  // Calculate total amount contributed
   const totalAmount = summedData.reduce((total, donor) => total + Number(formatUnits(donor.collateralAmount, decimals)), 0).toFixed(0);
 
   // Calculate the items to display based on the current page
@@ -93,7 +97,6 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
             <tr className="text-sm h-10">
               <th></th> {/* Empty header for the numbering column */}
               <th className="text-left font-normal">Address</th>
-              {/* <th>Date</th> */}
               <th className="text-left font-normal">Amount</th>
             </tr>
           </thead>
@@ -124,7 +127,6 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
             </tr>
           </tfoot>
         </table>
-        {/* <button onClick={() => setPage(page + 1)}>Show more</button> */}
       </div>
       <div className="flex justify-center mt-4 space-x-4 pt-4 pb-10">
         {page > 1 && (
