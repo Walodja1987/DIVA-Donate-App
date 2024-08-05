@@ -24,16 +24,9 @@ export const queryDIVALiquidity = (poolId: string) => gql`
 	}
 `
 
-// Assume fetchTopDonors is a function that fetches the top donors from the subgraph
-const fetchTopDonors = async (page, perPage) => {
-  // Replace this with the actual query logic to fetch data from your subgraph
-  const response = await fetch(`/api/top-donors?page=${page}&perPage=${perPage}`);
-  return response.json();
-};
-
 export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
   const [page, setPage] = useState(1);
-  const perPage = 5;
+  const perPage = 10;
 
   const poolId = '0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0' // @todo add handling of multiple pools within a campaign
 
@@ -107,38 +100,47 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
           </thead>
           <tbody>
             {displayedData.map((donor, index) => (
-              <tr key={index} className={`h-12 ${index % 2 === 0 ? 'bg-green-100' : 'bg-white'}`}>
+              <tr key={index} className={`h-12 ${index % 2 === 0 ? 'bg-[#DEEFE7]' : 'bg-white'}`}>
                 <td className="pl-10 pr-2 rounded-l-lg">
-                  <span className="inline-block bg-green-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="inline-block bg-[#005C53] text-white rounded-full w-5 h-5 flex items-center justify-center">
                     {index + 1}
                   </span>
                 </td> {/* Row number */}
-                <td className="text-left w-52">{getShortenedAddress(donor.msgSender)}</td>
+                <td className="text-left w-52 text-[#005C53]">{getShortenedAddress(donor.msgSender)}</td>
                 {/* <td>{new Date(parseInt(donor.timestamp) * 1000).toLocaleDateString()}</td> */}
-                <td className="text-left font-bold text-lg w-36 rounded-r-lg">${Number(formatUnits(donor.collateralAmount, decimals)).toFixed(0)}</td>
+                <td className="text-left font-bold text-lg w-36 rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(formatUnits(donor.collateralAmount, decimals)))}</td>
               </tr>
             ))}
+            <tr className="h-2"></tr> {/* Empty row for spacing as margin attribute doesn't seem to work */}
           </tbody>
           <tfoot>
-            <tr className="text-xl bg-green-100 h-14">
+            <tr className="text-xl bg-[#DEEFE7] h-14">
               <td className="rounded-l-lg"></td>
-              <td colSpan={1} className="text-left">Total:</td>
-              <td className="font-bold text-left rounded-r-lg">${totalAmount}</td>
+              <td colSpan={1} className="text-left font-bold text-[#005C53]">Total:</td>
+              <td className="font-bold text-left rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(totalAmount))}</td>
             </tr>
           </tfoot>
         </table>
         {/* <button onClick={() => setPage(page + 1)}>Show more</button> */}
       </div>
-      {displayedData.length < summedData.length && (
-        <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-4 space-x-4 pt-4 pb-10">
+        {page > 1 && (
           <button
-            className="bg-green-500 text-white px-4 py-2 rounded"
+            className="text-[#042940] ring-1 ring-[#042940] px-4 py-2 rounded"
+            onClick={() => setPage(page - 1)}
+          >
+            Show Less
+          </button>
+        )}
+        {displayedData.length < summedData.length && (
+          <button
+            className="bg-[#042940] text-white px-4 py-2 rounded"
             onClick={() => setPage(page + 1)}
           >
             Show More
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
