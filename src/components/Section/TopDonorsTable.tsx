@@ -7,49 +7,48 @@ import { getShortenedAddress, ZERO } from '../../utils/general'
 import { BigNumber } from 'ethers';
 import { Campaign } from '../../types/campaignTypes'
 
-export const queryDIVALiquidity = (poolId: string) => gql`
-	{
-		liquidities(where: {pool: "${poolId}"}) {
-			pool {
-				id
-			}
-			eventType
-			collateralAmount
-			id
-			longTokenHolder
-			shortTokenHolder
-			msgSender
-			timestamp
-		}
-	}
+export const queryDIVALiquidity = (poolIds: string[]) => gql`
+  {
+    liquidities(where: {pool_in: [${poolIds.map(id => `"${id}"`).join(', ')}]}) {
+      pool {
+        id
+      }
+      eventType
+      collateralAmount
+      id
+      longTokenHolder
+      shortTokenHolder
+      msgSender
+      timestamp
+    }
+  }
 `
 
 export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
   const [page, setPage] = useState(1);
   const perPage = 10;
 
-  const poolId = '0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0' // @todo add handling of multiple pools within a campaign
-
-  const decimals = campaign.decimals
+  const poolIds = campaign.pools.map(pool => pool.poolId);
+  const decimals = campaign.decimals;
 
   const {
       data,
       isLoading,
       isError
-  } = useQuery<any[]>(['liquidity'], async () => {
+  } = useQuery<any[]>(['liquidity', poolIds], async () => {
       const response = request(
           chainConfig.graphUrl,
-          queryDIVALiquidity(poolId) // @todo pool?.id ?? ''
+          queryDIVALiquidity(poolIds)
       ).then((data: any) => {
           if (data.liquidities != null) {
-              return data.liquidities
+              return data.liquidities;
           } else {
-              console.log('No liquidity events found')
-              return {}
+              console.log('No liquidity events found');
+              return [];
           }
-      })
-      return response
-  })
+      });
+      return response;
+  });
 
   if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading data</div>;
@@ -76,7 +75,7 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
 
   const totalAmount = summedData.reduce((total, donor) => total + Number(formatUnits(donor.collateralAmount, decimals)), 0).toFixed(0);
 
-    // Calculate the items to display based on the current page
+  // Calculate the items to display based on the current page
   const displayedData = summedData.slice(0, page * perPage);
 
   return (
@@ -106,7 +105,11 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
                     {index + 1}
                   </span>
                 </td> {/* Row number */}
-                <td className="text-left w-52 text-[#005C53]">{getShortenedAddress(donor.msgSender)}</td>
+                <td className="text-left w-52 text-[#005C53]">
+                  <a href={`${chainConfig.blockExplorer}/address/${donor.msgSender}`} target="_blank" rel="noopener noreferrer">
+                    {getShortenedAddress(donor.msgSender)}
+                  </a>  
+                </td>
                 {/* <td>{new Date(parseInt(donor.timestamp) * 1000).toLocaleDateString()}</td> */}
                 <td className="text-left font-bold text-lg w-36 rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(formatUnits(donor.collateralAmount, decimals)))}</td>
               </tr>
@@ -116,7 +119,7 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
           <tfoot>
             <tr className="text-xl bg-[#DEEFE7] h-14">
               <td className="rounded-l-lg"></td>
-              <td colSpan={1} className="text-left font-bold text-[#005C53]">Total:</td>
+              <td colSpan={1} className="text-left font-bold text-[#005C53] rounded-l-lg">Total:</td>
               <td className="font-bold text-left rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(totalAmount))}</td>
             </tr>
           </tfoot>
