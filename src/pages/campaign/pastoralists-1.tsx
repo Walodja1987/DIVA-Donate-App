@@ -4,6 +4,7 @@ import { CampaignCard } from '../../components/Section/CampaignCard'
 import { AboutSection } from '../../components/Section/AboutSection'
 import { DonationSection } from '../../components/Section/DonationSection'
 import { LinkSection } from '../../components/Section/LinkSection'
+import { TopDonorsTable } from '../../components/Section/TopDonorsTable'
 import campaigns from '../../../config/campaigns.json'
 
 export default function Pastoralists() {
@@ -26,6 +27,7 @@ export default function Pastoralists() {
 				/>
 				<AboutSection />
 				<DonationSection />
+				{/* <TopDonorsTable campaign={campaign} />  Not showing top donors for this campaign because it was run on a pre-release version of DIVA Protocol. Consider hard-coding the values*/}
 				<LinkSection />
 			</main>
 		</Layout>
