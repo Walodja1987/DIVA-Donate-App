@@ -82,6 +82,8 @@ export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
 					) : (
 						<Link
 							href={link.to}
+							target={link.target}
+							rel={link.rel}
 							className={
 								'block py-2 pl-3 pr-4 text-base font-semibold hover:text-[#9FC131]'
 							}>
