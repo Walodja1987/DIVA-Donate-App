@@ -7,6 +7,9 @@ export const divaContractAddressOld = '0xFf7d52432B19521276962B67FFB432eCcA60914
 // Post-audit contract version used for subsequent campaigns
 export const divaContractAddress = '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
 
+export const IMAGE_PATH = "/Images/posts/";
+export const HOME = "https://www.divadonate.xyz";
+
 export const chainConfig = {
       name: 'Polygon',
       chainId: 137,
@@ -48,5 +51,8 @@ export const links: NavItemType[] = [
         target: "_blank",
         rel: "noopener noreferrer",
     },
-
+    {
+        to: "/posts",
+        name: "Blog",
+    },
 ];
