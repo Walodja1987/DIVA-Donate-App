@@ -13,14 +13,16 @@
     "@chakra-ui/react": "^2.3.7",
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.5",
-    "@rainbow-me/rainbowkit": "^0.8.1",
+    "@privy-io/react-auth": "^1.77.0",
     "@tailwindcss/typography": "^0.5.8",
+    "@tanstack/react-query": "^5",
     "@types/node": "18.11.9",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.13",
     "clsx": "^2.0.0",
     "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.5",
     "ethereum-multicall": "^2.19.0",
@@ -40,6 +42,7 @@
     "react-tweet-embed": "^2.0.0",
     "tailwindcss": "^3.2.4",
     "typescript": "^5",
+    "viem": "^2.16.0",
     "wagmi": "^0.9.6"
   }
 }
