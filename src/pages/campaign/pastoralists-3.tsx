@@ -4,6 +4,7 @@ import { CampaignCard } from '../../components/Section/CampaignCard'
 import { AboutSectionPastoralists3 } from '../../components/Section/AboutSectionPastoralists3'
 import { DonationSection3 } from '../../components/Section/DonationSection3'
 import { LinkSectionPastoralists3 } from '../../components/Section/LinkSectionPastoralists3'
+import { TopDonorsTable } from '../../components/Section/TopDonorsTable'
 import campaigns from '../../../config/campaigns.json'
 
 export default function Pastoralists() {
@@ -27,6 +28,7 @@ export default function Pastoralists() {
 				/>
 				<AboutSectionPastoralists3 />
 				<DonationSection3 /> 
+				<TopDonorsTable campaign={campaign} />
 				<LinkSectionPastoralists3 />
 			</main>
 		</Layout>

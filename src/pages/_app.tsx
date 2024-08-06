@@ -7,11 +7,14 @@ import { polygon } from 'wagmi/chains'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { ChakraProvider } from '@chakra-ui/react'
 import CustomAvatar from '../components/CustomAvatar'
+import { QueryClient, QueryClientProvider } from 'react-query'
 
 const { chains, provider } = configureChains(
 	[polygon],
 	[alchemyProvider({ apiKey: 'p3-IGmZPQrd-ri5AGlGm4cVm8k1uhCXx' })]
 )
+
+const queryClient = new QueryClient()
 
 const { connectors } = getDefaultWallets({
 	appName: 'Diva Donate',
@@ -28,7 +31,9 @@ export default function App({ Component, pageProps }: AppProps) {
 		<ChakraProvider>
 			<WagmiConfig client={wagmiClient}>
 				<RainbowKitProvider chains={chains} avatar={CustomAvatar}>
-					<Component {...pageProps} />
+					<QueryClientProvider client={queryClient}>
+						<Component {...pageProps} />
+					</QueryClientProvider>
 				</RainbowKitProvider>
 			</WagmiConfig>
 		</ChakraProvider>

@@ -4,6 +4,7 @@ import { CampaignCard } from '../../components/Section/CampaignCard'
 import { AboutSectionPastoralists2 } from '../../components/Section/AboutSectionPastoralists2'
 import { DonationSectionMulti } from '../../components/Section/DonationSectionMulti'
 import { LinkSectionPastoralists2 } from '../../components/Section/LinkSectionPastoralists2'
+import { TopDonorsTable } from '../../components/Section/TopDonorsTable'
 import campaigns from '../../../config/campaigns.json'
 
 export default function Pastoralists() {
@@ -26,7 +27,8 @@ export default function Pastoralists() {
 					thankYouMessage="Thank you for providing livestock insurance to pastoralists in Kenya."
 				/>
 				<AboutSectionPastoralists2 />
-				<DonationSectionMulti /> 
+				<DonationSectionMulti />
+				<TopDonorsTable campaign={campaign} />
 				<LinkSectionPastoralists2 />
 			</main>
 		</Layout>

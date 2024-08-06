@@ -13,6 +13,8 @@ export const HOME = "https://www.divadonate.xyz";
 export const chainConfig = {
       name: 'Polygon',
       chainId: 137,
+      graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-polygon/version/latest', // replace "latest" with version number if you want to use a specific version of the subgraph
+      blockExplorer: 'https://polygonscan.com/'
 }
 
 // export const chainConfig = {
