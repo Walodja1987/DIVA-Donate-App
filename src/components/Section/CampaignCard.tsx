@@ -9,9 +9,11 @@ import {
 	useFeeData,
 	useProvider,
 	useNetwork,
+	useDisconnect
 } from 'wagmi'
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { useSetActiveWallet } from '@privy-io/wagmi';
 import { Campaign, CampaignPool } from '../../types/campaignTypes'
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { chainConfig } from '../../constants'
@@ -89,6 +91,11 @@ export const CampaignCard: React.FC<{
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
 	const [expiryTime, setExpiryTime] = useState<number>(0)
 
+	// Privy hooks
+	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
+	const {wallets, ready: walletsReady} = useWallets();
+	
+	// WAGMI hooks
 	const { address: activeAddress, isConnected } = useAccount()
 	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
 
@@ -98,11 +105,14 @@ export const CampaignCard: React.FC<{
 	const [chainId, setChainId] = React.useState<number>(0)
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
-	const { openConnectModal } = useConnectModal()
 	const { switchNetwork } = useSwitchNetwork()
 	const debouncedAmount = useDebounce(amount, 300)
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
+  
+	if (!ready) {
+	  return null;
+	}
 
 	// @todo needed in the presence of wagmi?
 	// Test the wallet connect feature if wallet is not connected
@@ -424,7 +434,7 @@ export const CampaignCard: React.FC<{
 								donateLoading={donateLoading}
 								handleDonation={handleDonation}
 								donateEnabled={donateEnabled}
-								openConnectModal={openConnectModal}
+								openConnectModal={connectWallet}
 								handleOpen={handleOpen}
 							/>
 						)}

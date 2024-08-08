@@ -9,7 +9,7 @@ import { useERC20Contract } from '../../utils/hooks/useContract'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenBalance } from '../../utils/general'
 import { Progress, ProgressLabel, Text } from '@chakra-ui/react'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import pools from '../../../config/pools.json' // @todo remove
 import campaigns from '../../../config/campaigns.json'
@@ -54,15 +54,23 @@ export default function Donations() {
 	const [statusFinalReferenceValue, setStatusFinalReferenceValue] = useState<{
 		[campaignId: string]: Status
 	}>({})
+
+	// Privy hooks
+	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
+	const {wallets, ready: walletsReady} = useWallets();
+
 	const { address: activeAddress, isConnected } = useAccount()
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
-	const { openConnectModal } = useConnectModal()
 	const { switchNetwork } = useSwitchNetwork()
 
 	const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
+
+	if (!ready) {
+		return null;
+	}
 
 	// ----------------------------
 	// Event handlers
@@ -711,8 +719,8 @@ export default function Donations() {
 												Please
 												<span>
 													<button
-														className="p-2 text-blue-600"
-														onClick={openConnectModal}>
+														className="p-2 text-blue-6000"
+														onClick={connectWallet}>
 														connect
 													</button>
 												</span>

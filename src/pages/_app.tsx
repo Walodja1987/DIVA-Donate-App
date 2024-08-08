@@ -1,31 +1,6 @@
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
-// import { getDefaultWallets, RainbowKitProvider } from '@rainbow-me/rainbowkit'
-import { configureChains, createClient, WagmiConfig } from 'wagmi'
-
-// import { alchemyProvider } from 'wagmi/providers/alchemy'
-// import CustomAvatar from '../components/CustomAvatar'
-// import { QueryClient, QueryClientProvider } from 'react-query'
-
 import Providers from '@/components/providers'
-
-// const { chains, provider } = configureChains(
-// 	[polygon],
-// 	[alchemyProvider({ apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY as string })]
-// )
-
-// const queryClient = new QueryClient()
-
-// const { connectors } = getDefaultWallets({
-// 	appName: 'Diva Donate',
-// 	chains,
-// })
-// const wagmiClient = createClient({
-// 	autoConnect: true,
-// 	connectors,
-// 	provider,
-// })
-
 
 export default function App({ Component, pageProps }: AppProps) {
 	return (
