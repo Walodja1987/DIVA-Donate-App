@@ -4,7 +4,7 @@ import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAccount, useSwitchChain, useProvider, useNetwork } from 'wagmi'
+import { useAccount, useSwitchChain } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenBalance } from '../../utils/general'
@@ -59,9 +59,7 @@ export default function Donations() {
 	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
 	const {wallets, ready: walletsReady} = useWallets();
 
-	const { address: activeAddress, isConnected } = useAccount()
-	const { chain } = useNetwork()
-	const wagmiProvider = useProvider()
+	const { address: activeAddress, isConnected, chain } = useAccount()
 	const { switchChain } = useSwitchChain()
 
 	const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?

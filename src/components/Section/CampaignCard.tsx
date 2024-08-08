@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { getTokenBalance } from '../../utils/general'
@@ -7,8 +9,6 @@ import {
 	useAccount,
 	useSwitchChain,
 	useFeeData,
-	useProvider,
-	useNetwork,
 	useDisconnect
 } from 'wagmi'
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
@@ -96,15 +96,13 @@ export const CampaignCard: React.FC<{
 	const {wallets, ready: walletsReady} = useWallets();
 	
 	// WAGMI hooks
-	const { address: activeAddress, isConnected } = useAccount()
+	const { address: activeAddress, isConnected, chain } = useAccount()
 	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
 
 	// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 	const decimals = campaign.decimals
 
 	const [chainId, setChainId] = React.useState<number>(0)
-	const { chain } = useNetwork()
-	const wagmiProvider = useProvider()
 	const { switchChain } = useSwitchChain()
 	const debouncedAmount = useDebounce(amount, 300)
 

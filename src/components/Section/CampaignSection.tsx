@@ -1,10 +1,12 @@
+'use client';
+
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchChain, useProvider, useNetwork } from 'wagmi'
+import { useAccount, useSwitchChain } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
@@ -43,11 +45,9 @@ export const CampaignSection = () => {
 	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
 	const {wallets, ready: walletsReady} = useWallets();
 
-	const { address: activeAddress, isConnected, connector } = useAccount()
-	const { chain } = useNetwork()
-	const wagmiProvider = useProvider()
+	const { address: activeAddress, isConnected, connector, chain } = useAccount()
+
 	const { switchChain } = useSwitchChain()
-	const [chainId, setChainId] = React.useState<number>(0)
 
 	if (!ready) {
 		return null;
@@ -146,16 +146,16 @@ export const CampaignSection = () => {
 		}
 	}
 
-	useEffect(() => {
-		if (chain) {
-			setChainId(chain.id)
-		}
-	}, [chain])
+	// useEffect(() => {
+	// 	if (chain) {
+	// 		setChainId(chain.id)
+	// 	}
+	// }, [chain])
 
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
 		if (
-			chainId === chainConfig.chainId &&
+			chain.id === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
@@ -177,7 +177,7 @@ export const CampaignSection = () => {
 					address: campaign.divaContractAddress,
 					abi:
 						campaign.divaContractAddress === divaContractAddressOld &&
-						chainId === 137
+						chain.id === 137
 							? DivaABIold
 							: DivaABI,
 					signerOrProvider: wagmiProvider,
@@ -280,7 +280,7 @@ export const CampaignSection = () => {
 				})
 			})
 		}
-	}, [chainId, wagmiProvider, campaigns])
+	}, [chain, campaigns])
 
 	return (
 		<section className="pt-[5rem]">
@@ -349,7 +349,7 @@ export const CampaignSection = () => {
 									</div>
 
 									{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-									{chainId === chainConfig.chainId ? (
+									{chain.id === chainConfig.chainId ? (
 										<Progress
 											className=" mb-3 rounded-[15px]"
 											style={{ background: '#D6D58E' }}
@@ -368,7 +368,7 @@ export const CampaignSection = () => {
 
 									{isConnected ? (
 										<>
-											{chainId === chainConfig.chainId ? (
+											{chain.id === chainConfig.chainId ? (
 												// Conditional rendering based on whether campaign is completed or not. If completed,
 												// only "Goal" and "Raised" will be shown. If on-going, then "To go" will also show.
 												<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
