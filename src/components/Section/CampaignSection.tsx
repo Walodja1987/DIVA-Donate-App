@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
+import { useAccount, useSwitchChain, useProvider, useNetwork } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import campaigns from '../../../config/campaigns.json'
 import { divaContractAddressOld } from '../../constants'
@@ -39,18 +39,25 @@ export const CampaignSection = () => {
 		[campaignId: string]: number
 	}>({})
 
+	// Privy hooks
+	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
+	const {wallets, ready: walletsReady} = useWallets();
+
 	const { address: activeAddress, isConnected, connector } = useAccount()
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
-	const { openConnectModal } = useConnectModal()
-	const { switchNetwork } = useSwitchNetwork()
+	const { switchChain } = useSwitchChain()
 	const [chainId, setChainId] = React.useState<number>(0)
+
+	if (!ready) {
+		return null;
+	}
 
 	// ----------------------------
 	// Event handlers
 	// ----------------------------
 	const handleOpen = () => {
-		switchNetwork?.(chainConfig.chainId)
+		switchChain?.(chainConfig.chainId)
 	}
 
 	const updateRaised = (campaignId: string, tokenAmount: number) => {
@@ -436,7 +443,7 @@ export const CampaignSection = () => {
 												<span>
 													<button
 														className="p-2 text-blue-600"
-														onClick={openConnectModal}>
+														onClick={connectWallet}>
 														connect
 													</button>
 												</span>
