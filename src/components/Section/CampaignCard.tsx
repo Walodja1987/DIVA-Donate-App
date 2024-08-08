@@ -8,7 +8,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import {
 	useAccount,
 	useSwitchChain,
-	useFeeData,
+	useEstimateFeesPerGas,
 	useDisconnect
 } from 'wagmi'
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
@@ -18,11 +18,13 @@ import { Campaign, CampaignPool } from '../../types/campaignTypes'
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { chainConfig } from '../../constants'
 import { divaContractAddressOld } from '../../constants'
-import { getContract } from '@wagmi/core'
+import { getContract } from 'viem'
 import { useDisclosure } from '@chakra-ui/react'
 import { DonationCard } from './DonationCard'
 import { useDebounce } from '../../utils/hooks/useDebounce'
 import { PoolExtended } from '../../types/poolTypes'
+import { createWalletClient, custom } from 'viem'
+
 
 const DonationExpiredInfo = () => {
 	return (
@@ -79,7 +81,7 @@ export const CampaignCard: React.FC<{
 	thankYouMessage: string
 }> = ({ campaign, thankYouMessage }) => {
 	const [balance, setBalance] = useState<number>(0)
-	const { data } = useFeeData({ chainId: chainConfig.chainId })
+	const { data } = useEstimateFeesPerGas({ chainId: chainConfig.chainId })
 	const [amount, setAmount] = useState<string>('')
 	const [goal, setGoal] = useState<number | 'Unlimited'>(0)
 	const [raised, setRaised] = useState<number>(0)
@@ -158,22 +160,27 @@ export const CampaignCard: React.FC<{
 				setDonateEnabled(false)
 			}
 		}
-		if (chainId === chainConfig.chainId && activeAddress != null) {
+		if (chain.id === chainConfig.chainId && activeAddress != null) {
 			checkAllowance()
 		}
 	}, [
 		activeAddress,
 		amount,
-		chainId,
+		chain,
 		collateralTokenContract,
 		campaign.divaContractAddress,
 		decimals,
 	])
 
+	const walletClient = createWalletClient({
+		chain: chain,
+		transport: custom(window.ethereum!),
+	});
+
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
 		if (
-			chainId === chainConfig.chainId &&
+			chain.id === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window != 'undefined' &&
 			typeof window?.ethereum != 'undefined'
@@ -185,10 +192,10 @@ export const CampaignCard: React.FC<{
 				address: campaign.divaContractAddress,
 				abi:
 					campaign.divaContractAddress === divaContractAddressOld &&
-					chainId === 137
+					chain.id === 137
 						? DivaABIold
 						: DivaABI,
-				signerOrProvider: wagmiProvider,
+				client: walletClient,
 			})
 
 			Promise.all(
@@ -209,7 +216,7 @@ export const CampaignCard: React.FC<{
 								? pool.poolParams.shortToken
 								: pool.poolParams.longToken,
 						abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-						signerOrProvider: wagmiProvider,
+						client: walletClient,
 					})
 					return beneficiaryTokenContract.balanceOf(
 						campaign.donationRecipients[0].address
@@ -266,7 +273,7 @@ export const CampaignCard: React.FC<{
 				)
 			})
 		}
-	}, [chainId, donateLoading, activeAddress, collateralTokenContract])
+	}, [chain, donateLoading, activeAddress, collateralTokenContract])
 
 	useEffect(() => {
 		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
@@ -318,7 +325,7 @@ export const CampaignCard: React.FC<{
 					? DivaABIold
 					: DivaABI,
 				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
-			)
+			) // @todo update to use viem
 
 			setDonateLoading(true)
 
@@ -395,10 +402,10 @@ export const CampaignCard: React.FC<{
 				setBalance(tokenAmount)
 			}
 		}
-		if (chainId === chainConfig.chainId && activeAddress != null) {
+		if (chain.id === chainConfig.chainId && activeAddress != null) {
 			getBalance()
 		}
-	}, [chainId, activeAddress, donateLoading, collateralTokenContract])
+	}, [chain, activeAddress, donateLoading, collateralTokenContract])
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
@@ -415,7 +422,7 @@ export const CampaignCard: React.FC<{
 							<DonationCard
 								thankYouMessage={thankYouMessage}
 								isConnected={isConnected}
-								chainId={chainId}
+								chainId={chain.id}
 								isOpen={isOpen}
 								onClose={onClose}
 								percentage={percentage}

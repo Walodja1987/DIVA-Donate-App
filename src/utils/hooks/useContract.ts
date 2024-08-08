@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Contract, ethers } from "ethers";
 
 import { DivaABI, ERC20ABI } from "../../abi";
-import { getContract, getSigner } from "../general";
+import { getContract } from "../general";
 import { useAccount } from "wagmi";
 
 function useContract<T extends Contract = Contract>(
@@ -15,7 +15,7 @@ function useContract<T extends Contract = Contract>(
   return useMemo(() => {
     const provider: any = new ethers.providers.AlchemyProvider(
       "matic",
-      "p3-IGmZPQrd-ri5AGlGm4cVm8k1uhCXx" // Should be replaced by env variable
+      process.env.NEXT_PUBLIC_ALCHEMY_API_KEY // @todo need one for different chains?
     );
     if (!address || !ABI || !provider) return null;
     try {

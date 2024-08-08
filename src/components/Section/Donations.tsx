@@ -16,7 +16,7 @@ import campaigns from '../../../config/campaigns.json'
 import { divaContractAddressOld, divaContractAddress } from '../../constants'
 import { formatDate, isExpired } from '../../utils/general'
 import { chainConfig } from '../../constants'
-import { getContract } from '@wagmi/core'
+import { getContract } from 'viem'
 import { CampaignPool, Campaign } from '../../types/campaignTypes'
 import { Pool, Status } from '../../types/poolTypes'
 import {
@@ -35,6 +35,8 @@ import {
 	Button,
 	useDisclosure,
 } from '@chakra-ui/react'
+import { createWalletClient, custom } from 'viem'
+
 
 export default function Donations() {
 	const [redeemLoading, setRedeemLoading] = useState<{
@@ -181,6 +183,7 @@ export default function Donations() {
 	}
 
 	// @todo Function kept to replace Promise.all blocks with multicall at a later stage
+	// Check out viem's/wagmi's in-built batch functionality which could simplify this part significantly
 	const processMulticallResult = (data: ContractCallResults): any[] => {
 		const res = []
 
@@ -198,6 +201,11 @@ export default function Donations() {
 		// console.log('res', res)
 		return res
 	}
+
+	const walletClient = createWalletClient({
+		chain: chain,
+		transport: custom(window.ethereum!),
+	});
 
 	useEffect(() => {
 		if (chain) {
@@ -299,7 +307,7 @@ export default function Donations() {
 					const positionTokenContract = getContract({
 						address: donorPositionToken,
 						abi: ERC20ABI,
-						signerOrProvider: wagmiProvider,
+						client: walletClient,
 					})
 
 					return getTokenBalance(
@@ -352,7 +360,7 @@ export default function Donations() {
 					campaign.divaContractAddress === divaContractAddressOld
 						? DivaABIold
 						: DivaABI,
-				signerOrProvider: wagmiProvider,
+				client: walletClient,
 			})
 
 			const poolParams = await divaContract.getPoolParameters(pool.poolId)
@@ -364,7 +372,7 @@ export default function Donations() {
 			const token = getContract({
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				signerOrProvider: wagmiProvider,
+				client: walletClient,
 			})
 			const decimals = await token.decimals()
 			const symbol = await token.symbol()
@@ -415,7 +423,7 @@ export default function Donations() {
 						campaign.divaContractAddress === divaContractAddressOld
 							? DivaABIold
 							: DivaABI,
-					signerOrProvider: wagmiProvider,
+					client: walletClient,
 				})
 
 				// Get pool parameters for the underlying campaign, check user's position token balance and
@@ -442,7 +450,7 @@ export default function Donations() {
 							const positionTokenContract = getContract({
 								address: donorPositionToken,
 								abi: ERC20ABI,
-								signerOrProvider: wagmiProvider,
+								client: walletClient,
 							})
 
 							return getTokenBalance(positionTokenContract, activeAddress).then(

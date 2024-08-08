@@ -29,6 +29,8 @@ export function getProviderOrSigner(
   return account ? getSigner(library, account) : library;
 }
 
+// @todo Is this function needed as we typically use the getContract function from viem?
+// Looks like this function is used inside useContract.ts. Why?
 export function getContract(
   address: string,
   ABI: any,

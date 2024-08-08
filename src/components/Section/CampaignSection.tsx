@@ -9,7 +9,7 @@ import { formatUnits } from 'ethers/lib/utils'
 import { useAccount, useSwitchChain } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
-import { fetchToken, getContract } from '@wagmi/core'
+import { getContract } from 'viem'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import campaigns from '../../../config/campaigns.json'
@@ -18,6 +18,8 @@ import { chainConfig } from '../../constants'
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { Pool, PoolExtended } from '../../types/poolTypes'
 import { Campaign, CampaignPool } from '../../types/campaignTypes'
+import { createWalletClient, custom } from 'viem'
+
 
 // @todo I think it would be better to use toFixed inside jsx only and not store the values
 // in that format. It's less of a problem if the values are not used for calculations, but if they are
@@ -29,6 +31,7 @@ import { Campaign, CampaignPool } from '../../types/campaignTypes'
  * @notice Campaign section on the Home page
  */
 export const CampaignSection = () => {
+	// React hooks
 	const [goal, setGoal] = useState<{
 		[campaignId: string]: number | 'Unlimited'
 	}>({})
@@ -42,16 +45,18 @@ export const CampaignSection = () => {
 	}>({})
 
 	// Privy hooks
-	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
-	const {wallets, ready: walletsReady} = useWallets();
+	const { ready, user, authenticated, login, connectWallet, logout, linkWallet } = usePrivy();
+	const { wallets, ready: walletsReady } = useWallets();
 
-	const { address: activeAddress, isConnected, connector, chain } = useAccount()
-
+	// wagmi hooks
+	const { address: activeAddress, isConnected, chain } = useAccount() // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
+	console.log("isConnected", isConnected)
+	console.log("ready", ready)
 	const { switchChain } = useSwitchChain()
 
-	if (!ready) {
-		return null;
-	}
+	// if (!ready) {
+	// 	return null;
+	// }
 
 	// ----------------------------
 	// Event handlers
@@ -109,7 +114,7 @@ export const CampaignSection = () => {
 					campaign.divaContractAddress === divaContractAddressOld
 						? DivaABIold
 						: DivaABI,
-				signerOrProvider: wagmiProvider,
+				client: walletClient,
 			})
 
 			const poolParams = await divaContract.getPoolParameters(pool.poolId)
@@ -121,7 +126,7 @@ export const CampaignSection = () => {
 			const token = getContract({
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				signerOrProvider: wagmiProvider,
+				client: walletClient,
 			})
 			const decimals = await token.decimals()
 			const symbol = await token.symbol()
@@ -152,13 +157,24 @@ export const CampaignSection = () => {
 	// 	}
 	// }, [chain])
 
+	
+
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
+		if (typeof window === 'undefined') {
+            // If window is not defined, exit early
+            return;
+        }
+
+		const walletClient = createWalletClient({
+			chain: chain,
+			transport: custom(window.ethereum!),
+		});
 		if (
+			isConnected &&
 			chain.id === chainConfig.chainId &&
 			activeAddress != null &&
-			typeof window != 'undefined' &&
-			typeof window?.ethereum != 'undefined'
+			typeof walletClient != null
 		) {
 			// Loop through each campaign in `campaign.json` and update the state variables
 			campaigns.forEach((campaign: Campaign) => {
@@ -180,7 +196,7 @@ export const CampaignSection = () => {
 						chain.id === 137
 							? DivaABIold
 							: DivaABI,
-					signerOrProvider: wagmiProvider,
+					client: walletClient,
 				})
 
 				// Create an array to store promises for each `getPoolParameters` call. Promises will be resolved
@@ -208,7 +224,7 @@ export const CampaignSection = () => {
 						const beneficiaryTokenContract = getContract({
 							address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
 							abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-							signerOrProvider: wagmiProvider,
+							client: walletClient,
 						})
 						return beneficiaryTokenContract.balanceOf(campaign.donationRecipients[0].address) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
 					})
@@ -280,7 +296,7 @@ export const CampaignSection = () => {
 				})
 			})
 		}
-	}, [chain, campaigns])
+	}, [chain, campaigns, isConnected, activeAddress])
 
 	return (
 		<section className="pt-[5rem]">
