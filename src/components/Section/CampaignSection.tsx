@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
+import { useAccount, useSwitchChain, useProvider, useNetwork } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 import { fetchToken, getContract } from '@wagmi/core'
@@ -46,7 +46,7 @@ export const CampaignSection = () => {
 	const { address: activeAddress, isConnected, connector } = useAccount()
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
-	const { switchNetwork } = useSwitchNetwork()
+	const { switchChain } = useSwitchChain()
 	const [chainId, setChainId] = React.useState<number>(0)
 
 	if (!ready) {
@@ -57,7 +57,7 @@ export const CampaignSection = () => {
 	// Event handlers
 	// ----------------------------
 	const handleOpen = () => {
-		switchNetwork?.(chainConfig.chainId)
+		switchChain?.(chainConfig.chainId)
 	}
 
 	const updateRaised = (campaignId: string, tokenAmount: number) => {

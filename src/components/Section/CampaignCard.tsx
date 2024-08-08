@@ -5,7 +5,7 @@ import { ethers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import {
 	useAccount,
-	useSwitchNetwork,
+	useSwitchChain,
 	useFeeData,
 	useProvider,
 	useNetwork,
@@ -105,7 +105,7 @@ export const CampaignCard: React.FC<{
 	const [chainId, setChainId] = React.useState<number>(0)
 	const { chain } = useNetwork()
 	const wagmiProvider = useProvider()
-	const { switchNetwork } = useSwitchNetwork()
+	const { switchChain } = useSwitchChain()
 	const debouncedAmount = useDebounce(amount, 300)
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
@@ -123,7 +123,7 @@ export const CampaignCard: React.FC<{
 	// 	})
 	// }
 	const handleOpen = () => {
-		switchNetwork?.(chainConfig.chainId)
+		switchChain?.(chainConfig.chainId)
 	}
 
 	useEffect(() => {
