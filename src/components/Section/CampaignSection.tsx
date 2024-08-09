@@ -6,10 +6,9 @@ import React, { useEffect, useState } from 'react'
 import { BigNumber, ethers } from 'ethers'
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchChain } from 'wagmi'
+import { useAccount, useSwitchChain, useClient } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
-import { getContract } from 'viem'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 import campaigns from '../../../config/campaigns.json'
@@ -18,7 +17,9 @@ import { chainConfig } from '../../constants'
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { Pool, PoolExtended } from '../../types/poolTypes'
 import { Campaign, CampaignPool } from '../../types/campaignTypes'
-import { createWalletClient, custom } from 'viem'
+import { createPublicClient, createWalletClient, custom, http, getContract } from 'viem'
+import { getClient } from '@wagmi/core'
+
 
 
 // @todo I think it would be better to use toFixed inside jsx only and not store the values
@@ -53,6 +54,7 @@ export const CampaignSection = () => {
 	console.log("isConnected", isConnected)
 	console.log("ready", ready)
 	const { switchChain } = useSwitchChain()
+	const { client } = useClient()
 
 	// if (!ready) {
 	// 	return null;
@@ -114,10 +116,10 @@ export const CampaignSection = () => {
 					campaign.divaContractAddress === divaContractAddressOld
 						? DivaABIold
 						: DivaABI,
-				client: walletClient,
+				client: client,
 			})
 
-			const poolParams = await divaContract.getPoolParameters(pool.poolId)
+			const poolParams = await divaContract.read.getPoolParameters([pool.poolId])
 			const donorPositionToken =
 				pool.beneficiarySide === 'short'
 					? poolParams.longToken
@@ -126,7 +128,7 @@ export const CampaignSection = () => {
 			const token = getContract({
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				client: walletClient,
+				client: client,
 			})
 			const decimals = await token.decimals()
 			const symbol = await token.symbol()
@@ -157,25 +159,22 @@ export const CampaignSection = () => {
 	// 	}
 	// }, [chain])
 
-	
+	// const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_URL;
 
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
-		if (typeof window === 'undefined') {
-            // If window is not defined, exit early
-            return;
-        }
+		// if (typeof window === 'undefined') return;
 
-		const walletClient = createWalletClient({
-			chain: chain,
-			transport: custom(window.ethereum!),
-		});
+		// if (!client) return;
+		
 		if (
 			isConnected &&
 			chain.id === chainConfig.chainId &&
 			activeAddress != null &&
-			typeof walletClient != null
+			typeof window === 'undefined' && 
+			client
 		) {
+			console.log("client", client)
 			// Loop through each campaign in `campaign.json` and update the state variables
 			campaigns.forEach((campaign: Campaign) => {
 				let totalGoal: number | 'Unlimited'
@@ -196,15 +195,18 @@ export const CampaignSection = () => {
 						chain.id === 137
 							? DivaABIold
 							: DivaABI,
-					client: walletClient,
+					client: client		
 				})
+
+				console.log("divaContract", divaContract)
 
 				// Create an array to store promises for each `getPoolParameters` call. Promises will be resolved
 				// in the following `Promise.all` block
 				Promise.all(
 					campaign.pools.map((pool: CampaignPool) => {
 						return divaContract
-							.getPoolParameters(pool.poolId)
+							.read
+							.getPoolParameters([pool.poolId])
 							.then((res: Pool) => {
 								return {
 									poolParams: res,
@@ -224,7 +226,7 @@ export const CampaignSection = () => {
 						const beneficiaryTokenContract = getContract({
 							address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
 							abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-							client: walletClient,
+							client: client,
 						})
 						return beneficiaryTokenContract.balanceOf(campaign.donationRecipients[0].address) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
 					})
@@ -296,7 +298,7 @@ export const CampaignSection = () => {
 				})
 			})
 		}
-	}, [chain, campaigns, isConnected, activeAddress])
+	}, [chain, campaigns, isConnected, activeAddress, client])
 
 	return (
 		<section className="pt-[5rem]">
@@ -365,7 +367,7 @@ export const CampaignSection = () => {
 									</div>
 
 									{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-									{chain.id === chainConfig.chainId ? (
+									{(chain && chain.id === chainConfig.chainId) ? (
 										<Progress
 											className=" mb-3 rounded-[15px]"
 											style={{ background: '#D6D58E' }}

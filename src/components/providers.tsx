@@ -21,7 +21,7 @@ const queryClient = new QueryClient();
 export const wagmiConfig = createConfig({
   chains: [polygon],
   transports: {
-    [polygon.id]: http(),
+    [polygon.id]: http(`https://polygon-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`),
   },
 });
 
