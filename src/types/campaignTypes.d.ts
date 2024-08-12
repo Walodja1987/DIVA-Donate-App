@@ -1,13 +1,13 @@
 interface DonationRecipient {
     name: string;
-    address: string;
+    address: `0x${string}`;
     url: string;
   }
   
 export interface CampaignPool {
-  poolId: string;
+  poolId: `0x${string}`;
   beneficiarySide: string;
-  positionToken: string;
+  positionToken: `0x${string}`;
 }
 
 export interface Campaign {
@@ -21,9 +21,9 @@ export interface Campaign {
   goal: string;
   raised: string;
   donated: string;
-  collateralToken: string;
+  collateralToken: `0x${string}`;
   decimals: string;
-  divaContractAddress: string;
+  divaContractAddress: `0x${string}`;
   chainId: string;
   expiryTimestamp: string;
 }

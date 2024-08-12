@@ -18,7 +18,8 @@ import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 import { Pool, PoolExtended } from '../../types/poolTypes'
 import { Campaign, CampaignPool } from '../../types/campaignTypes'
 import { createPublicClient, createWalletClient, custom, http, getContract } from 'viem'
-import { getClient } from '@wagmi/core'
+import { getClient, readContract } from '@wagmi/core'
+import { wagmiConfig } from '@/wagmiConfig'
 
 
 
@@ -51,10 +52,8 @@ export const CampaignSection = () => {
 
 	// wagmi hooks
 	const { address: activeAddress, isConnected, chain } = useAccount() // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
-	console.log("isConnected", isConnected)
-	console.log("ready", ready)
 	const { switchChain } = useSwitchChain()
-	const { client } = useClient()
+	const client = useClient()
 
 	// if (!ready) {
 	// 	return null;
@@ -110,28 +109,46 @@ export const CampaignSection = () => {
 	// @todo Duplicated in Donations component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {
 		for (const pool of campaign.pools) {
-			const divaContract = getContract({
+			// const divaContract = getContract({
+			// 	address: campaign.divaContractAddress,
+			// 	abi:
+			// 		campaign.divaContractAddress === divaContractAddressOld
+			// 			? DivaABIold
+			// 			: DivaABI,
+			// 	client: client,
+			// })
+
+			const divaContract = {
 				address: campaign.divaContractAddress,
-				abi:
-					campaign.divaContractAddress === divaContractAddressOld
-						? DivaABIold
-						: DivaABI,
-				client: client,
+				abi: campaign.divaContractAddress === divaContractAddressOld
+					? DivaABIold
+					: DivaABI
+			} as const
+
+			const poolParams = await readContract(wagmiConfig, {
+				...divaContract,
+				functionName: 'getPoolParameters',
+				args: [pool.poolId]
 			})
 
-			const poolParams = await divaContract.read.getPoolParameters([pool.poolId])
 			const donorPositionToken =
 				pool.beneficiarySide === 'short'
 					? poolParams.longToken
 					: poolParams.shortToken
 
-			const token = getContract({
+			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				client: client,
+			} as const
+
+			const decimals = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'decimals',
 			})
-			const decimals = await token.decimals()
-			const symbol = await token.symbol()
+			const symbol = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'symbol',
+			})
 
 			try {
 				await (window as any).ethereum.request({
@@ -166,15 +183,21 @@ export const CampaignSection = () => {
 		// if (typeof window === 'undefined') return;
 
 		// if (!client) return;
-		
+		console.log("HELLOE")
+		console.log("isConnected", isConnected)
+		console.log("chain", chain)
+		console.log("chainConfig.chainId", chainConfig.chainId)
+		console.log("activeAddress", activeAddress) 
+		console.log("typeof window", typeof window) 
+		console.log("client", client)
 		if (
 			isConnected &&
 			chain.id === chainConfig.chainId &&
 			activeAddress != null &&
 			typeof window === 'undefined' && 
-			client
+			typeof client != 'undefined'
 		) {
-			console.log("client", client)
+			console.log("I AM HERE")
 			// Loop through each campaign in `campaign.json` and update the state variables
 			campaigns.forEach((campaign: Campaign) => {
 				let totalGoal: number | 'Unlimited'
@@ -188,26 +211,23 @@ export const CampaignSection = () => {
 
 				// Note that the first campaign was using a pre-audited version of the DIVA Protocol contract.
 				// To display the first campaign, it requires using the old ABI.
-				const divaContract = getContract({
-					address: campaign.divaContractAddress,
-					abi:
-						campaign.divaContractAddress === divaContractAddressOld &&
-						chain.id === 137
-							? DivaABIold
-							: DivaABI,
-					client: client		
-				})
 
-				console.log("divaContract", divaContract)
+				const divaContract = {
+					address: campaign.divaContractAddress,
+					abi: campaign.divaContractAddress === divaContractAddressOld && chain.id === 137
+						? DivaABIold
+						: DivaABI,
+				} as const
 
 				// Create an array to store promises for each `getPoolParameters` call. Promises will be resolved
 				// in the following `Promise.all` block
 				Promise.all(
 					campaign.pools.map((pool: CampaignPool) => {
-						return divaContract
-							.read
-							.getPoolParameters([pool.poolId])
-							.then((res: Pool) => {
+						return readContract(wagmiConfig, {
+							...divaContract,
+							functionName: 'getPoolParameters',
+							args: [pool.poolId]
+						}).then((res: Pool) => {
 								return {
 									poolParams: res,
 									beneficiarySide: pool.beneficiarySide,
