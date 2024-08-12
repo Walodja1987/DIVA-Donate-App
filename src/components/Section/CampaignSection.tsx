@@ -1,25 +1,43 @@
 'use client';
 
+// Nextjs
 import Image from 'next/image'
 import Link from 'next/link'
+
+// React
 import React, { useEffect, useState } from 'react'
+
+// Ethers
 import { BigNumber, ethers } from 'ethers'
+
+// ABIs
 import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
-import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchChain, useClient } from 'wagmi'
-import { useERC20Contract } from '../../utils/hooks/useContract'
+import { formatUnits } from 'ethers/lib/utils' // @todo use from viem
+
+// Chakra
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
+
+// Privy
 import { usePrivy, useWallets } from '@privy-io/react-auth';
+
+// Asset
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
+
+// constants
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld } from '../../constants'
-import { chainConfig } from '../../constants'
+import { divaContractAddressOld, chainConfig } from '../../constants'
+
+// Utils
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
+
+// Types
 import { Pool, PoolExtended } from '../../types/poolTypes'
 import { Campaign, CampaignPool } from '../../types/campaignTypes'
-import { createPublicClient, createWalletClient, custom, http, getContract } from 'viem'
-import { getClient, readContract } from '@wagmi/core'
-import { wagmiConfig } from '@/wagmiConfig'
+
+// Wagmi
+import { wagmiConfig } from '@/components/wagmiConfig'
+import { useAccount, useSwitchChain, useClient } from 'wagmi'
+import { readContract } from '@wagmi/core'
 
 
 
@@ -109,15 +127,6 @@ export const CampaignSection = () => {
 	// @todo Duplicated in Donations component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {
 		for (const pool of campaign.pools) {
-			// const divaContract = getContract({
-			// 	address: campaign.divaContractAddress,
-			// 	abi:
-			// 		campaign.divaContractAddress === divaContractAddressOld
-			// 			? DivaABIold
-			// 			: DivaABI,
-			// 	client: client,
-			// })
-
 			const divaContract = {
 				address: campaign.divaContractAddress,
 				abi: campaign.divaContractAddress === divaContractAddressOld
@@ -129,9 +138,9 @@ export const CampaignSection = () => {
 				...divaContract,
 				functionName: 'getPoolParameters',
 				args: [pool.poolId]
-			})
+			}) as Pool
 
-			const donorPositionToken =
+			const donorPositionToken: `0x${string}` =
 				pool.beneficiarySide === 'short'
 					? poolParams.longToken
 					: poolParams.shortToken
@@ -188,14 +197,14 @@ export const CampaignSection = () => {
 		console.log("chain", chain)
 		console.log("chainConfig.chainId", chainConfig.chainId)
 		console.log("activeAddress", activeAddress) 
-		console.log("typeof window", typeof window) 
+		console.log("typeof window", window) 
 		console.log("client", client)
 		if (
 			isConnected &&
 			chain.id === chainConfig.chainId &&
-			activeAddress != null &&
-			typeof window === 'undefined' && 
-			typeof client != 'undefined'
+			activeAddress != null
+			// typeof window === 'undefined'
+			// typeof client != 'undefined'
 		) {
 			console.log("I AM HERE")
 			// Loop through each campaign in `campaign.json` and update the state variables
@@ -208,7 +217,7 @@ export const CampaignSection = () => {
 
 				// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 				const decimals = campaign.decimals
-
+				console.log("decimals", decimals)
 				// Note that the first campaign was using a pre-audited version of the DIVA Protocol contract.
 				// To display the first campaign, it requires using the old ABI.
 
@@ -243,12 +252,15 @@ export const CampaignSection = () => {
 
 					// Create an array to store promises for fetching beneficiary token balances
 					const balancePromises = poolResults.map((pool) => {
-						const beneficiaryTokenContract = getContract({
+						const beneficiaryTokenContract = {
 							address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
-							abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-							client: client,
-						})
-						return beneficiaryTokenContract.balanceOf(campaign.donationRecipients[0].address) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
+							abi: ERC20ABI // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
+						} as const
+						return readContract(wagmiConfig, {
+							...beneficiaryTokenContract,
+							functionName: 'balanceOf',
+							args: [campaign.donationRecipients[0].address]
+						}) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
 					})
 		
 					// Use Promise.all to fetch the beneficiary token balances for all pools
@@ -318,7 +330,7 @@ export const CampaignSection = () => {
 				})
 			})
 		}
-	}, [chain, campaigns, isConnected, activeAddress, client])
+	}, [chain, campaigns, isConnected, activeAddress])
 
 	return (
 		<section className="pt-[5rem]">

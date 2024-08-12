@@ -7,13 +7,13 @@ export type Pool = {
     finalReferenceValue: string;
     capacity: string;
     statusTimestamp: string;
-    shortToken: string;
+    shortToken: `0x${string}`;
     payoutShort: string;
-    longToken: string;
+    longToken: `0x${string}`;
     payoutLong: string;
-    collateralToken: string;
+    collateralToken: `0x${string}`;
     expiryTime: string;
-    dataProvider: string;
+    dataProvider: `0x${string}`;
     indexFees: string;
     indexSettlementPeriods: string;
     statusFinalReferenceValue: string;
