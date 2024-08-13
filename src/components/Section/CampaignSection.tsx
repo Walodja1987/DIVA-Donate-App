@@ -37,7 +37,7 @@ import { Campaign, CampaignPool } from '../../types/campaignTypes'
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
 import { useAccount, useSwitchChain, useClient } from 'wagmi'
-import { readContract } from '@wagmi/core'
+import { readContract, multicall } from '@wagmi/core'
 
 
 
@@ -192,33 +192,17 @@ export const CampaignSection = () => {
 		// if (typeof window === 'undefined') return;
 
 		// if (!client) return;
-		console.log("HELLOE")
-		console.log("isConnected", isConnected)
-		console.log("chain", chain)
-		console.log("chainConfig.chainId", chainConfig.chainId)
-		console.log("activeAddress", activeAddress) 
-		console.log("typeof window", window) 
-		console.log("client", client)
 		if (
 			isConnected &&
 			chain.id === chainConfig.chainId &&
 			activeAddress != null
-			// typeof window === 'undefined'
-			// typeof client != 'undefined'
 		) {
-			console.log("I AM HERE")
-
 			// Loop through each campaign in `campaign.json` and update the state variables
 			campaigns.forEach((campaign: Campaign) => {
-				let totalGoal: number | 'Unlimited'
-				let totalToGo: number | 'Unlimited'
-				let totalRaised: number
-				let totalDonated: number
-				let percentageProgress: number
+				console.log("Processing campaign", campaign.campaignId)
 
 				// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 				const decimals = campaign.decimals
-				console.log("decimals", decimals)
 				// Note that the first campaign was using a pre-audited version of the DIVA Protocol contract.
 				// To display the first campaign, it requires using the old ABI.
 
@@ -231,45 +215,50 @@ export const CampaignSection = () => {
 
 				console.log("divaContract", divaContract)
 
-				// Create an array to store promises for each `getPoolParameters` call. Promises will be resolved
-				// in the following `Promise.all` block
-				Promise.all(
-					campaign.pools.map((pool: CampaignPool) => {
-						return readContract(wagmiConfig, {
-							...divaContract,
-							functionName: 'getPoolParameters',
-							args: [pool.poolId]
-						}).then((res: Pool) => {
-								return {
-									poolParams: res,
-									beneficiarySide: pool.beneficiarySide,
-								}
-							})
-					})
-				).then((poolResults: PoolExtended[]) => {
-					totalRaised = 0
-					totalDonated = 0
-					totalGoal = 0
-					totalToGo = 0
-					percentageProgress = 0
+				// Create an array of contract calls for multicall
+				const contractCalls = campaign.pools.map((pool: CampaignPool) => ({
+					...divaContract,
+					functionName: 'getPoolParameters',
+					args: [pool.poolId]
+				}))
 
-					// Create an array to store promises for fetching beneficiary token balances
-					const balancePromises = poolResults.map((pool) => {
-						const beneficiaryTokenContract = {
-							address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
-							abi: ERC20ABI // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-						} as const
-						return readContract(wagmiConfig, {
-							...beneficiaryTokenContract,
-							functionName: 'balanceOf',
-							args: [campaign.donationRecipients[0].address]
-						}) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
-					})
-		
-					// Use Promise.all to fetch the beneficiary token balances for all pools
-					return Promise.all(balancePromises)
-						.then((beneficiaryTokenBalances: string[]) => {
-							// Iterate through each pool linked to the campaign, aggregate the statistics and update the
+				// Use multicall
+                multicall(wagmiConfig, { contracts: contractCalls })
+                    .then((results) => {
+                        console.log("Multicall results for campaign", campaign.campaignId, ":", results)
+                        
+                        // Process the results
+                        const poolResults = results.map((res, index) => ({
+                            poolParams: res.result as Pool,
+                            beneficiarySide: campaign.pools[index].beneficiarySide,
+                        }))
+
+                        console.log("Processed pool results for campaign", campaign.campaignId, ":", poolResults)
+
+                        // Continue with your existing logic here
+                        let totalRaised = 0
+                        let totalDonated = 0
+                        let totalGoal: number | 'Unlimited' = 0
+                        let totalToGo: number | 'Unlimited' = 0
+                        let percentageProgress = 0
+
+                        // Create an array to store promises for fetching beneficiary token balances
+                        const balancePromises = poolResults.map((pool) => {
+                            const beneficiaryTokenContract = {
+                                address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
+                                abi: ERC20ABI
+                            } as const
+                            return readContract(wagmiConfig, {
+                                ...beneficiaryTokenContract,
+                                functionName: 'balanceOf',
+                                args: [campaign.donationRecipients[0].address]
+                            })
+                        })
+
+                        // Use Promise.all to fetch the beneficiary token balances for all pools
+                        return Promise.all(balancePromises)
+                            .then((beneficiaryTokenBalances: string[]) => {
+                                // Iterate through each pool linked to the campaign, aggregate the statistics and update the
 							// corresponding state variables. As we are using the values for display only, it's fine to convert them
 							// into number format during calculations
 							poolResults.forEach((pool, index) => {
@@ -326,11 +315,11 @@ export const CampaignSection = () => {
 							updateToGo(campaign.campaignId, totalToGo)
 							updatePercentage(campaign.campaignId, percentageProgress)
 							updateDonated(campaign.campaignId, totalDonated)
-						})
-					})									
-				.catch((error) => {
-					console.error('An error occurred while fetching pool data:', error)
-				})
+                        })
+                    })
+                    .catch((error) => {
+                        console.error("Error in multicall for campaign", campaign.campaignId, ":", error)
+                    })
 			})
 		}
 	}, [chain, campaigns, isConnected, activeAddress])

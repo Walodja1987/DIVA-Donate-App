@@ -1751,6 +1751,12 @@
             "name": "dataProvider",
             "type": "address"
           },
+          { "internalType": "uint48", "name": "indexFees", "type": "uint48" },
+          {
+            "internalType": "uint48",
+            "name": "indexSettlementPeriods",
+            "type": "uint48"
+          },
           {
             "internalType": "enum LibDIVAStorage.Status",
             "name": "statusFinalReferenceValue",
