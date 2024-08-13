@@ -207,6 +207,7 @@ export const CampaignSection = () => {
 			// typeof client != 'undefined'
 		) {
 			console.log("I AM HERE")
+
 			// Loop through each campaign in `campaign.json` and update the state variables
 			campaigns.forEach((campaign: Campaign) => {
 				let totalGoal: number | 'Unlimited'
@@ -227,6 +228,8 @@ export const CampaignSection = () => {
 						? DivaABIold
 						: DivaABI,
 				} as const
+
+				console.log("divaContract", divaContract)
 
 				// Create an array to store promises for each `getPoolParameters` call. Promises will be resolved
 				// in the following `Promise.all` block

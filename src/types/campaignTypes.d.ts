@@ -5,7 +5,7 @@ interface DonationRecipient {
   }
   
 export interface CampaignPool {
-  poolId: `0x${string}`;
+  poolId: `0x${string}`  | string; // Extend the type to include string to handle the first campaign that was released on a pre-final version with poolId = 8;
   beneficiarySide: string;
   positionToken: `0x${string}`;
 }
