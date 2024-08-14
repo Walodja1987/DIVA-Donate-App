@@ -9,10 +9,10 @@ import { Logo } from '../Logo'
 import { Sidebar } from './Sidebar'
 import { useDisclosure } from '@chakra-ui/react'
 
-import {useAccount, useDisconnect} from 'wagmi'; // @todo: Question why it's imported directly and not via privy-io/wagmi
+import { useAccount, useDisconnect } from 'wagmi'; // @todo: Question why it's imported directly and not via privy-io/wagmi
 
-import {usePrivy, useWallets} from '@privy-io/react-auth';
-import {useSetActiveWallet} from '@privy-io/wagmi';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { useSetActiveWallet } from '@privy-io/wagmi';
 
 export default function NavBar() {
 	const [navbar, setNavbar] = useState(false)

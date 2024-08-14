@@ -71,11 +71,10 @@ export const CampaignSection = () => {
 	// wagmi hooks
 	const { address: activeAddress, isConnected, chain } = useAccount() // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
 	const { switchChain } = useSwitchChain()
-	const client = useClient()
 
-	// if (!ready) {
-	// 	return null;
-	// }
+	if (!ready) {
+		return null;
+	}
 
 	// ----------------------------
 	// Event handlers
@@ -179,22 +178,13 @@ export const CampaignSection = () => {
 		}
 	}
 
-	// useEffect(() => {
-	// 	if (chain) {
-	// 		setChainId(chain.id)
-	// 	}
-	// }, [chain])
-
-	// const alchemyApiKey = process.env.NEXT_PUBLIC_ALCHEMY_URL;
-
-	// Update state variables for all campaigns in `campaigns.json`
-	useEffect(() => {
-		// if (typeof window === 'undefined') return;
-
-		// if (!client) return;
+	if (!ready) {
+		return null;
+	} else {
+		// Update state variables for all campaigns in `campaigns.json`
 		if (
 			isConnected &&
-			chain.id === chainConfig.chainId &&
+			chain?.id === chainConfig.chainId &&
 			activeAddress != null
 		) {
 			// Loop through each campaign in `campaign.json` and update the state variables
@@ -322,7 +312,7 @@ export const CampaignSection = () => {
                     })
 			})
 		}
-	}, [chain, campaigns, isConnected, activeAddress])
+	}
 
 	return (
 		<section className="pt-[5rem]">
@@ -408,7 +398,7 @@ export const CampaignSection = () => {
 										<div className="h-[30px]"></div>
 									)}
 
-									{isConnected ? (
+									{isConnected && chain ? (
 										<>
 											{chain.id === chainConfig.chainId ? (
 												// Conditional rendering based on whether campaign is completed or not. If completed,
