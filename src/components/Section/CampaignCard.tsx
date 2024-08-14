@@ -106,7 +106,7 @@ export const CampaignCard: React.FC<{
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [expiryTime, setExpiryTime] = useState<number>(0)
+	const [expiryTime, setExpiryTime] = useState<number>(Number(campaign.expiryTimestamp) * 1000)
 
 	// Privy hooks
 	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
@@ -165,38 +165,37 @@ export const CampaignCard: React.FC<{
 	const handleOpen = () => {
 		switchChain?.(chainConfig.chainId)
 	}
+	
+	const checkAllowance = async () => {
+		// Replace commas in the `amount` string with dots
+		const sanitized = debouncedAmount?.replace(/,/g, '.')
+		if (Number(sanitized) > 0 && collateralTokenContract != null) {
+			const allowance = await readContract(wagmiConfig, {
+				...collateralTokenContract,
+				functionName: 'allowance',
+				args: [activeAddress, campaign.divaContractAddress],
+			}) as BigNumber
 
-	// useEffect(() => {
-		setExpiryTime(Number(campaign.expiryTimestamp)*1000)
-	// }, [])
+			if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
+				setApproveEnabled(false)
+				setDonateEnabled(true)
+			} else {
+				setApproveEnabled(true)
+				setDonateEnabled(false)
+			}
+		} else {
+			setApproveEnabled(false)
+			setDonateEnabled(false)
+		}
+	}
+	// setExpiryTime(Number(campaign.expiryTimestamp) * 1000)
 
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	// useEffect(() => {
 	if (ready && chain) {
 		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
-		const checkAllowance = async () => {
-			// Replace commas in the `amount` string with dots
-			const sanitized = debouncedAmount?.replace(/,/g, '.')
-			if (Number(sanitized) > 0 && collateralTokenContract != null) {
-				const allowance = await readContract(wagmiConfig, {
-					...collateralTokenContract,
-					functionName: 'allowance',
-					args: [activeAddress, campaign.divaContractAddress],
-				}) as BigNumber
-
-				if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
-					setApproveEnabled(false)
-					setDonateEnabled(true)
-				} else {
-					setApproveEnabled(true)
-					setDonateEnabled(false)
-				}
-			} else {
-				setApproveEnabled(false)
-				setDonateEnabled(false)
-			}
-		}
-		if (chain && chain.id === chainConfig.chainId && activeAddress != null) {
+		
+		if (chain.id === chainConfig.chainId && activeAddress != null) {
 			checkAllowance()
 		}
 	// }, [
