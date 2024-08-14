@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { formatUnits } from 'ethers/lib/utils';
 import request, { gql } from 'graphql-request'
 import { chainConfig } from '../../constants'
@@ -34,23 +34,15 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
   const decimals = campaign.decimals; // Get the decimals for formatting amounts
 
   // Fetch liquidity data using react-query
-  const {
-      data,
-      isLoading,
-      isError
-  } = useQuery<any[]>(['liquidity', poolIds], async () => {
-      const response = request(
-          chainConfig.graphUrl,
-          queryDIVALiquidity(poolIds)
-      ).then((data: any) => {
-          if (data.liquidities != null) {
-              return data.liquidities;
-          } else {
-              console.log('No liquidity events found');
-              return [];
-          }
-      });
-      return response;
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['liquidity', poolIds],
+    queryFn: async () => {
+      const response = await request(
+        chainConfig.graphUrl,
+        queryDIVALiquidity(poolIds)
+      );
+      return response.liquidities || [];
+    }
   });
 
   // Display loading or error messages

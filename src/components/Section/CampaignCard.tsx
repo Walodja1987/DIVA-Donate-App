@@ -1,29 +1,44 @@
 'use client';
 
+// React
 import React, { useEffect, useState } from 'react'
+
+// Hooks
 import { useERC20Contract } from '../../utils/hooks/useContract'
-import { getTokenBalance } from '../../utils/general'
+import { useDisclosure } from '@chakra-ui/react'
+import { useDebounce } from '../../utils/hooks/useDebounce'
+
+// Components
+import { DonationCard } from './DonationCard'
+
+// Ethers
 import { ethers } from 'ethers'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import {
-	useAccount,
-	useSwitchChain,
-	useEstimateFeesPerGas,
-	useDisconnect
-} from 'wagmi'
-import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
+import { BigNumber } from 'ethers'
+
+// ABIs
+import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
+
+// Privy
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useSetActiveWallet } from '@privy-io/wagmi';
-import { Campaign, CampaignPool } from '../../types/campaignTypes'
-import { formatDate, isExpired, isUnlimited } from '../../utils/general'
+
+// constants
 import { chainConfig } from '../../constants'
 import { divaContractAddressOld } from '../../constants'
-import { getContract } from 'viem'
-import { useDisclosure } from '@chakra-ui/react'
-import { DonationCard } from './DonationCard'
-import { useDebounce } from '../../utils/hooks/useDebounce'
+
+// Utils
+import { formatDate, isExpired, isUnlimited } from '../../utils/general'
+import { getTokenBalance } from '../../utils/general'
+
+// Types
+import { Campaign, CampaignPool } from '../../types/campaignTypes'
 import { PoolExtended } from '../../types/poolTypes'
-import { createWalletClient, custom } from 'viem'
+
+// Wagmi
+import { wagmiConfig } from '@/components/wagmiConfig'
+import { useAccount, useSwitchChain, useEstimateFeesPerGas } from 'wagmi'
+import { readContract, writeContract } from '@wagmi/core'
 
 
 const DonationExpiredInfo = () => {
@@ -98,20 +113,45 @@ export const CampaignCard: React.FC<{
 	const {wallets, ready: walletsReady} = useWallets();
 	
 	// WAGMI hooks
-	const { address: activeAddress, isConnected, chain } = useAccount()
-	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
+	const { address: activeAddress, isConnected, chain } = useAccount()  // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
+	// const collateralTokenContract = useERC20Contract(campaign.collateralToken) // @todo needs update when using wagmi and privy
 
 	// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 	const decimals = campaign.decimals
 
-	const [chainId, setChainId] = React.useState<number>(0)
+	// Contracts
+	const collateralTokenContract = {
+		address: campaign.collateralToken,
+		abi: ERC20ABI,
+	} as const
+
+	const divaContract = {
+		address: campaign.divaContractAddress,
+		abi: campaign.divaContractAddress === divaContractAddressOld && chain.id === 137
+			? DivaABIold
+			: DivaABI,
+	} as const
+
 	const { switchChain } = useSwitchChain()
 	const debouncedAmount = useDebounce(amount, 300)
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
   
 	if (!ready) {
+		// Do nothing while the PrivyProvider initializes with updated user state
 	  return null;
+	}
+
+	if (ready && !authenticated) {
+		// Replace this code with however you'd like to handle an unauthenticated user
+		// As an example, you might redirect them to a login page
+		// router.push('/login');
+	}
+
+	if (ready && !authenticated) {
+		// Replace this code with however you'd like to handle an unauthenticated user
+		// As an example, you might redirect them to a login page
+		// router.push('/login');
 	}
 
 	// @todo needed in the presence of wagmi?
@@ -126,27 +166,23 @@ export const CampaignCard: React.FC<{
 		switchChain?.(chainConfig.chainId)
 	}
 
-	useEffect(() => {
+	// useEffect(() => {
 		setExpiryTime(Number(campaign.expiryTimestamp)*1000)
-	}, [])
-
-	useEffect(() => {
-		if (chain) {
-			setChainId(chain.id)
-		}
-	}, [chain])
+	// }, [])
 
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
-	useEffect(() => {
+	// useEffect(() => {
+	if (ready && chain) {
 		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
 		const checkAllowance = async () => {
 			// Replace commas in the `amount` string with dots
 			const sanitized = debouncedAmount?.replace(/,/g, '.')
 			if (Number(sanitized) > 0 && collateralTokenContract != null) {
-				const allowance = await collateralTokenContract.allowance(
-					activeAddress,
-					campaign.divaContractAddress
-				)
+				const allowance = await readContract(wagmiConfig, {
+					...collateralTokenContract,
+					functionName: 'allowance',
+					args: [activeAddress, campaign.divaContractAddress],
+				}) as BigNumber
 
 				if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
 					setApproveEnabled(false)
@@ -160,47 +196,37 @@ export const CampaignCard: React.FC<{
 				setDonateEnabled(false)
 			}
 		}
-		if (chain.id === chainConfig.chainId && activeAddress != null) {
+		if (chain && chain.id === chainConfig.chainId && activeAddress != null) {
 			checkAllowance()
 		}
-	}, [
-		activeAddress,
-		amount,
-		chain,
-		collateralTokenContract,
-		campaign.divaContractAddress,
-		decimals,
-	])
-
-	const walletClient = createWalletClient({
-		chain: chain,
-		transport: custom(window.ethereum!),
-	});
+	// }, [
+	// 	activeAddress,
+	// 	amount,
+	// 	chain,
+	// 	collateralTokenContract,
+	// 	campaign.divaContractAddress,
+	// 	decimals,
+	// ])
 
 	// Update state variables for all campaigns in `campaigns.json`
-	useEffect(() => {
+	// useEffect(() => {
 		if (
+			isConnected &&
 			chain.id === chainConfig.chainId &&
-			activeAddress != null &&
-			typeof window != 'undefined' &&
-			typeof window?.ethereum != 'undefined'
+			activeAddress != null
 		) {
 			let sumCapacityPools: number | 'Unlimited'
 			let sumToGoPools: number | 'Unlimited'
 			let sumRaisedPools: number
-			const divaContract = getContract({
-				address: campaign.divaContractAddress,
-				abi:
-					campaign.divaContractAddress === divaContractAddressOld &&
-					chain.id === 137
-						? DivaABIold
-						: DivaABI,
-				client: walletClient,
-			})
 
 			Promise.all(
+				// @todo consider using multicall here, similar to CampaignSection
 				campaign.pools.map((pool: CampaignPool) =>
-					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+					readContract(wagmiConfig, {
+						...divaContract,
+						functionName: 'getPoolParameters',
+						args: [pool.poolId],
+					}).then((res: any) => {
 						return {
 							poolParams: res,
 							beneficiarySide: pool.beneficiarySide,
@@ -210,17 +236,18 @@ export const CampaignCard: React.FC<{
 			).then((poolData: PoolExtended[]) => {
 				// Create an array to store promises for fetching beneficiary token balances
 				const balancePromises = poolData.map((pool) => {
-					const beneficiaryTokenContract = getContract({
+					const beneficiaryTokenContract = {
 						address:
 							pool.beneficiarySide === 'short'
 								? pool.poolParams.shortToken
 								: pool.poolParams.longToken,
 						abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-						client: walletClient,
-					})
-					return beneficiaryTokenContract.balanceOf(
-						campaign.donationRecipients[0].address
-					) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
+					} as const
+					return readContract(wagmiConfig, {
+						...beneficiaryTokenContract,
+						functionName: 'balanceOf',
+						args: [campaign.donationRecipients[0].address],
+					}) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
 				})
 
 				// Use Promise.all to fetch the beneficiary token balances for all pools
@@ -273,24 +300,21 @@ export const CampaignCard: React.FC<{
 				)
 			})
 		}
-	}, [chain, donateLoading, activeAddress, collateralTokenContract])
+	// }, [chain, donateLoading, activeAddress, collateralTokenContract])
 
-	useEffect(() => {
+	// useEffect(() => {
 		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
-	}, [goal, raised, donateLoading])
+	// }, [goal, raised, donateLoading])
 
 	const handleApprove = async () => {
 		setApproveLoading(true)
-		collateralTokenContract
-			.approve(
-				campaign.divaContractAddress,
-				parseUnits(amount, decimals).add(10),
-				{
-					// small buffer added to ensure sufficient allowance
-					gasPrice: data?.gasPrice,
-				}
-			)
+		writeContract(wagmiConfig, {
+			...collateralTokenContract,
+			functionName: 'approve',
+			args: [campaign.divaContractAddress, parseUnits(amount, decimals).add(10)], // small buffer added to ensure sufficient allowance
+			})
 			.then((tx: any) => {
+				// @todo not sure it returns a tx here and whether it has a wait() method in wagmi
 				tx.wait()
 					.then(() => {
 						setApproveEnabled(false)
@@ -309,30 +333,16 @@ export const CampaignCard: React.FC<{
 	}
 	const handleDonation = async () => {
 		if (amount != null) {
-			// const divaContract = getContract({
-			// 	address: campaign.divaContractAddress,
-			// 	abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
-			// 	signerOrProvider: wagmiProvider,
-			// })
-
-			// @todo somehow the above doesn't work... Check why that's the case
-			const provider = new ethers.providers.Web3Provider(
-				(window as any).ethereum
-			)
-			const divaContract = new ethers.Contract(
-				campaign.divaContractAddress,
-				campaign.divaContractAddress === divaContractAddressOld
-					? DivaABIold
-					: DivaABI,
-				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
-			) // @todo update to use viem
-
 			setDonateLoading(true)
 
 			// @todo test this
 			Promise.all(
 				campaign.pools.map((pool) =>
-					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+					readContract(wagmiConfig, {
+						...divaContract,
+						functionName: 'getPoolParameters',
+						args: [pool.poolId],
+					}).then((res: any) => {
 						return res.capacity
 					})
 				)
@@ -362,11 +372,13 @@ export const CampaignCard: React.FC<{
 					}
 				})
 
-				divaContract
-					.batchAddLiquidity(batchAddLiquidityArgs, {
-						gasPrice: data?.maxFeePerGas,
-					})
+				writeContract(wagmiConfig, {
+					...divaContract,
+					functionName: 'batchAddLiquidity',
+					args: [batchAddLiquidityArgs],
+				})
 					.then((tx: any) => {
+						// @todo not sure it returns a tx here and whether it has a wait() method in wagmi
 						tx.wait().then(() => {
 							setDonateLoading(false)
 							onOpen() // Open Success Modal
@@ -389,23 +401,24 @@ export const CampaignCard: React.FC<{
 		setAmount(e.target.value)
 	}
 
-	useEffect(() => {
-		const getBalance = async () => {
-			if (activeAddress) {
-				const result = await getTokenBalance(
-					collateralTokenContract,
-					activeAddress
-				)
-				const tokenAmount = Number(
-					formatUnits(result?.balance, result?.decimals)
-				)
-				setBalance(tokenAmount)
-			}
+	// useEffect(() => {
+	const getBalance = async () => {
+		if (activeAddress) {
+			const result = await readContract(wagmiConfig, {
+				...collateralTokenContract,
+				functionName: 'balanceOf',
+				args: [activeAddress],
+			}) as bigint
+			const tokenAmount = Number(
+				formatUnits(result, decimals)
+			)
+			setBalance(tokenAmount)
 		}
-		if (chain.id === chainConfig.chainId && activeAddress != null) {
-			getBalance()
-		}
-	}, [chain, activeAddress, donateLoading, collateralTokenContract])
+	}
+	if (chain && chain.id === chainConfig.chainId && activeAddress != null) {
+		getBalance()
+	}
+	// }, [chain, activeAddress, donateLoading, collateralTokenContract])
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
@@ -447,5 +460,5 @@ export const CampaignCard: React.FC<{
 				</div>
 			</div>
 		</div>
-	)
+	)}
 }

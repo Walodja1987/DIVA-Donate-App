@@ -9,10 +9,10 @@ import React, { useEffect, useState } from 'react'
 
 // Ethers
 import { BigNumber, ethers } from 'ethers'
+import { formatUnits } from 'ethers/lib/utils' // @todo use from viem and remove ethers/lib/utils
 
 // ABIs
-import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
-import { formatUnits } from 'ethers/lib/utils' // @todo use from viem
+import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
 
 // Chakra
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
@@ -20,8 +20,8 @@ import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 // Privy
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 
-// Asset
-import AddToMetamaskIcon from '../AddToMetamaskIcon'
+// Assets
+import AddToMetamaskIcon from '@/components/AddToMetamaskIcon'
 
 // constants
 import campaigns from '../../../config/campaigns.json'
@@ -83,7 +83,6 @@ export const CampaignSection = () => {
 		// router.push('/login');
 	}
 	
-
 	// ----------------------------
 	// Event handlers
 	// ----------------------------
@@ -209,8 +208,6 @@ export const CampaignSection = () => {
 						: DivaABI,
 				} as const
 
-				console.log("divaContract", divaContract)
-
 				// Create an array of contract calls for multicall
 				const contractCalls = campaign.pools.map((pool: CampaignPool) => ({
 					...divaContract,
@@ -227,7 +224,7 @@ export const CampaignSection = () => {
                         const poolResults = results.map((res, index) => ({
                             poolParams: res.result as Pool,
                             beneficiarySide: campaign.pools[index].beneficiarySide,
-                        }))
+                        })) as PoolExtended[]
 
                         console.log("Processed pool results for campaign", campaign.campaignId, ":", poolResults)
 
