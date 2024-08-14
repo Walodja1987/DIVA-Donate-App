@@ -73,8 +73,16 @@ export const CampaignSection = () => {
 	const { switchChain } = useSwitchChain()
 
 	if (!ready) {
+		// Do nothing while the PrivyProvider initializes with updated user state
 		return null;
 	}
+
+	if (ready && !authenticated) {
+		// Replace this code with however you'd like to handle an unauthenticated user
+		// As an example, you might redirect them to a login page
+		// router.push('/login');
+	}
+	
 
 	// ----------------------------
 	// Event handlers
@@ -178,9 +186,7 @@ export const CampaignSection = () => {
 		}
 	}
 
-	if (!ready) {
-		return null;
-	} else {
+	if (ready) {
 		// Update state variables for all campaigns in `campaigns.json`
 		if (
 			isConnected &&
@@ -312,7 +318,7 @@ export const CampaignSection = () => {
                     })
 			})
 		}
-	}
+	
 
 	return (
 		<section className="pt-[5rem]">
@@ -391,6 +397,7 @@ export const CampaignSection = () => {
 											<ProgressLabel className="text-2xl flex flex-start">
 												<Text fontSize="xs" marginLeft="0.5rem">
 													{percentage[campaign.campaignId]?.toFixed(1)}%
+													{/* {isExpired(expiryTimestamp) ? ' Donated' : ' Raised'} */}
 												</Text>
 											</ProgressLabel>
 										</Progress>
@@ -515,5 +522,5 @@ export const CampaignSection = () => {
 				</div>
 			</div>
 		</section>
-	)
+	)}
 }
