@@ -137,22 +137,23 @@ export const CampaignCard: React.FC<{
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
   
-	if (!ready) {
-		// Do nothing while the PrivyProvider initializes with updated user state
-	  return null;
-	}
+	// if (!ready) {
+	// 	// Do nothing while the PrivyProvider initializes with updated user state
+	// 	console.log('PrivyProvider not ready')
+	//   return null;
+	// }
 
-	if (ready && !authenticated) {
-		// Replace this code with however you'd like to handle an unauthenticated user
-		// As an example, you might redirect them to a login page
-		// router.push('/login');
-	}
+	// if (ready && !authenticated) {
+	// 	// Replace this code with however you'd like to handle an unauthenticated user
+	// 	// As an example, you might redirect them to a login page
+	// 	// router.push('/login');
+	// }
 
-	if (ready && !authenticated) {
-		// Replace this code with however you'd like to handle an unauthenticated user
-		// As an example, you might redirect them to a login page
-		// router.push('/login');
-	}
+	// if (ready && !authenticated) {
+	// 	// Replace this code with however you'd like to handle an unauthenticated user
+	// 	// As an example, you might redirect them to a login page
+	// 	// router.push('/login');
+	// }
 
 	// @todo needed in the presence of wagmi?
 	// Test the wallet connect feature if wallet is not connected
@@ -191,24 +192,25 @@ export const CampaignCard: React.FC<{
 	// setExpiryTime(Number(campaign.expiryTimestamp) * 1000)
 
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
-	// useEffect(() => {
-	if (ready && chain) {
+	useEffect(() => {
+	// if (chain) {
 		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
-		
-		if (chain.id === chainConfig.chainId && activeAddress != null) {
-			checkAllowance()
+		if (chain) {
+			if (chain.id === chainConfig.chainId && activeAddress != null) {
+				checkAllowance()
+			}
 		}
-	// }, [
-	// 	activeAddress,
-	// 	amount,
-	// 	chain,
-	// 	collateralTokenContract,
-	// 	campaign.divaContractAddress,
-	// 	decimals,
-	// ])
+	}, [
+		activeAddress,
+		// amount,
+		chain,
+		// collateralTokenContract,
+		// campaign.divaContractAddress,
+		// decimals,
+	])
 
 	// Update state variables for all campaigns in `campaigns.json`
-	// useEffect(() => {
+	useEffect(() => {
 		if (
 			isConnected &&
 			chain.id === chainConfig.chainId &&
@@ -295,15 +297,26 @@ export const CampaignCard: React.FC<{
 							sumToGoPools = sumCapacityPools - sumRaisedPools
 						}
 						setToGo(sumToGoPools)
+
+						setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100) // @todo test whehter it's working here. Moved it from a former useEffect block
 					}
 				)
 			})
 		}
-	// }, [chain, donateLoading, activeAddress, collateralTokenContract])
+	}, [
+		chain,
+		// donateLoading,
+		activeAddress,
+		// collateralTokenContract,
+	])
 
-	// useEffect(() => {
+	useEffect(() => {
 		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
-	// }, [goal, raised, donateLoading])
+	}, [
+		goal,
+		raised,
+		// donateLoading
+	])
 
 	const handleApprove = async () => {
 		setApproveLoading(true)
@@ -330,6 +343,7 @@ export const CampaignCard: React.FC<{
 				console.log(err)
 			})
 	}
+
 	const handleDonation = async () => {
 		if (amount != null) {
 			setDonateLoading(true)
@@ -353,23 +367,23 @@ export const CampaignCard: React.FC<{
 
 				// Prepare args for `batchAddLiquidity` smart contract call
 				const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
-					const collateralAmountIncr = parseUnits(amount.toString(), decimals)
-						.mul(capacities[index])
-						.div(sumCapacity)
+				const collateralAmountIncr = parseUnits(amount.toString(), decimals)
+					.mul(capacities[index])
+					.div(sumCapacity)
 
-					return {
-						poolId: pool.poolId,
-						collateralAmountIncr: collateralAmountIncr,
-						longRecipient:
-							pool.beneficiarySide === 'short'
-								? activeAddress
-								: campaign.donationRecipients[0].address,
-						shortRecipient:
-							pool.beneficiarySide === 'short'
-								? campaign.donationRecipients[0].address
-								: activeAddress,
-					}
-				})
+				return {
+					poolId: pool.poolId,
+					collateralAmountIncr: collateralAmountIncr,
+					longRecipient:
+						pool.beneficiarySide === 'short'
+							? activeAddress
+							: campaign.donationRecipients[0].address,
+					shortRecipient:
+						pool.beneficiarySide === 'short'
+							? campaign.donationRecipients[0].address
+							: activeAddress,
+				}
+			})
 
 				writeContract(wagmiConfig, {
 					...divaContract,
@@ -400,24 +414,31 @@ export const CampaignCard: React.FC<{
 		setAmount(e.target.value)
 	}
 
-	// useEffect(() => {
-	const getBalance = async () => {
-		if (activeAddress) {
-			const result = await readContract(wagmiConfig, {
-				...collateralTokenContract,
-				functionName: 'balanceOf',
-				args: [activeAddress],
-			}) as bigint
-			const tokenAmount = Number(
-				formatUnits(result, decimals)
-			)
-			setBalance(tokenAmount)
+	useEffect(() => {
+		const getBalance = async () => {
+			if (activeAddress) {
+				const result = await readContract(wagmiConfig, {
+					...collateralTokenContract,
+					functionName: 'balanceOf',
+					args: [activeAddress],
+				}) as bigint
+				const tokenAmount = Number(
+					formatUnits(result, decimals)
+				)
+				setBalance(tokenAmount)
+			}
 		}
-	}
-	if (chain && chain.id === chainConfig.chainId && activeAddress != null) {
-		getBalance()
-	}
-	// }, [chain, activeAddress, donateLoading, collateralTokenContract])
+
+	// @todo check this part as the useEffect block was dissolved and I think it's causing some issues
+		if (chain && chain.id === chainConfig.chainId && activeAddress != null) {
+			getBalance()
+		}
+	}, [
+		chain,
+		activeAddress,
+		// donateLoading,
+		// collateralTokenContract,
+	])
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
@@ -459,5 +480,5 @@ export const CampaignCard: React.FC<{
 				</div>
 			</div>
 		</div>
-	)}
+	)
 }

@@ -101,8 +101,8 @@
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
-    "path": "/campaign/pastoralists-3",
-    "title": "Pastoralists Mar-May 2024",
+    "path": "/campaign/test",
+    "title": "TEST",
     "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
     "donationRecipients" : [
       {
