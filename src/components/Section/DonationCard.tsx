@@ -74,7 +74,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 					{thankYouMessage}
 				</p>
 			</div>
-			{isConnected ? (
+			{isConnected && chainId ? (
 				<>
 					{chainId === chainConfig.chainId ? (
 						<>
@@ -216,10 +216,11 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 					)}
 				</>
 			) : (
-				<UnsupportedNetworkModal
-					openConnectModal={openConnectModal}
-					chainConfig={chainConfig}
-				/>
+				// <UnsupportedNetworkModal
+				// 	openConnectModal={openConnectModal}
+				// 	chainConfig={chainConfig}
+				// />
+				<ConnectWalletModal openConnectModal={openConnectModal} />
 			)}
 		</div>
 	)
@@ -296,7 +297,7 @@ const CustomButton: React.FC<any> = ({
 
 const UnsupportedNetworkModal: React.FC<any> = ({
 	openConnectModal,
-	chainConfig,
+	chainConfig, // @todo maybe not needed as chain name is probably included in useAccount's chain statevariable
 }) => (
 	<div className="mb-10 flex flex-col items-center justify-center gap-6">
 		<div>
@@ -310,5 +311,29 @@ const UnsupportedNetworkModal: React.FC<any> = ({
 			onClick={openConnectModal}>
 			Switch to {chainConfig.name}
 		</Button>
+	</div>
+)
+
+interface ConnectWalletModalProps {
+	openConnectModal: (() => void) | undefined
+  }
+  
+const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ openConnectModal }) => (
+	<div className="mb-10 flex flex-col items-center justify-center gap-6">
+	  <div>
+		<img src="/Images/error-icon.svg" alt="wallet" />
+	  </div>
+	  <div className="text-xl font-lora text-[#042940]">Connect Your Wallet</div>
+	  <p className="text-center text-[#042940]">
+		Please connect your wallet to interact with this campaign.
+	  </p>
+	  <Button
+		className="bg-blue-600 text-white rounded-xl"
+		bg="blue.600"
+		_hover={{ bg: 'blue.700' }}
+		onClick={openConnectModal}
+	  >
+		Connect Wallet
+	  </Button>
 	</div>
 )

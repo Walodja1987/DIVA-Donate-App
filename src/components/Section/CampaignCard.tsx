@@ -113,7 +113,7 @@ export const CampaignCard: React.FC<{
 	const {wallets, ready: walletsReady} = useWallets();
 	
 	// WAGMI hooks
-	const { address: activeAddress, isConnected, chain } = useAccount()  // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
+	const { address: activeAddress, isConnected, chain, chainId } = useAccount()  // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
 	// const collateralTokenContract = useERC20Contract(campaign.collateralToken) // @todo needs update when using wagmi and privy
 
 	// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
@@ -193,8 +193,6 @@ export const CampaignCard: React.FC<{
 
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	useEffect(() => {
-	// if (chain) {
-		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
 		if (chain) {
 			if (chain.id === chainConfig.chainId && activeAddress != null) {
 				checkAllowance()
@@ -440,6 +438,9 @@ export const CampaignCard: React.FC<{
 		// collateralTokenContract,
 	])
 
+	console.log("isConnected", isConnected)
+	console.log("activeAddress", activeAddress)
+
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
 			<div className="px-4 xl:px-0 gap-6 lg:py-16  flex flex-col lg:flex-row max-w-screen-2xl">
@@ -455,7 +456,7 @@ export const CampaignCard: React.FC<{
 							<DonationCard
 								thankYouMessage={thankYouMessage}
 								isConnected={isConnected}
-								chainId={chain.id}
+								chainId={chainId}
 								isOpen={isOpen}
 								onClose={onClose}
 								percentage={percentage}
