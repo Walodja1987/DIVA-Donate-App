@@ -175,9 +175,8 @@ export const CampaignCard: React.FC<{
 				...collateralTokenContract,
 				functionName: 'allowance',
 				args: [activeAddress, campaign.divaContractAddress],
-			}) as BigNumber
-
-			if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
+			}) as bigint
+			if (allowance >= BigInt(parseUnits(sanitized!.toString(), decimals).toString())) {
 				setApproveEnabled(false)
 				setDonateEnabled(true)
 			} else {
@@ -189,7 +188,6 @@ export const CampaignCard: React.FC<{
 			setDonateEnabled(false)
 		}
 	}
-	// setExpiryTime(Number(campaign.expiryTimestamp) * 1000)
 
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	useEffect(() => {
@@ -200,11 +198,8 @@ export const CampaignCard: React.FC<{
 		}
 	}, [
 		activeAddress,
-		// amount,
-		chain,
-		// collateralTokenContract,
-		// campaign.divaContractAddress,
-		// decimals,
+		debouncedAmount,
+		chain
 	])
 
 	// Update state variables for all campaigns in `campaigns.json`
@@ -437,9 +432,6 @@ export const CampaignCard: React.FC<{
 		// donateLoading,
 		// collateralTokenContract,
 	])
-
-	console.log("isConnected", isConnected)
-	console.log("activeAddress", activeAddress)
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
