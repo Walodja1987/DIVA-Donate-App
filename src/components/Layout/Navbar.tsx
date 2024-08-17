@@ -14,6 +14,9 @@ import { useAccount, useDisconnect } from 'wagmi'; // @todo: Question why it's i
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useSetActiveWallet } from '@privy-io/wagmi';
 
+import { getShortenedAddress } from '@/utils/general'
+
+
 export default function NavBar() {
 	const [navbar, setNavbar] = useState(false)
 	const { pathname } = useRouter()
@@ -24,7 +27,7 @@ export default function NavBar() {
 	const {wallets, ready: walletsReady} = useWallets();
   
 	// WAGMI hooks
-	const {address, isConnected, isConnecting, isDisconnected} = useAccount();
+	const {address: activeAddress, isConnected, isConnecting, isDisconnected} = useAccount();
 	const {disconnect} = useDisconnect();
 	const {setActiveWallet} = useSetActiveWallet();
   
@@ -54,7 +57,13 @@ export default function NavBar() {
 						<NavbarLinks activePath={pathname} />
 					</div>
 
-					<Button onClick_={connectWallet} cta="Connect only" />
+					{isConnected && activeAddress && (
+						// Note: Injected wallets can't be programmatically disconnected.
+						// Privy doesn't support wagmi's useDisconnect hook.
+						// Use connectWallet to prompt for a different wallet instead.
+						// Read more about it here: https://docs.privy.io/guide/react/wallets/usage/wagmi#using-wagmi-hooks
+						<Button onClick_={connectWallet} cta={getShortenedAddress(activeAddress)} />
+               		)}
 				</div>
 			</nav>
 		</>
