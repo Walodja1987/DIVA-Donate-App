@@ -106,8 +106,15 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
                   </a>  
                 </td>
                 {/* <td>{new Date(parseInt(donor.timestamp) * 1000).toLocaleDateString()}</td> */}
-                <td className="text-left font-bold text-lg w-36 rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(formatUnits(donor.collateralAmount, decimals)))}</td>
-              </tr>
+                <td className="text-left font-bold text-lg w-36 rounded-r-lg text-[#005C53]">
+                  {(() => {
+                    const amount = Number(formatUnits(donor.collateralAmount, decimals));
+                    return amount < 1 
+                      ? '<$1' 
+                      : '$' + new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+                  })()}
+                </td>              
+                </tr>
             ))}
             <tr className="h-2"></tr> {/* Empty row for spacing as margin attribute doesn't seem to work */}
           </tbody>
@@ -115,7 +122,14 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
             <tr className="text-xl bg-[#DEEFE7] h-14">
               <td className="rounded-l-lg"></td>
               <td colSpan={1} className="text-left font-bold text-[#005C53]">Total:</td>
-              <td className="font-bold text-left rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(totalAmount))}</td>
+              <td className="font-bold text-left rounded-r-lg text-[#005C53]">
+                {(() => {
+                  const amount = Number(totalAmount);
+                  return amount < 1 
+                    ? '<$1' 
+                    : '$' + new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+                })()}
+              </td>
             </tr>
           </tfoot>
         </table>
