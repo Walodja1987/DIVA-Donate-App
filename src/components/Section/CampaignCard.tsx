@@ -304,7 +304,7 @@ export const CampaignCard: React.FC<{
 		}
 	}, [
 		chain,
-		// donateLoading,
+		donateLoading,
 		activeAddress,
 		// collateralTokenContract,
 	])
@@ -314,7 +314,7 @@ export const CampaignCard: React.FC<{
 	}, [
 		goal,
 		raised,
-		// donateLoading
+		donateLoading
 	])
 
 	const handleApprove = async () => {

@@ -185,6 +185,7 @@ export const CampaignSection = () => {
 		}
 	}
 
+	// @todo Does this if block make sense here? when is it executed? Shouldn't we use a useEffect here?
 	if (ready) {
 		// Update state variables for all campaigns in `campaigns.json`
 		if (

@@ -42,7 +42,7 @@ export default function NavBar() {
 				<div className="mx-auto lg:max-w-screen-2xl flex items-center justify-between">
 					<div className="flex gap-2 max-w-fit items-center outline-none py-3 xl:py-[23px] xl:block">
 						<button
-							className="rounded-md text-gray-700 outline-none xl:hidden md:p-3 hover:bg-slate-200 w-6 md:w-14"
+							className="rounded-md text-[#042940] outline-none xl:hidden md:p-3 hover:bg-slate-200 w-6 md:w-14"
 							onClick={onOpen}>
 							{<RxHamburgerMenu size={'auto'} />}
 						</button>

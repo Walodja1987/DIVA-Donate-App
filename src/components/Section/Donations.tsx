@@ -4,7 +4,6 @@ import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAccount, useSwitchChain } from 'wagmi'
 import { useERC20Contract } from '../../utils/hooks/useContract'
 import { formatUnits, parseUnits } from 'ethers/lib/utils'
 import { getTokenBalance } from '../../utils/general'
@@ -16,7 +15,6 @@ import campaigns from '../../../config/campaigns.json'
 import { divaContractAddressOld, divaContractAddress } from '../../constants'
 import { formatDate, isExpired } from '../../utils/general'
 import { chainConfig } from '../../constants'
-import { getContract } from 'viem'
 import { CampaignPool, Campaign } from '../../types/campaignTypes'
 import { Pool, Status } from '../../types/poolTypes'
 import {
@@ -36,6 +34,18 @@ import {
 	useDisclosure,
 } from '@chakra-ui/react'
 import { createWalletClient, custom } from 'viem'
+
+// Wagmi
+import { wagmiConfig } from '@/components/wagmiConfig'
+import { useAccount, useSwitchChain, useEstimateFeesPerGas } from 'wagmi'
+import { 
+	simulateContract,
+	readContract,
+	writeContract,
+	waitForTransactionReceipt,
+	type WriteContractReturnType,
+	type ReadContractReturnType
+} from '@wagmi/core'
 
 
 export default function Donations() {
@@ -61,16 +71,16 @@ export default function Donations() {
 	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
 	const {wallets, ready: walletsReady} = useWallets();
 
-	const { address: activeAddress, isConnected, chain } = useAccount()
+	const { address: activeAddress, isConnected, chain, chainId } = useAccount()
 	const { switchChain } = useSwitchChain()
 
-	const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
+	// const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
-	if (!ready) {
-		return null;
-	}
+	// if (!ready) {
+	// 	return null;
+	// }
 
 	// ----------------------------
 	// Event handlers
@@ -202,31 +212,26 @@ export default function Donations() {
 		return res
 	}
 
-	const walletClient = createWalletClient({
-		chain: chain,
-		transport: custom(window.ethereum!),
-	});
+	// useEffect(() => {
+	// 	if (chain) {
+	// 		setChainId(chain.id)
+	// 	}
 
-	useEffect(() => {
-		if (chain) {
-			setChainId(chain.id)
-		}
+	// 	// Keep for later to better understanding the output of multicall
+	// 	// const test = async () => {
+	// 	// 	// Some multicall testing
+	// 	// 	const provider = new ethers.providers.Web3Provider(
+	// 	// 		(window as any).ethereum
+	// 	// 	)
 
-		// Keep for later to better understanding the output of multicall
-		// const test = async () => {
-		// 	// Some multicall testing
-		// 	const provider = new ethers.providers.Web3Provider(
-		// 		(window as any).ethereum
-		// 	)
+	// 	// 	const res = await fetchPoolParams(chainId, provider, [campaigns[1]])
+	// 	// 	const poolParams = processMulticallResult(res)
+	// 	// 	console.log('poolParams', poolParams)
 
-		// 	const res = await fetchPoolParams(chainId, provider, [campaigns[1]])
-		// 	const poolParams = processMulticallResult(res)
-		// 	console.log('poolParams', poolParams)
+	// 	// }
 
-		// }
-
-		// test()
-	}, [chain])
+	// 	// test()
+	// }, [chain])
 
 	const updateCampaignBalance = (campaignId: string, tokenAmount: number) => {
 		setCampaignBalance((prev) => ({
@@ -274,108 +279,114 @@ export default function Donations() {
 	}
 
 	const handleRedeemPositionToken = async (campaign: Campaign) => {
-		const provider = new ethers.providers.Web3Provider((window as any).ethereum)
-
-		const divaContract = new ethers.Contract(
-			campaign.divaContractAddress,
-			campaign.divaContractAddress === divaContractAddressOld
+		const divaContract = {
+			address: campaign.divaContractAddress,
+			abi: campaign.divaContractAddress === divaContractAddressOld && chainId === 137
 				? DivaABIold
 				: DivaABI,
-			provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
-		)
-
+		} as const
+	
 		updateRedeemLoading(campaign.campaignId, true)
-
-		// @todo Potentially easier to hard-code the donor position tokens in campaign.json as well rather
-		// than querying them
-		Promise.all(
-			campaign.pools.map((pool) => {
-				// @todo Replace with multicall at a later stage
-				return divaContract.getPoolParameters(pool.poolId).then((res: Pool) => {
-					return res
-				})
-			})
-		).then((poolData: Pool[]) => {
-			Promise.all(
-				poolData.map((pool: Pool) => {
-					// Assumes that beneficiarySide is the same for all pools linked to a campaign
+	
+		try {
+			// Get pool parameters for each pool in the campaign.
+			const poolData: ReadContractReturnType[] = await Promise.all(
+				campaign.pools.map((pool: CampaignPool) =>
+					readContract(wagmiConfig, {
+						...divaContract,
+						functionName: 'getPoolParameters',
+						args: [pool.poolId],
+					})
+				)
+			)
+			console.log("poolData", poolData)
+	
+			// Get user's donor position token balances.
+			const data = await Promise.all(
+				poolData.map(async (pool: Pool) => {
 					const donorPositionToken =
 						campaign.pools[0].beneficiarySide === 'short'
 							? pool.longToken
 							: pool.shortToken
-
-					const positionTokenContract = getContract({
+	
+					const balance = await readContract(wagmiConfig, {
 						address: donorPositionToken,
 						abi: ERC20ABI,
-						client: walletClient,
+						functionName: 'balanceOf',
+						args: [activeAddress],
 					})
-
-					return getTokenBalance(
-						positionTokenContract,
-						activeAddress as `0x${string}`
-					).then((res) => {
-						return {
-							poolData: pool,
-							donorPositionToken: donorPositionToken,
-							balance: res?.balance, // User's position token balance in the pool. Unformatted balance for easier handling when multiplying with payout amount
-						}
-					})
-				})
-			).then((data) => {
-				// Prepare args for `batchRedeemPositionToken` smart contract call
-				const batchRedeemPositionTokenArgs = data.map((pool) => {
+	
 					return {
-						positionToken: pool.donorPositionToken,
-						amount: pool.balance,
+						poolData: pool,
+						donorPositionToken: donorPositionToken,
+						balance: balance,
 					}
 				})
-
-				divaContract
-					.batchRedeemPositionToken(batchRedeemPositionTokenArgs)
-					.then((tx: any) => {
-						tx.wait()
-							.then(() => {
-								updateRedeemLoading(campaign.campaignId, false)
-								onOpen() // Open Success Modal
-							})
-							.catch((err: any) => {
-								updateRedeemLoading(campaign.campaignId, false)
-								console.log(err)
-							})
-					})
-					.catch((err: any) => {
-						updateRedeemLoading(campaign.campaignId, false)
-						console.log(err)
-					})
+			)
+	
+			// Prepare args for `batchRedeemPositionToken` smart contract call.
+			const batchRedeemPositionTokenArgs = data.map((pool) => ({
+				positionToken: pool.donorPositionToken,
+				amount: pool.balance,
+			}))
+	
+			// First, simulate the contract call. That's the recommended practice in the viem docs:
+			// https://viem.sh/docs/contract/writeContract.html#usage
+			const { request } = await simulateContract(wagmiConfig, {
+				...divaContract,
+				functionName: 'batchRedeemPositionToken',
+				args: [batchRedeemPositionTokenArgs],
+				account: activeAddress,
 			})
-		})
+	
+			// If simulation is successful, proceed with the actual transaction
+			const hash = await writeContract(wagmiConfig, request)
+	
+			// Wait for the transaction to be mined
+			await waitForTransactionReceipt(wagmiConfig, { hash })
+	
+			updateRedeemLoading(campaign.campaignId, false)
+			onOpen() // Open Success Modal
+		} catch (err) {
+			console.error('Error in batchRedeemPositionToken transaction:', err)
+			updateRedeemLoading(campaign.campaignId, false)
+		}
 	}
 
 	// @todo Duplicated in CampaignSection component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {
 		for (const pool of campaign.pools) {
-			const divaContract = getContract({
+			const divaContract = {
 				address: campaign.divaContractAddress,
-				abi:
-					campaign.divaContractAddress === divaContractAddressOld
-						? DivaABIold
-						: DivaABI,
-				client: walletClient,
-			})
+				abi: campaign.divaContractAddress === divaContractAddressOld
+					? DivaABIold
+					: DivaABI
+			} as const
 
-			const poolParams = await divaContract.getPoolParameters(pool.poolId)
-			const donorPositionToken =
+			const poolParams = await readContract(wagmiConfig, {
+				...divaContract,
+				functionName: 'getPoolParameters',
+				args: [pool.poolId]
+			}) as Pool
+
+			const donorPositionToken: `0x${string}` =
 				pool.beneficiarySide === 'short'
 					? poolParams.longToken
 					: poolParams.shortToken
 
-			const token = getContract({
+			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				client: walletClient,
+			} as const
+
+			const decimals = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'decimals',
 			})
-			const decimals = await token.decimals()
-			const symbol = await token.symbol()
+			const symbol = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'symbol',
+			})
 
 			try {
 				await (window as any).ethereum.request({
