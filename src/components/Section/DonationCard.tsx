@@ -246,13 +246,14 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 					sx={{
 						backgroundColor: '#005C53',
 						_hover: {
-							backgroundColor: '#005C53',
+							backgroundColor: '#042940',
 						},
 					}}>
 					<Link
 						href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy"
 						target="_blank"
-						rel="noopener noreferrer">
+						rel="noopener noreferrer"
+						className="text-white">
 						Take Survey
 					</Link>
 				</Button>

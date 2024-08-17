@@ -38,7 +38,13 @@ import { PoolExtended } from '../../types/poolTypes'
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
 import { useAccount, useSwitchChain, useEstimateFeesPerGas } from 'wagmi'
-import { readContract, writeContract } from '@wagmi/core'
+import { 
+	simulateContract,
+	readContract,
+	writeContract,
+	waitForTransactionReceipt,
+	type WriteContractReturnType
+} from '@wagmi/core'
 
 
 const DonationExpiredInfo = () => {
@@ -313,88 +319,93 @@ export const CampaignCard: React.FC<{
 
 	const handleApprove = async () => {
 		setApproveLoading(true)
-		writeContract(wagmiConfig, {
-			...collateralTokenContract,
-			functionName: 'approve',
-			args: [campaign.divaContractAddress, parseUnits(amount, decimals).add(10)], // small buffer added to ensure sufficient allowance
+		try {
+			// First, simulate the contract call. That's the recommended practice in the viem docs:
+			// https://viem.sh/docs/contract/writeContract.html#usage
+			const { request } = await simulateContract(wagmiConfig, {
+				...collateralTokenContract,
+				functionName: 'approve',
+				args: [campaign.divaContractAddress, parseUnits(amount, decimals).add(10)],
+				account: activeAddress,
 			})
-			.then((tx: any) => {
-				// @todo not sure it returns a tx here and whether it has a wait() method in wagmi
-				tx.wait()
-					.then(() => {
-						setApproveEnabled(false)
-						setDonateEnabled(true)
-						setApproveLoading(false)
-					})
-					.catch((err: any) => {
-						setApproveLoading(false)
-						console.log(err)
-					})
-			})
-			.catch((err: any) => {
-				setApproveLoading(false)
-				console.log(err)
-			})
+	
+			// If simulation is successful, proceed with the actual transaction
+			const hash = await writeContract(wagmiConfig, request)
+	
+			// Wait for the transaction to be mined
+			await waitForTransactionReceipt(wagmiConfig, { hash })
+	
+			setApproveEnabled(false)
+			setDonateEnabled(true)
+			setApproveLoading(false)
+		} catch (err) {
+			console.error('Error in approve transaction:', err)
+			setApproveLoading(false)
+		}
 	}
 
 	const handleDonation = async () => {
 		if (amount != null) {
 			setDonateLoading(true)
-
-			// @todo test this
-			Promise.all(
-				campaign.pools.map((pool) =>
-					readContract(wagmiConfig, {
-						...divaContract,
-						functionName: 'getPoolParameters',
-						args: [pool.poolId],
-					}).then((res: any) => {
-						return res.capacity
-					})
+	
+			try {
+				// Fetch capacities
+				const capacities = await Promise.all(
+					campaign.pools.map((pool) =>
+						readContract(wagmiConfig, {
+							...divaContract,
+							functionName: 'getPoolParameters',
+							args: [pool.poolId],
+						}).then((res: any) => res.capacity)
+					)
 				)
-			).then((capacities) => {
+	
 				const sumCapacity = capacities.reduce(
 					(acc, capacity) => acc.add(capacity),
 					ethers.BigNumber.from(0)
 				)
-
+	
 				// Prepare args for `batchAddLiquidity` smart contract call
 				const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
-				const collateralAmountIncr = parseUnits(amount.toString(), decimals)
-					.mul(capacities[index])
-					.div(sumCapacity)
-
-				return {
-					poolId: pool.poolId,
-					collateralAmountIncr: collateralAmountIncr,
-					longRecipient:
-						pool.beneficiarySide === 'short'
-							? activeAddress
-							: campaign.donationRecipients[0].address,
-					shortRecipient:
-						pool.beneficiarySide === 'short'
-							? campaign.donationRecipients[0].address
-							: activeAddress,
-				}
-			})
-
-				writeContract(wagmiConfig, {
+					const collateralAmountIncr = parseUnits(amount.toString(), decimals)
+						.mul(capacities[index])
+						.div(sumCapacity)
+	
+					return {
+						poolId: pool.poolId,
+						collateralAmountIncr: collateralAmountIncr,
+						longRecipient:
+							pool.beneficiarySide === 'short'
+								? activeAddress
+								: campaign.donationRecipients[0].address,
+						shortRecipient:
+							pool.beneficiarySide === 'short'
+								? campaign.donationRecipients[0].address
+								: activeAddress,
+					}
+				})
+	
+				// First, simulate the contract call. That's the recommended practice in the viem docs:
+			// https://viem.sh/docs/contract/writeContract.html#usage
+				const { request } = await simulateContract(wagmiConfig, {
 					...divaContract,
 					functionName: 'batchAddLiquidity',
 					args: [batchAddLiquidityArgs],
+					account: activeAddress,
 				})
-					.then((tx: any) => {
-						// @todo not sure it returns a tx here and whether it has a wait() method in wagmi
-						tx.wait().then(() => {
-							setDonateLoading(false)
-							onOpen() // Open Success Modal
-						})
-					})
-					.catch((err: any) => {
-						setDonateLoading(false)
-						console.log(err)
-					})
-			})
+	
+				// If simulation is successful, proceed with the actual transaction
+				const hash = await writeContract(wagmiConfig, request)
+	
+				// Wait for the transaction to be mined
+				await waitForTransactionReceipt(wagmiConfig, { hash })
+	
+				setDonateLoading(false)
+				onOpen() // Open Success Modal
+			} catch (err) {
+				console.error('Error in batchAddLiquidity transaction:', err)
+				setDonateLoading(false)
+			}
 		}
 	}
 
