@@ -192,12 +192,12 @@ export const CampaignSection = () => {
 	// @todo Does this if block make sense here? when is it executed? Shouldn't we use a useEffect here?
 	useEffect(() => {
 		// Update state variables for all campaigns in `campaigns.json`
-		if (
-			ready && 
-			isConnected &&
-			chainId === chainConfig.chainId &&
-			activeAddress != null
-		) {
+		// if (
+		// 	ready && 
+		// 	isConnected &&
+		// 	chainId === chainConfig.chainId &&
+		// 	activeAddress != null
+		// ) {
 			// Loop through each campaign in `campaign.json` and update the state variables
 			campaigns.forEach((campaign: Campaign) => {
 				console.log("Processing campaign", campaign.campaignId)
@@ -209,7 +209,7 @@ export const CampaignSection = () => {
 
 				const divaContract = {
 					address: campaign.divaContractAddress,
-					abi: campaign.divaContractAddress === divaContractAddressOld && chain.id === 137
+					abi: campaign.divaContractAddress === divaContractAddressOld
 						? DivaABIold
 						: DivaABI,
 				} as const
@@ -320,8 +320,9 @@ export const CampaignSection = () => {
                         console.error("Error in multicall for campaign", campaign.campaignId, ":", error)
                     })
 			})
-		}
-	}, [isConnected, chainId, activeAddress, ready])
+		// }
+	}, [])
+	// isConnected, chainId, activeAddress, ready
 
 	return (
 		<section className="pt-[5rem]">
@@ -408,9 +409,9 @@ export const CampaignSection = () => {
 										<div className="h-[30px]"></div>
 									)}
 
-									{isConnected && chain ? (
+									{1==1 ? (
 										<>
-											{chain.id === chainConfig.chainId ? (
+											{1==1 ? (
 												// Conditional rendering based on whether campaign is completed or not. If completed,
 												// only "Goal" and "Raised" will be shown. If on-going, then "To go" will also show.
 												<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
