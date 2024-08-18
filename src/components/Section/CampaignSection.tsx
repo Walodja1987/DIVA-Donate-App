@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 // React
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 
 // Query
 import { useQueries } from '@tanstack/react-query';
@@ -208,22 +208,24 @@ export const CampaignSection = () => {
 	// 	"137": ["0x12...9ab", "0x45...567"],
 	// 	"42161": ["0xde...234"]
 	// }
-  const poolIdsByChain = campaigns.reduce((acc, campaign) => {
-    const chainId = Number(campaign.chainId)
-	// Check if there's already an entry for this chain ID in our accumulator.
-    if (!acc[chainId]) {
-      acc[chainId] = []
-    }
-	// Add all pool IDs from this campaign to the array for this chain ID:
-    acc[chainId].push(...campaign.pools.map(pool => pool.poolId as `0x${string}`))
-    return acc
-  }, {} as { [chainId: number]: `0x${string}`[] })
+  const poolIdsByChain = useMemo(() => {
+	return campaigns.reduce((acc, campaign) => {
+	  const chainId = Number(campaign.chainId)
+	  // Check if there's already an entry for this chain ID in our accumulator.
+	  if (!acc[chainId]) {
+		acc[chainId] = []
+	  }
+	  // Add all pool IDs from this campaign to the array for this chain ID.
+	  acc[chainId].push(...campaign.pools.map(pool => pool.poolId as `0x${string}`))
+	  return acc
+	}, {} as { [chainId: number]: `0x${string}`[] })
+  }, [campaigns])
 
   // Create a query for each chain. Using useQueries hook to perform multiple queries in parallel
   // in case there are multiple chains.
   // The result, chainQueries, is an array of query results, one for each chain.
   // Each query result object contains properties like data, isLoading, isError, etc., which we can use to handle the state of each query.
-  const chainQueries = useQueries({
+  const chainQueries = useMemo(() => useQueries({
 	// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
 	// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
 	// Example:
@@ -243,121 +245,121 @@ export const CampaignSection = () => {
         return response.pools || []
       }
     }))
-  })
+  }), [poolIdsByChain])
 
   // Check if any of the queries are still loading or if there was an error.
   const isLoading = chainQueries.some(query => query.isLoading)
   const isError = chainQueries.some(query => query.isError)
 
-  console.log("isLoading", isLoading)
-  console.log("isError", isError)
+//   console.log("isLoading", isLoading)
+//   console.log("isError", isError)
 
   useEffect(() => {
-	// Early return if data is still loading or there's an error
-	if (isLoading || isError) return;
-  
+	
 	const getCampaignStats = () => {
-	  // Combine liquidity event data from all chain queries into a single array
-	  const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
-	  // Initialize an object to store the new stats for each campaign
-	  const newStats = {} as typeof campaignStats;
-  
-	  // Iterate through each campaign
-	  campaigns.forEach((campaign: Campaign) => {
+	// Combine liquidity event data from all chain queries into a single array
+	const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
+	// Initialize an object to store the new stats for each campaign
+	const newStats = {} as typeof campaignStats;
+
+	// Iterate through each campaign
+	campaigns.forEach((campaign: Campaign) => {
 		// Get all pool IDs associated with this campaign
 		const campaignPoolIds = campaign.pools.map(pool => pool.poolId);
-  
+
 		// Filter liquidity event data to only include events for this campaign's pools
 		const campaignLiquidityEvents = allLiquidityEventData.filter(data => campaignPoolIds.includes(data.pool.id));
-  
+
 		// Initialize counters for campaign statistics
 		let totalRaised = 0;
 		let totalDonated = 0;
 		let totalGoal: number | 'Unlimited' = 0;
 		let totalToGo: number | 'Unlimited' = 0;
-  
+
 		// Process each liquidity event for this campaign
 		campaignLiquidityEvents.forEach((data) => {
-		  // Only consider 'Added' or 'Issued' events
-		  if (data.eventType === 'Added' || data.eventType === 'Issued') {
+		// Only consider 'Added' or 'Issued' events
+		if (data.eventType === 'Added' || data.eventType === 'Issued') {
 			const decimals = campaign.decimals;
-  
+
 			// Convert collateral amount to a number, considering decimals
 			const amount = Number(formatUnits(BigNumber.from(data.collateralAmount), decimals));
-  
+
 			// Check if the poolId in the liquidity event data matches one of the poolIds associated with the campaign
 			const pool = campaign.pools.find(p => p.poolId === data.pool.id);
 			
 			if (pool) {
-			  // Check if the shortTokenHolder or the longTokenHolder inside the liquidity event under consideration
-			  // matches the donationtRecipient for the campaing.
-			  // Note that for now, we only assume that there is only one donation recipient. Update this part if
-			  // it ever changes.
-			  const isDonationRecipient = pool.beneficiarySide === 'short'
+			// Check if the shortTokenHolder or the longTokenHolder inside the liquidity event under consideration
+			// matches the donationtRecipient for the campaing.
+			// Note that for now, we only assume that there is only one donation recipient. Update this part if
+			// it ever changes.
+			const isDonationRecipient = pool.beneficiarySide === 'short'
 				? campaign.donationRecipients[0].address.toLowerCase() === data.shortTokenHolder.toLowerCase()
 				: campaign.donationRecipients[0].address.toLowerCase() === data.longTokenHolder.toLowerCase();
-  
-			  if (isDonationRecipient) {
+
+			if (isDonationRecipient) {
 				// Only add to totalRaised if the short or long token matches the donation recipient
 				totalRaised += amount;
-  
+
 				// Calculate payout based on the beneficiary side.
 				// Will be always zero as long as the pool is not confirmed (statusFinalReferenceValue !== 3).
 				const payout = pool.beneficiarySide === 'short'
-				  ? Number(formatUnits(BigNumber.from(data.pool.payoutShort), decimals))
-				  : Number(formatUnits(BigNumber.from(data.pool.payoutLong), decimals));
+				? Number(formatUnits(BigNumber.from(data.pool.payoutShort), decimals))
+				: Number(formatUnits(BigNumber.from(data.pool.payoutLong), decimals));
 				
 				// Add to total donated amount, considering the payout
 				totalDonated += amount * payout;
-			  }
 			}
-  
+			}
+
 			// Update goal and to-go amounts, handling 'Unlimited' case
 			if (isUnlimited(data.pool.capacity) || totalGoal === 'Unlimited') {
-			  totalGoal = 'Unlimited';
-			  totalToGo = 'Unlimited';
+			totalGoal = 'Unlimited';
+			totalToGo = 'Unlimited';
 			} else {
-			  const poolCapacity = Number(formatUnits(BigNumber.from(data.pool.capacity), decimals));
-			  if (typeof totalGoal === 'number') {
+			const poolCapacity = Number(formatUnits(BigNumber.from(data.pool.capacity), decimals));
+			if (typeof totalGoal === 'number') {
 				totalGoal += poolCapacity;
 				totalToGo = totalGoal - totalRaised;
-			  }
 			}
-		  }
+			}
+		}
 		});
-  
+
 		// Check for overwrites in `campaign.json`
 		if (campaign.raised !== '') {
-		  totalRaised = Number(campaign.raised);
+		totalRaised = Number(campaign.raised);
 		}
 		if (campaign.goal !== '') {
-		  totalGoal = Number(campaign.goal);
-		  totalToGo = totalGoal - totalRaised;
+		totalGoal = Number(campaign.goal);
+		totalToGo = totalGoal - totalRaised;
 		}
 		if (campaign.donated !== '') {
-		  totalDonated = Number(campaign.donated);
+		totalDonated = Number(campaign.donated);
 		}
-    
+	
 		// Calculate progress percentage
 		const percentageProgress = typeof totalGoal === 'number' ? (totalRaised / totalGoal) * 100 : 0;
-  
+
 		newStats[campaign.campaignId] = {
-		  goal: totalGoal,
-		  raised: totalRaised,
-		  toGo: totalToGo,
-		  donated: totalDonated,
-		  percentage: percentageProgress
+		goal: totalGoal,
+		raised: totalRaised,
+		toGo: totalToGo,
+		donated: totalDonated,
+		percentage: percentageProgress
 		};
-	  });
-  
-	  return newStats;
+	});
+
+		return newStats;
 	};
   
-	const newStats = getCampaignStats();
-	setCampaignStats(prevStats => ({
-	  ...prevStats,
-	  ...newStats
-	}));
+	if (!isLoading && !isError) {
+		const newStats = getCampaignStats();
+		setCampaignStats(prevStats => ({
+		...prevStats,
+		...newStats
+		}));
+	}
   
   }, [chainQueries, isLoading, isError]);
 
