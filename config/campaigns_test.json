@@ -1,79 +1,16 @@
 [
   {
-    "campaignId": "pastoralists_1",
+    "campaignId": "test_ongoing_USDT_polygon",
     "pools": [
       {
-        "poolId": "8",
+        "poolId": "0x78533b558a98047f46755d905cc40122d60a6f52b1582685f19555472d4f9a1a",
         "beneficiarySide": "short",
-        "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1"
-      }
-    ],
-    "img": "/Images/pastrolists400pxVertical.png",
-    "path": "/campaign/pastoralists-1",
-    "title": "Pastoralists",
-    "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya (Marsabit region) to financially assist them in case of drought.",
-    "donationRecipients" : [
-      {
-        "name": "DIVA",
-        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
-        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
-      }
-    ],
-    "goal": "15000",
-    "raised": "5367",
-    "donated": "0",
-    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-    "decimals": "6",
-    "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
-    "chainId": "137",
-    "expiryTimestamp": "1686463200"
-  },
-  {
-    "campaignId": "pastoralists_2",
-    "pools": [
-      {
-        "poolId": "0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0",
-        "beneficiarySide": "short",
-        "positionToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59"
-      },
-      {
-        "poolId": "0x8456bb83c6fb307cdbeb79a1308e6a4fefd5f2a706a755302850fcf3607acbf4",
-        "beneficiarySide": "short",
-        "positionToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB"
-      }
-    ],
-    "img": "/Images/pastoralists_mcv_pilot.png",
-    "path": "/campaign/pastoralists-mcv",
-    "title": "Pastoralists (MCV Pilot)",
-    "desc": "A pilot with Mercy Corps Ventures (MCV) to provide anticipatory cash transfers to pastoralist communities in two Kenyan counties: Kajiado and Laikipia.",
-    "donationRecipients" : [
-      {
-        "name": "DIVA",
-        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
-        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
-      }
-    ],
-    "goal": "25000",
-    "raised": "20235.42",
-    "donated": "11744.40",
-    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-    "decimals": "6",
-    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-    "chainId": "137",
-    "expiryTimestamp": "1704106740"
-  },
-  {
-    "campaignId": "pastoralists_3",
-    "pools": [
-      {
-        "poolId": "0x8c85108a28a163d1722c2140eea57f9d1cb7f83f69dfc04eb0d9e51298dea2b6",
-        "beneficiarySide": "short",
-        "positionToken": "0xC6426753264774EAB988d91DD29CfE6a626b14a0"
+        "positionToken": "0x0F44DD16F5F6935A7f52CE80f81Da495FD5268C8"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
-    "path": "/campaign/pastoralists-3",
-    "title": "Pastoralists Mar-May 2024",
+    "path": "/campaign/test",
+    "title": "test_ongoing_USDT_polygon",
     "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
     "donationRecipients" : [
       {
@@ -83,13 +20,42 @@
       }
     ],
     "goal": "10000",
-    "raised": "8633.600075",
-    "donated": "0",
+    "raised": "",
+    "donated": "",
     "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
-    "expiryTimestamp": "1718042400"
+    "expiryTimestamp": "1738042400"
+  },
+  {
+    "campaignId": "test_settled_USDT_polygon",
+    "pools": [
+      {
+        "poolId": "0x83501abaf31d930e6b26f2c60725ef92ba2781ef8b0b5dc81f2a5a8d54099a09",
+        "beneficiarySide": "short",
+        "positionToken": "0x7aA4beEA201247C7a76640BEb0dC7e8d984775D8"
+      }
+    ],
+    "img": "/Images/pastoralists_mar_may_2024.jpg",
+    "path": "/campaign/test",
+    "title": "test_settled_USDT_polygon",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
+        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "goal": "10000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+    "decimals": "6",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "137",
+    "expiryTimestamp": "1723926629"
   },
   {
     "campaignId": "test_ongoing_dUSD_polygon",

@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useERC20Contract } from '../../utils/hooks/useContract'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'viem'
 import { getTokenBalance } from '../../utils/general'
 import { Progress, ProgressLabel, Text } from '@chakra-ui/react'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
@@ -563,7 +563,7 @@ export default function Donations() {
 			// Loop through each campaign in `campaign.json`, fetch the corresponding data and update the state variables.
 			const fetchCampaignData = async () => {
 				for (const campaign of campaigns) {
-				const decimals = campaign.decimals
+				const decimals = Number(campaign.decimals)
 		
 				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
 	 			// version of the DIVA Protocol contract on Polygon. All subsequent campaigns are using the audited final version.
@@ -612,10 +612,7 @@ export default function Donations() {
 		
 					const sumTokenBalanceFormatted = Number(
 						formatUnits(
-							balanceData.reduce(
-								(acc, data) => acc + data.balance,
-								BigInt(0)
-							),
+							balanceData.reduce((acc, data) => acc + data.balance, BigInt(0)),
 							decimals
 						)
 					)
@@ -640,10 +637,12 @@ export default function Donations() {
 							BigInt(0)
 						)
 					}
+
+					const divisor = parseUnits('1', decimals)
 		
 					const sumDonatedFormatted = Number(
-						formatUnits(sumDonated, decimals)
-					)
+						formatUnits(sumDonated / divisor, decimals)
+					) // @todo Chekc if this is the correct way to format the sumDonated
 					updateDonated(campaign.campaignId, sumDonatedFormatted)
 		
 					updatePercentageDonated(
