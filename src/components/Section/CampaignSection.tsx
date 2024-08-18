@@ -69,7 +69,7 @@ export const CampaignSection = () => {
 	const { wallets, ready: walletsReady } = useWallets();
 
 	// wagmi hooks
-	const { address: activeAddress, isConnected, chain } = useAccount() // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
+	const { address: activeAddress, isConnected, chain, chainId } = useAccount() // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
 	const { switchChain } = useSwitchChain()
 
 	if (!ready) {
@@ -186,11 +186,11 @@ export const CampaignSection = () => {
 	}
 
 	// @todo Does this if block make sense here? when is it executed? Shouldn't we use a useEffect here?
-	if (ready) {
+	useEffect(() => {
 		// Update state variables for all campaigns in `campaigns.json`
 		if (
 			isConnected &&
-			chain?.id === chainConfig.chainId &&
+			chainId === chainConfig.chainId &&
 			activeAddress != null
 		) {
 			// Loop through each campaign in `campaign.json` and update the state variables
@@ -297,7 +297,7 @@ export const CampaignSection = () => {
 							// Show progress % depending on whether the final value has been already confirmed or not								
 							if (Number(poolResults[0].poolParams.statusFinalReferenceValue) === 3) {
 								// Scenario: Final value already confirmed
-								percentageProgress = (totalDonated / totalRaised) * 100
+								percentageProgress = totalRaised !== 0 ? (totalDonated / totalRaised) * 100 : 0
 							} else {
 								// Scenario: Final value not yet confirmed
 								percentageProgress = totalGoal === 'Unlimited' ? 0 : (totalRaised / totalGoal) * 100
@@ -316,7 +316,7 @@ export const CampaignSection = () => {
                     })
 			})
 		}
-	
+	}, [isConnected, chainId, activeAddress])
 
 	return (
 		<section className="pt-[5rem]">
@@ -520,5 +520,5 @@ export const CampaignSection = () => {
 				</div>
 			</div>
 		</section>
-	)}
+	)
 }

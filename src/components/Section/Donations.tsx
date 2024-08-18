@@ -654,6 +654,7 @@ export default function Donations() {
 						Number(balanceData[0].poolParams.statusFinalReferenceValue) as Status
 		
 					const claimEnabled =
+						isConnected &&
 						currentStatusFinalReferenceValue === 3 &&
 						sumTokenBalanceFormatted * 0.997 - sumDonatedFormatted > 0
 		
@@ -672,7 +673,7 @@ export default function Donations() {
 		
 			fetchCampaignData()
 			}
-	  }, [chainId, activeAddress, isOpen])
+	  }, [chainId, activeAddress, isOpen, isConnected])
 
 	// @todo Navigating from Donations to Home breaks the app
 	return (
