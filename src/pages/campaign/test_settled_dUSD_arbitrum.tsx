@@ -9,7 +9,7 @@ import campaigns from '../../../config/campaigns.json'
 
 export default function Pastoralists() {
 	// Specify the campaignId from `campaign.json` file that you want to display on the page
-	const campaignId = 'test_expired_dUSD_polygon'
+	const campaignId = 'test_settled_dUSD_arbitrum'
 	const campaign = campaigns.find((c) => c.campaignId === campaignId)
 
 	// If campaign is undefined, return null to avoid rendering the component

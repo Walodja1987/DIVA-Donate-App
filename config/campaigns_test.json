@@ -143,5 +143,92 @@
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
     "expiryTimestamp": "1723973652"
+  },
+  {
+    "campaignId": "test_ongoing_dUSD_arbitrum",
+    "pools": [
+      {
+        "poolId": "0x9dad0b12eecb15c02afc16e09663bbfd409dcb14de489002ec5842f3a4066438",
+        "beneficiarySide": "short",
+        "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba"
+      }
+    ],
+    "img": "/Images/pastoralists_mar_may_2024.jpg",
+    "path": "/campaign/test",
+    "title": "test_ongoing_dUSD_arbitrum",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x47566C6c8f70E4F16Aa3E7D8eED4a2bDb3f4925b",
+        "url": "https://arbiscan.io/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "goal": "10000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xFA158C9B780A4213f3201Ae74Cca013712c8538d",
+    "decimals": "18",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "42161",
+    "expiryTimestamp": "10001723986393"
+  },
+  {
+    "campaignId": "test_expired_dUSD_arbitrum",
+    "pools": [
+      {
+        "poolId": "0x559347e0d02ff957f8efa37945f4d82cf42bed8dd95946101c99d2c353477b38",
+        "beneficiarySide": "short",
+        "positionToken": "0x4BCe5A3dE3dd742f9C30350c165Afb0BFD7843d8"
+      }
+    ],
+    "img": "/Images/pastoralists_mar_may_2024.jpg",
+    "path": "/campaign/test",
+    "title": "test_expired_dUSD_arbitrum",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x47566C6c8f70E4F16Aa3E7D8eED4a2bDb3f4925b",
+        "url": "https://arbiscan.io/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "goal": "10000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xFA158C9B780A4213f3201Ae74Cca013712c8538d",
+    "decimals": "18",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "42161",
+    "expiryTimestamp": "1723986802"
+  },
+  {
+    "campaignId": "test_settled_dUSD_arbitrum",
+    "pools": [
+      {
+        "poolId": "0x17c8c42eb2944a5ceb4b529f8e2aba342f67a48f881bd5a732d15bd9f065e37c",
+        "beneficiarySide": "short",
+        "positionToken": "0xBC50b113d503054Fa80c10e4Ff03ee6D86F2f538"
+      }
+    ],
+    "img": "/Images/pastoralists_mar_may_2024.jpg",
+    "path": "/campaign/test",
+    "title": "test_settled_dUSD_arbitrum",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x47566C6c8f70E4F16Aa3E7D8eED4a2bDb3f4925b",
+        "url": "https://arbiscan.io/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "goal": "10000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xFA158C9B780A4213f3201Ae74Cca013712c8538d",
+    "decimals": "18",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "42161",
+    "expiryTimestamp": "1723986861"
   }
 ]
