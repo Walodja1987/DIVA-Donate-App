@@ -1,5 +1,5 @@
 import type { PrivyClientConfig } from '@privy-io/react-auth';
-import { polygon } from 'viem/chains';
+import { polygon, arbitrum } from 'viem/chains';
 
 // privy configuration used in PrivyProvider
 export const privyConfig: PrivyClientConfig = {
@@ -13,5 +13,6 @@ export const privyConfig: PrivyClientConfig = {
 	  showWalletLoginFirst: true,
 	},
 	defaultChain: polygon, // Users will be prompted to switch to this network if they are connected to a different chain
-	supportedChains: [polygon],
+	// @todo switch defaultChain to Arbitrum when going live with the new campaign
+	supportedChains: [polygon, arbitrum],
 };
