@@ -39,6 +39,8 @@ import { wagmiConfig } from '@/components/wagmiConfig'
 import { useAccount, useSwitchChain, useClient } from 'wagmi'
 import { readContract, multicall } from '@wagmi/core'
 
+// Subgraph queries
+import { queryDIVAPool } from '@/queries/divaSubgraph'
 
 
 // @todo I think it would be better to use toFixed inside jsx only and not store the values
@@ -72,16 +74,16 @@ export const CampaignSection = () => {
 	const { address: activeAddress, isConnected, chain, chainId } = useAccount() // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
 	const { switchChain } = useSwitchChain()
 
-	if (!ready) {
-		// Do nothing while the PrivyProvider initializes with updated user state
-		return null;
-	}
+	// if (!ready) {
+	// 	// Do nothing while the PrivyProvider initializes with updated user state
+	// 	return null;
+	// }
 
-	if (ready && !authenticated) {
-		// Replace this code with however you'd like to handle an unauthenticated user
-		// As an example, you might redirect them to a login page
-		// router.push('/login');
-	}
+	// if (ready && !authenticated) {
+	// 	// Replace this code with however you'd like to handle an unauthenticated user
+	// 	// As an example, you might redirect them to a login page
+	// 	// router.push('/login');
+	// }
 	
 	// ----------------------------
 	// Event handlers
@@ -185,10 +187,13 @@ export const CampaignSection = () => {
 		}
 	}
 
+
+
 	// @todo Does this if block make sense here? when is it executed? Shouldn't we use a useEffect here?
 	useEffect(() => {
 		// Update state variables for all campaigns in `campaigns.json`
 		if (
+			ready && 
 			isConnected &&
 			chainId === chainConfig.chainId &&
 			activeAddress != null
@@ -316,7 +321,7 @@ export const CampaignSection = () => {
                     })
 			})
 		}
-	}, [isConnected, chainId, activeAddress])
+	}, [isConnected, chainId, activeAddress, ready])
 
 	return (
 		<section className="pt-[5rem]">

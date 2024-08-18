@@ -1,29 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatUnits } from 'ethers/lib/utils';
-import request, { gql } from 'graphql-request'
+import request from 'graphql-request'
 import { chainConfig } from '../../constants'
 import { getShortenedAddress } from '../../utils/general'
 import { BigNumber } from 'ethers';
 import { Campaign } from '../../types/campaignTypes'
-
-// GraphQL query to fetch liquidity events for multiple pool IDs
-export const queryDIVALiquidity = (poolIds: string[]) => gql`
-  {
-    liquidities(where: {pool_in: [${poolIds.map(id => `"${id}"`).join(', ')}]}) {
-      pool {
-        id
-      }
-      eventType
-      collateralAmount
-      id
-      longTokenHolder
-      shortTokenHolder
-      msgSender
-      timestamp
-    }
-  }
-`
+import { queryDIVALiquidity } from '@/queries/divaSubgraph'
 
 // TopDonorsTable component to display top donors for a campaign
 export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
