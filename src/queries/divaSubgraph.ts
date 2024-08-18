@@ -8,6 +8,7 @@ export const queryDIVALiquidity = (poolIds: `0x${string}`[]) => gql`
     liquidities(where: {pool_in: [${poolIds.map(id => `"${id}"`).join(', ')}]}) {
       pool {
         id
+        statusFinalReferenceValue
       }
       eventType
       collateralAmount

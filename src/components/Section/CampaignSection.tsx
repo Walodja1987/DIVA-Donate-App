@@ -253,46 +253,71 @@ export const CampaignSection = () => {
   console.log("isError", isError)
 
   useEffect(() => {
+	// Early return if data is still loading or there's an error
 	if (isLoading || isError) return;
   
-	const calculateCampaignStats = () => {
-	  const allLiquidityData = chainQueries.flatMap(query => query.data || []);
+	const getCampaignStats = () => {
+	  // Combine liquidity event data from all chain queries into a single array
+	  const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
+	  // Initialize an object to store the new stats for each campaign
 	  const newStats = {} as typeof campaignStats;
   
+	  // Iterate through each campaign
 	  campaigns.forEach((campaign: Campaign) => {
+		// Get all pool IDs associated with this campaign
 		const campaignPoolIds = campaign.pools.map(pool => pool.poolId);
-		const campaignLiquidities = allLiquidityData.filter(liq => campaignPoolIds.includes(liq.pool.id));
   
+		// Filter liquidity event data to only include events for this campaign's pools
+		const campaignLiquidityEvents = allLiquidityEventData.filter(data => campaignPoolIds.includes(data.pool.id));
+  
+		// Initialize counters for campaign statistics
 		let totalRaised = 0;
 		let totalDonated = 0;
 		let totalGoal: number | 'Unlimited' = 0;
 		let totalToGo: number | 'Unlimited' = 0;
   
-		campaignLiquidities.forEach((liquidity) => {
-		  if (liquidity.eventType === 'Added' || liquidity.eventType === 'Issued') {
+		// Process each liquidity event for this campaign
+		campaignLiquidityEvents.forEach((data) => {
+		  // Only consider 'Added' or 'Issued' events
+		  if (data.eventType === 'Added' || data.eventType === 'Issued') {
 			const decimals = campaign.decimals;
-			const amount = Number(formatUnits(BigNumber.from(liquidity.collateralAmount), decimals));
   
-			totalRaised += amount;
+			// Convert collateral amount to a number, considering decimals
+			const amount = Number(formatUnits(BigNumber.from(data.collateralAmount), decimals));
   
-			if (campaign.donationRecipients.some(recipient => 
-			  recipient.address.toLowerCase() === liquidity.longTokenHolder.toLowerCase() ||
-			  recipient.address.toLowerCase() === liquidity.shortTokenHolder.toLowerCase()
-			)) {
-			  const pool = campaign.pools.find(p => p.poolId === liquidity.pool.id);
-			  if (pool) {
-				const payout = liquidity.longTokenHolder.toLowerCase() === campaign.donationRecipients[0].address.toLowerCase() 
-				  ? Number(formatUnits(BigNumber.from(liquidity.pool.payoutLong), decimals))
-				  : Number(formatUnits(BigNumber.from(liquidity.pool.payoutShort), decimals));
+			// Check if the poolId in the liquidity event data matches one of the poolIds associated with the campaign
+			const pool = campaign.pools.find(p => p.poolId === data.pool.id);
+			
+			if (pool) {
+			  // Check if the shortTokenHolder or the longTokenHolder inside the liquidity event under consideration
+			  // matches the donationtRecipient for the campaing.
+			  // Note that for now, we only assume that there is only one donation recipient. Update this part if
+			  // it ever changes.
+			  const isDonationRecipient = pool.beneficiarySide === 'short'
+				? campaign.donationRecipients[0].address.toLowerCase() === data.shortTokenHolder.toLowerCase()
+				: campaign.donationRecipients[0].address.toLowerCase() === data.longTokenHolder.toLowerCase();
+  
+			  if (isDonationRecipient) {
+				// Only add to totalRaised if the short or long token matches the donation recipient
+				totalRaised += amount;
+  
+				// Calculate payout based on the beneficiary side.
+				// Will be always zero as long as the pool is not confirmed (statusFinalReferenceValue !== 3).
+				const payout = pool.beneficiarySide === 'short'
+				  ? Number(formatUnits(BigNumber.from(data.pool.payoutShort), decimals))
+				  : Number(formatUnits(BigNumber.from(data.pool.payoutLong), decimals));
+				
+				// Add to total donated amount, considering the payout
 				totalDonated += amount * payout;
 			  }
 			}
   
-			if (isUnlimited(liquidity.pool.capacity) || totalGoal === 'Unlimited') {
+			// Update goal and to-go amounts, handling 'Unlimited' case
+			if (isUnlimited(data.pool.capacity) || totalGoal === 'Unlimited') {
 			  totalGoal = 'Unlimited';
 			  totalToGo = 'Unlimited';
 			} else {
-			  const poolCapacity = Number(formatUnits(BigNumber.from(liquidity.pool.capacity), decimals));
+			  const poolCapacity = Number(formatUnits(BigNumber.from(data.pool.capacity), decimals));
 			  if (typeof totalGoal === 'number') {
 				totalGoal += poolCapacity;
 				totalToGo = totalGoal - totalRaised;
@@ -312,12 +337,7 @@ export const CampaignSection = () => {
 		if (campaign.donated !== '') {
 		  totalDonated = Number(campaign.donated);
 		}
-
-		console.log("totalRaised", totalRaised)
-		console.log("totalGoal", totalGoal)
-		console.log("totalToGo", totalToGo)
-		console.log("totalDonated", totalDonated)
-  
+    
 		// Calculate progress percentage
 		const percentageProgress = typeof totalGoal === 'number' ? (totalRaised / totalGoal) * 100 : 0;
   
@@ -333,7 +353,7 @@ export const CampaignSection = () => {
 	  return newStats;
 	};
   
-	const newStats = calculateCampaignStats();
+	const newStats = getCampaignStats();
 	setCampaignStats(prevStats => ({
 	  ...prevStats,
 	  ...newStats
