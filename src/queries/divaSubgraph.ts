@@ -9,6 +9,10 @@ export const queryDIVALiquidity = (poolIds: `0x${string}`[]) => gql`
       pool {
         id
         statusFinalReferenceValue
+        payoutLong
+        payoutShort
+        capacity
+        collateralBalanceGross
       }
       eventType
       collateralAmount
