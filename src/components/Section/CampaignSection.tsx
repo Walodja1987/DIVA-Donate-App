@@ -5,15 +5,14 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 // React
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 
 // Query
 import { useQueries } from '@tanstack/react-query';
 import request from 'graphql-request'
 
-// Ethers
-import { BigNumber, ethers } from 'ethers'
-import { formatUnits } from 'ethers/lib/utils' // @todo use from viem and remove ethers/lib/utils
+// viem
+import { formatUnits } from 'viem'
 
 // ABIs
 import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
@@ -26,7 +25,7 @@ import AddToMetamaskIcon from '@/components/AddToMetamaskIcon'
 
 // constants
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld, chainConfig, chainConfigs } from '../../constants'
+import { divaContractAddressOld, chainConfigs } from '../../constants'
 
 // Utils
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
@@ -34,7 +33,7 @@ import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 // Types
 import { Pool, StatusSubgraph } from '../../types/poolTypes'
 import { Campaign, CampaignStatus } from '../../types/campaignTypes'
-import { DIVALiquidityResponse, LiquidityEvent } from '../../types/subgraphTypes'
+import { DIVALiquidityResponse } from '../../types/subgraphTypes'
 
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
@@ -200,7 +199,7 @@ export const CampaignSection = () => {
         let totalToGo: number | 'Unlimited' = 0;
 
         // Process each liquidity event for this campaign
-        campaignLiquidityEvents.forEach((data) => {
+        campaignLiquidityEvents.forEach((data) => { // @todo add type so that we no longer need to cast to BigInt when using formatUnits
 			// Log statusFinalReferenceValue for each pool associated with the campaign.
 			// Campaigns that are associated with multiple pools, the statusFinalReferenceValue may be different
 			// for each pool for a short period of time.
@@ -211,10 +210,10 @@ export const CampaignSection = () => {
 
           // Only consider 'Added' or 'Issued' events
           if (data.eventType === 'Added' || data.eventType === 'Issued') {
-            const decimals = campaign.decimals;
+            const decimals = Number(campaign.decimals);
 
             // Convert collateral amount to a number, considering decimals
-            const amount = Number(formatUnits(BigNumber.from(data.collateralAmount), decimals));
+            const amount = Number(formatUnits(BigInt(data.collateralAmount), decimals));
 
             // Check if the poolId in the liquidity event data matches one of the poolIds associated with the campaign
             const pool = campaign.pools.find(p => p.poolId === poolId);
@@ -235,8 +234,8 @@ export const CampaignSection = () => {
                 // Calculate payout based on the beneficiary side.
                 // Will be always zero as long as the pool is not confirmed (statusFinalReferenceValue !== 3).
                 const payout = pool.beneficiarySide === 'short'
-                  ? Number(formatUnits(data.pool.payoutShort, decimals))
-                  : Number(formatUnits(data.pool.payoutLong, decimals));
+                  ? Number(formatUnits(BigInt(data.pool.payoutShort), decimals))
+                  : Number(formatUnits(BigInt(data.pool.payoutLong), decimals));
                 
                 // Add to total donated amount, considering the payout
                 totalDonated += amount * payout;
@@ -248,7 +247,7 @@ export const CampaignSection = () => {
               totalGoal = 'Unlimited';
               totalToGo = 'Unlimited';
             } else {
-              const poolCapacity = Number(formatUnits(BigNumber.from(data.pool.capacity), decimals));
+              const poolCapacity = Number(formatUnits(BigInt(data.pool.capacity), decimals));
               if (typeof totalGoal === 'number') {
                 totalGoal += poolCapacity;
                 totalToGo = totalGoal - totalRaised;
