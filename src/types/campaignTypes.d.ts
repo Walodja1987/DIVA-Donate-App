@@ -28,6 +28,8 @@ export interface Campaign {
   expiryTimestamp: string;
 }
 
+export type CampaignStatus = 'Completed' | 'Expired' | 'Ongoing';
+
 // Tell TypeScript how to type-check the JSON files without needing explicit imports.
 declare module "*.json" {
   const value: Campaign[];
