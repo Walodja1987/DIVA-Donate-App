@@ -35,7 +35,7 @@ import { divaContractAddressOld, chainConfig, chainConfigs } from '../../constan
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 
 // Types
-import { Pool, PoolExtended, Status } from '../../types/poolTypes'
+import { Pool, PoolExtended, Status, StatusSubgraph } from '../../types/poolTypes'
 import { Campaign, CampaignPool, CampaignStatus } from '../../types/campaignTypes'
 import { DIVALiquidityResponse, LiquidityEvent } from '../../types/subgraphTypes'
 
@@ -79,7 +79,9 @@ export const CampaignSection = () => {
 		  donated: number,
 		  percentageRaised: number,
 		  percentageDonated: number,
-		  status: CampaignStatus
+		  expiryTimestamp: number,
+		  status: CampaignStatus,
+		  percentageProgressBar: number
 		}
 	  }>({})
 
@@ -276,7 +278,7 @@ export const CampaignSection = () => {
         const campaignPoolIds = campaign.pools.map(pool => pool.poolId);
 
 		// Initialize an array to store statusFinalReferenceValue for each pool associated with a campaign
-		const poolStatusMap: { [poolId: `0x${string}`]: Status } = {};
+		const poolStatusMap: { [poolId: `0x${string}`]: StatusSubgraph } = {};
 
         // Filter liquidity event data to only include events for this campaign's pools
         const campaignLiquidityEvents = allLiquidityEventData.filter(data => campaignPoolIds.includes(data.pool.id));
@@ -294,8 +296,7 @@ export const CampaignSection = () => {
 			// for each pool for a short period of time.
 			const poolId = data.pool.id;
 			if (!(poolId in poolStatusMap)) {
-				const status = Number(data.pool.statusFinalReferenceValue) as Status;
-				poolStatusMap[poolId] = status;
+				poolStatusMap[poolId] = data.pool.statusFinalReferenceValue as StatusSubgraph;
 			}
 
           // Only consider 'Added' or 'Issued' events
@@ -365,7 +366,7 @@ export const CampaignSection = () => {
 		  // Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
 		  let campaignStatus: CampaignStatus;
 		  const isExpiredCampaign = isExpired(Number(campaign.expiryTimestamp)*1000);
-		  const allPoolsConfirmed = Object.values(poolStatusMap).every(status => status === 3);
+		  const allPoolsConfirmed = Object.values(poolStatusMap).every(status => status === 'Confirmed');
 
 		  if (isExpiredCampaign) {
 			if (allPoolsConfirmed) {
@@ -377,6 +378,11 @@ export const CampaignSection = () => {
 			campaignStatus = 'Ongoing';
 		  }
 
+		  // Percentage progress bar to be displayed in the campaign card.
+		  // If the campaign is completed, then the percentage progress bar is the percentage of the donations.
+		  // If the campaign is ongoing or expired but not yet completed, then the percentage progress bar is the percentage of the raised amount.
+		  const percentageProgressBar = campaignStatus === 'Completed' ? percentageDonatedProgress : percentageRaisedProgress;
+
         newStats[campaign.campaignId] = {
           goal: totalGoal,
           raised: totalRaised,
@@ -384,7 +390,9 @@ export const CampaignSection = () => {
           donated: totalDonated,
           percentageRaised: percentageRaisedProgress,
 		  percentageDonated: percentageDonatedProgress,
-		  status: campaignStatus
+		  expiryTimestamp: Number(campaign.expiryTimestamp)*1000,
+		  status: campaignStatus,
+		  percentageProgressBar: percentageProgressBar
         };
 		// console.log("goal", totalGoal)
 		// console.log("raised", totalRaised)
@@ -393,6 +401,7 @@ export const CampaignSection = () => {
 		// console.log("percentageRaisedProgress", percentageRaisedProgress)
 		// console.log("percentageDonatedProgress", percentageDonatedProgress)
 		// console.log("status", campaignStatus)
+		// console.log("percentageProgressBar", percentageProgressBar)
       });
 
       return newStats;
@@ -428,7 +437,6 @@ export const CampaignSection = () => {
 				</div>
 				<div className="flex flex-row flex-wrap md:gap-10 justify-center ">
 					{campaigns.map((campaign) => {
-						const expiryTimestamp = Number(campaign.expiryTimestamp)*1000
 						return (
 							// eslint-disable-next-line react/jsx-key
 							<div
@@ -446,22 +454,22 @@ export const CampaignSection = () => {
 										<div
 											className={`
 											${
-												isExpired(expiryTimestamp)
+												campaignStats[campaign.campaignId]?.status === 'Expired'
 													? 'bg-[#005C53] text-white'
 													: 'bg-[#DBF227] text-green-[#042940]'
 											}
 											text-2xs pt-1 pl-2 w-[320px] h-[40px] rounded-tr-[3.75rem] text-left
 										`}>
-											{expiryTimestamp && (
+											{campaignStats[campaign.campaignId]?.expiryTimestamp && (
 												<span className="mt-1 inline-block align-middle">
 													<b>
-														{isExpired(expiryTimestamp)
+														{campaignStats[campaign.campaignId]?.status === 'Expired'
 															? 'Completed'
 															: 'Expiry:'}
 													</b>
-													{isExpired(expiryTimestamp)
+													{campaignStats[campaign.campaignId]?.status === 'Expired'
 														? null
-														: ` ${formatDate(expiryTimestamp)}`}
+														: ` ${formatDate(campaignStats[campaign.campaignId]?.expiryTimestamp)}`}
 												</span>
 											)}
 										</div>
@@ -481,24 +489,18 @@ export const CampaignSection = () => {
 									</div>
 
 									{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-									{1==1 ? (
 										<Progress
 											className=" mb-3 rounded-[15px]"
 											style={{ background: '#D6D58E' }}
 											colorScheme="green"
 											height="22px"
-											value={campaignStats[campaign.campaignId]?.percentageRaised}>
+											value={campaignStats[campaign.campaignId]?.percentageProgressBar}>
 											<ProgressLabel className="text-2xl flex flex-start">
 												<Text fontSize="xs" marginLeft="0.5rem">
-													{campaignStats[campaign.campaignId]?.percentageRaised?.toFixed(1)}%
-													{/* {isExpired(expiryTimestamp) ? ' Donated' : ' Raised'} */}
+												{campaignStats[campaign.campaignId]?.percentageProgressBar?.toFixed(1)}%
 												</Text>
 											</ProgressLabel>
 										</Progress>
-									) : (
-										<div className="h-[30px]"></div>
-									)}
-
 									{1==1 ? (
 										<>
 											{1==1 ? (
@@ -526,7 +528,7 @@ export const CampaignSection = () => {
 														</dd>
 													</div>
 													{/* Add "Donated" box  */}
-													{!isExpired(expiryTimestamp) ? (
+													{campaignStats[campaign.campaignId]?.status === 'Ongoing' ? (
 														<div className="flex flex-col items-center justify-center">
 															<dt className="mb-2 font-medium text-xl text-[#042940]">
 																To Go

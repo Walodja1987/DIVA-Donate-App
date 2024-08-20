@@ -31,3 +31,5 @@ export type PoolExtended = {
 // - 2: Challenged
 // - 3: Confirmed
 export type Status = 0 | 1 | 2 | 3;
+
+export type StatusSubgraph = "Open" | "Submitted" | "Challenged" | "Confirmed";
