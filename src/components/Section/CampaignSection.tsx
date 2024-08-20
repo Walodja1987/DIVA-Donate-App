@@ -77,7 +77,9 @@ export const CampaignSection = () => {
 		  raised: number,
 		  toGo: number | 'Unlimited',
 		  donated: number,
-		  percentage: number
+		  percentageRaised: number,
+		  percentageDonated: number,
+		  isCompleted: boolean
 		}
 	  }>({})
 
@@ -259,18 +261,7 @@ export const CampaignSection = () => {
   const isLoading = chainQueries?.some(query => query.isLoading)
   const isError = chainQueries?.some(query => query.isError)
 
-//   console.log("isLoading", isLoading)
-//   console.log("isError", isError)
-
-  const computeCampaignStats = useCallback(() => {
-    if (isLoading || isError) return {}
-
-    const getCampaignStats = () => {
-      // Check if chainQueries is defined and is an array
-    //   if (!Array.isArray(chainQueries)) {
-    //     console.log("chainQueries is not an array:", chainQueries);
-    //     return {};
-    //   }
+  const fetchCampaignStats = () => {
       // Combine liquidity event data from all chain queries into a single array
       const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
 
@@ -325,8 +316,8 @@ export const CampaignSection = () => {
                 // Calculate payout based on the beneficiary side.
                 // Will be always zero as long as the pool is not confirmed (statusFinalReferenceValue !== 3).
                 const payout = pool.beneficiarySide === 'short'
-                  ? Number(formatUnits(BigNumber.from(data.pool.payoutShort), decimals))
-                  : Number(formatUnits(BigNumber.from(data.pool.payoutLong), decimals));
+                  ? Number(formatUnits(data.pool.payoutShort, decimals))
+                  : Number(formatUnits(data.pool.payoutLong, decimals));
                 
                 // Add to total donated amount, considering the payout
                 totalDonated += amount * payout;
@@ -360,35 +351,37 @@ export const CampaignSection = () => {
         }
     
         // Calculate progress percentage
-        const percentageProgress = typeof totalGoal === 'number' ? (totalRaised / totalGoal) * 100 : 0;
+        const percentageRaisedProgress = typeof totalGoal === 'number' && totalGoal > 0 ? (totalRaised / totalGoal) * 100 : 0;
+		const percentageDonatedProgress = typeof totalRaised === 'number' && totalRaised > 0 ? (totalDonated / totalRaised) * 100 : 0;
 
         newStats[campaign.campaignId] = {
           goal: totalGoal,
           raised: totalRaised,
           toGo: totalToGo,
           donated: totalDonated,
-          percentage: percentageProgress
+          percentageRaised: percentageRaisedProgress,
+		  percentageDonated: percentageDonatedProgress,
+		  isCompleted: Number(campaign.expiryTimestamp)*1000 < Date.now()
         };
-		console.log("goal", totalGoal)
-		console.log("raised", totalRaised)
-		console.log("toGo", totalToGo)
-		console.log("donated", totalDonated)
-		console.log("percentage", percentageProgress)
+		// console.log("goal", totalGoal)
+		// console.log("raised", totalRaised)
+		// console.log("toGo", totalToGo)
+		// console.log("donated", totalDonated)
+		// console.log("percentageRaisedProgress", percentageRaisedProgress)
+		// console.log("percentageDonatedProgress", percentageDonatedProgress)
+		// console.log("isCompleted", Number(campaign.expiryTimestamp)*1000 < Date.now())
       });
 
       return newStats;
-    };
-  
-    return getCampaignStats();
-  }, [isLoading, isError])
+
+  }
 
   useEffect(() => {
 	if (!isLoading && !isError) {
-	  const newStats = computeCampaignStats();
-	  console.log("newStats", newStats)
+	  const newStats = fetchCampaignStats();
 	  setCampaignStats(newStats);
 	}
-  }, [chainQueries]);
+  }, [isLoading===false && isError===false]);
 
 
   if (isLoading) return <div>Loading campaign data...</div>
@@ -733,10 +726,10 @@ export const CampaignSection = () => {
 											style={{ background: '#D6D58E' }}
 											colorScheme="green"
 											height="22px"
-											value={campaignStats[campaign.campaignId]?.percentage}>
+											value={campaignStats[campaign.campaignId]?.percentageRaised}>
 											<ProgressLabel className="text-2xl flex flex-start">
 												<Text fontSize="xs" marginLeft="0.5rem">
-													{campaignStats[campaign.campaignId]?.percentage?.toFixed(1)}%
+													{campaignStats[campaign.campaignId]?.percentageRaised?.toFixed(1)}%
 													{/* {isExpired(expiryTimestamp) ? ' Donated' : ' Raised'} */}
 												</Text>
 											</ProgressLabel>
