@@ -394,13 +394,14 @@ export const CampaignSection = () => {
 		  status: campaignStatus,
 		  percentageProgressBar: percentageProgressBar
         };
-		// console.log("goal", totalGoal)
-		// console.log("raised", totalRaised)
-		// console.log("toGo", totalToGo)
-		// console.log("donated", totalDonated)
-		// console.log("percentageRaisedProgress", percentageRaisedProgress)
-		// console.log("percentageDonatedProgress", percentageDonatedProgress)
-		// console.log("status", campaignStatus)
+		console.log("campaign.id", campaign.campaignId)
+		console.log("goal", totalGoal)
+		console.log("raised", totalRaised)
+		console.log("toGo", totalToGo)
+		console.log("donated", totalDonated)
+		console.log("percentageRaisedProgress", percentageRaisedProgress)
+		console.log("percentageDonatedProgress", percentageDonatedProgress)
+		console.log("status", campaignStatus)
 		// console.log("percentageProgressBar", percentageProgressBar)
       });
 
@@ -454,7 +455,7 @@ export const CampaignSection = () => {
 										<div
 											className={`
 											${
-												campaignStats[campaign.campaignId]?.status === 'Expired'
+												campaignStats[campaign.campaignId]?.status !== 'Ongoing'
 													? 'bg-[#005C53] text-white'
 													: 'bg-[#DBF227] text-green-[#042940]'
 											}
@@ -463,11 +464,11 @@ export const CampaignSection = () => {
 											{campaignStats[campaign.campaignId]?.expiryTimestamp && (
 												<span className="mt-1 inline-block align-middle">
 													<b>
-														{campaignStats[campaign.campaignId]?.status === 'Expired'
+														{campaignStats[campaign.campaignId]?.status !== 'Ongoing'
 															? 'Completed'
 															: 'Expiry:'}
 													</b>
-													{campaignStats[campaign.campaignId]?.status === 'Expired'
+													{campaignStats[campaign.campaignId]?.status !== 'Ongoing'
 														? null
 														: ` ${formatDate(campaignStats[campaign.campaignId]?.expiryTimestamp)}`}
 												</span>
@@ -501,12 +502,11 @@ export const CampaignSection = () => {
 												</Text>
 											</ProgressLabel>
 										</Progress>
-									{1==1 ? (
 										<>
-											{1==1 ? (
-												// Conditional rendering based on whether campaign is completed or not. If completed,
-												// only "Goal" and "Raised" will be shown. If on-going, then "To go" will also show.
-												<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
+											<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
+												{campaignStats[campaign.campaignId]?.status !== 'Completed' ? (
+													// For Ongoing or Expired campaigns
+												<>
 													<div className="flex flex-col items-center justify-center">
 														<dt className="mb-2 font-medium text-xl text-[#042940]">
 															Goal
@@ -514,9 +514,7 @@ export const CampaignSection = () => {
 														<dd className="font-normal text-base text-[#042940]">
 															{campaignStats[campaign.campaignId]?.goal === 'Unlimited'
 																? campaignStats[campaign.campaignId]?.goal
-																: `$${Number(campaignStats[campaign.campaignId]?.goal).toFixed(
-																		0
-																  )}`}
+																: `$${Number(campaignStats[campaign.campaignId]?.goal).toFixed(0)}`}
 														</dd>
 													</div>
 													<div className="flex flex-col items-center justify-center">
@@ -527,65 +525,32 @@ export const CampaignSection = () => {
 															${Number(campaignStats[campaign.campaignId]?.raised).toFixed(0)}
 														</dd>
 													</div>
-													{/* Add "Donated" box  */}
-													{campaignStats[campaign.campaignId]?.status === 'Ongoing' ? (
-														<div className="flex flex-col items-center justify-center">
-															<dt className="mb-2 font-medium text-xl text-[#042940]">
-																To Go
-															</dt>
-															<dd className="font-normal text-base text-[#042940]">
-																{campaignStats[campaign.campaignId]?.toGo === 'Unlimited'
-																	? campaignStats[campaign.campaignId]?.toGo
-																	: `$${Number(
-																			campaignStats[campaign.campaignId]?.toGo
-																	  ).toFixed(0)}`}
-															</dd>
-														</div>
-													) : (
-														<div className="flex flex-col items-center justify-center">
-															<dt className="mb-2 font-medium text-xl text-[#042940]">
-																Donated
-															</dt>
-															<dd className="font-normal text-base text-[#042940]">
-																$
-																{campaignStats[campaign.campaignId]?.donated
-																	? campaignStats[campaign.campaignId]?.donated.toFixed(0)
-																	: 0}
-															</dd>
-														</div>
-													)}
-												</div>
-											) : (
-												<div className="mb-10 flex flex-col items-center justify-center ">
-													<div className=" flex items-center justify-center">
-														Please
-														<span>
-															<button
-																className="p-2 text-blue-600"
-																onClick={handleOpen}>
-																connect
-															</button>
-														</span>
-														{` to the ${chainConfig.name} network.`}
+												</>
+												) : (
+													// For Completed campaigns
+												<>
+													<div className="flex flex-col items-center justify-center">
+														<dt className="mb-2 font-medium text-xl text-[#042940]">
+															Raised
+														</dt>
+														<dd className="font-normal text-base text-[#042940]">
+															${Number(campaignStats[campaign.campaignId]?.raised).toFixed(0)}
+														</dd>
 													</div>
-												</div>
-											)}
-										</>
-									) : (
-										<div className="mb-10 flex flex-col items-center justify-center ">
-											<div className=" flex items-center justify-center">
-												Please
-												<span>
-													<button
-														className="p-2 text-blue-600"
-														onClick={connectWallet}>
-														connect
-													</button>
-												</span>
-												{` to the ${chainConfig.name} network.`}
+													<div className="flex flex-col items-center justify-center">
+														<dt className="mb-2 font-medium text-xl text-[#042940]">
+															Donated
+														</dt>
+														<dd className="font-normal text-base text-[#042940]">
+															${campaignStats[campaign.campaignId]?.donated
+															? Number(campaignStats[campaign.campaignId]?.donated).toFixed(0)
+															: '0'}
+														</dd>
+													</div>
+												</>
+												)}
 											</div>
-										</div>
-									)}
+											</>
 
 									<Link href={campaign.path}>
 										<button
