@@ -21,9 +21,6 @@ import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
 // Chakra
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
 
-// Privy
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-
 // Assets
 import AddToMetamaskIcon from '@/components/AddToMetamaskIcon'
 
@@ -35,42 +32,21 @@ import { divaContractAddressOld, chainConfig, chainConfigs } from '../../constan
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 
 // Types
-import { Pool, PoolExtended, Status, StatusSubgraph } from '../../types/poolTypes'
-import { Campaign, CampaignPool, CampaignStatus } from '../../types/campaignTypes'
+import { Pool, StatusSubgraph } from '../../types/poolTypes'
+import { Campaign, CampaignStatus } from '../../types/campaignTypes'
 import { DIVALiquidityResponse, LiquidityEvent } from '../../types/subgraphTypes'
 
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
-import { useAccount, useSwitchChain, useClient } from 'wagmi'
-import { readContract, multicall, type MulticallParameters } from '@wagmi/core'
+import { readContract } from '@wagmi/core'
 
 // Subgraph queries
 import { queryDIVALiquidity } from '@/queries/divaSubgraph'
 
-
-// @todo I think it would be better to use toFixed inside jsx only and not store the values
-// in that format. It's less of a problem if the values are not used for calculations, but if they are
-// used, then it's problematic. Consider adjusting.
-
-// @todo Fix "Donated" in CampaignSection on Home page
-
 /**
- * @notice Campaign section on the Home page
+ * @notice This component displays the list of ongoing and completed campaigns on the Home page.
  */
 export const CampaignSection = () => {
-	// React hooks
-	// const [goal, setGoal] = useState<{
-	// 	[campaignId: string]: number | 'Unlimited'
-	// }>({})
-	// const [raised, setRaised] = useState<{ [campaignId: string]: number }>({})
-	// const [toGo, setToGo] = useState<{
-	// 	[campaignId: string]: number | 'Unlimited'
-	// }>({})
-	// const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
-	// const [percentage, setPercentage] = useState<{
-	// 	[campaignId: string]: number
-	// }>({})
-
 	const [campaignStats, setCampaignStats] = useState<{
 		[campaignId: string]: {
 		  goal: number | 'Unlimited',
@@ -84,72 +60,6 @@ export const CampaignSection = () => {
 		  percentageProgressBar: number
 		}
 	  }>({})
-
-	// Privy hooks
-	const { ready, user, authenticated, login, connectWallet, logout, linkWallet } = usePrivy();
-	const { wallets, ready: walletsReady } = useWallets();
-
-	// wagmi hooks
-	const { address: activeAddress, isConnected, chain, chainId } = useAccount() // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
-	const { switchChain } = useSwitchChain()
-
-	// if (!ready) {
-	// 	// Do nothing while the PrivyProvider initializes with updated user state
-	// 	return null;
-	// }
-
-	// if (ready && !authenticated) {
-	// 	// Replace this code with however you'd like to handle an unauthenticated user
-	// 	// As an example, you might redirect them to a login page
-	// 	// router.push('/login');
-	// }
-	
-	// ----------------------------
-	// Event handlers
-	// ----------------------------
-	const handleOpen = () => {
-		switchChain({chainId: chainConfig.chainId})
-	}
-
-	// const updateRaised = (campaignId: string, tokenAmount: number) => {
-	// 	setRaised((prev) => ({
-	// 		...prev,
-	// 		[campaignId]: tokenAmount,
-	// 	}))
-	// }
-
-	// const updateToGo = (
-	// 	campaignId: string,
-	// 	tokenAmount: number | 'Unlimited'
-	// ) => {
-	// 	setToGo((prev) => ({
-	// 		...prev,
-	// 		[campaignId]: tokenAmount,
-	// 	}))
-	// }
-	// const updateGoal = (
-	// 	campaignId: string,
-	// 	tokenAmount: number | 'Unlimited'
-	// ) => {
-	// 	setGoal((prev) => ({
-	// 		...prev,
-	// 		[campaignId]: tokenAmount,
-	// 	}))
-	// }
-
-	// const updateDonated = (campaignId: string, tokenAmount: number) => {
-	// 	setDonated((prev) => ({
-	// 		...prev,
-	// 		[campaignId]: tokenAmount,
-	// 	}))
-	// }
-
-	// const updatePercentage = (campaignId: string, percentage: number) => {
-	// 	setPercentage((prev) => ({
-	// 		...prev,
-	// 		[campaignId]: percentage,
-	// 	}))
-	// }
 
 	// @todo Duplicated in Donations component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {
