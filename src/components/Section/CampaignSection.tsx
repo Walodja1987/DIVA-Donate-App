@@ -394,14 +394,14 @@ export const CampaignSection = () => {
 		  status: campaignStatus,
 		  percentageProgressBar: percentageProgressBar
         };
-		console.log("campaign.id", campaign.campaignId)
-		console.log("goal", totalGoal)
-		console.log("raised", totalRaised)
-		console.log("toGo", totalToGo)
-		console.log("donated", totalDonated)
-		console.log("percentageRaisedProgress", percentageRaisedProgress)
-		console.log("percentageDonatedProgress", percentageDonatedProgress)
-		console.log("status", campaignStatus)
+		// console.log("campaign.id", campaign.campaignId)
+		// console.log("goal", totalGoal)
+		// console.log("raised", totalRaised)
+		// console.log("toGo", totalToGo)
+		// console.log("donated", totalDonated)
+		// console.log("percentageRaisedProgress", percentageRaisedProgress)
+		// console.log("percentageDonatedProgress", percentageDonatedProgress)
+		// console.log("status", campaignStatus)
 		// console.log("percentageProgressBar", percentageProgressBar)
       });
 

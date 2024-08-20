@@ -80,9 +80,9 @@ export const formatDate = (timestampInMilliseconds: number): string => {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
-      hour: '2-digit',
-      hour12: true,
-      timeZoneName: 'short',
+      // hour: '2-digit',
+      // hour12: true,
+      // timeZoneName: 'short',
     }
   )
 }
