@@ -49,7 +49,12 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
       msgSender,
       collateralAmount: BigNumber.from(collateralAmount), // Cast to BigNumber
     }))
-    .sort((a, b) => b.collateralAmount.sub(a.collateralAmount).toNumber()); // Sort by amount
+    .sort((a, b) => {
+      // Sorting logic modified to work with BigNumber
+      const diff = b.collateralAmount.sub(a.collateralAmount);
+      if (diff.isZero()) return 0;
+      return diff.isNegative() ? -1 : 1;
+    }); // Sort by amount
 
   // Calculate total amount contributed
   const totalAmount = summedData.reduce((total, donor) => total + Number(formatUnits(donor.collateralAmount, decimals)), 0).toFixed(0);

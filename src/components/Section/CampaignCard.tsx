@@ -11,9 +11,9 @@ import { useDebounce } from '../../utils/hooks/useDebounce'
 // Components
 import { DonationCard } from './DonationCard'
 
-// Ethers
+// viem
 import { ethers } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseUnits } from 'viem'
 import { BigNumber } from 'ethers'
 
 // ABIs
@@ -146,7 +146,6 @@ export const CampaignCard: React.FC<{
 		chainId: campaignChainId as 137 | 42161,
 	} as const
 
-	const { switchChain } = useSwitchChain()
 	const debouncedAmount = useDebounce(amount, 300)
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
@@ -185,7 +184,7 @@ export const CampaignCard: React.FC<{
 	}
 	
 	const checkAllowance = async () => {
-		// Replace commas in the `amount` string with dots
+		// Replace commas in the `amount` string with dots to match desired format (e.g., 7.31 instead of 7,31)
 		const sanitized = debouncedAmount?.replace(/,/g, '.')
 		if (Number(sanitized) > 0 && collateralTokenContract != null) {
 			const allowance = await readContract(wagmiConfig, {
@@ -193,7 +192,7 @@ export const CampaignCard: React.FC<{
 				functionName: 'allowance',
 				args: [activeAddress, campaign.divaContractAddress],
 			}) as bigint
-			if (allowance >= BigInt(parseUnits(sanitized!.toString(), decimals).toString())) {
+			if (allowance >= parseUnits(sanitized!, decimals)) {
 				setApproveEnabled(false)
 				setDonateEnabled(true)
 			} else {
@@ -270,8 +269,8 @@ export const CampaignCard: React.FC<{
 						sumRaisedPools = Number(
 							formatUnits(
 								beneficiaryTokenBalances.reduce(
-									(acc, data) => acc.add(data),
-									ethers.BigNumber.from(0)
+									(acc, data) => acc + BigInt(data),
+									BigInt(0)
 								),
 								decimals
 							)
@@ -288,8 +287,8 @@ export const CampaignCard: React.FC<{
 							sumCapacityPools = Number(
 								formatUnits(
 									poolData.reduce(
-										(acc, data) => acc.add(data.poolParams.capacity),
-										ethers.BigNumber.from(0)
+										(acc, data) => acc + BigInt(data.poolParams.capacity),
+										BigInt(0)
 									),
 									decimals
 								)
@@ -317,7 +316,6 @@ export const CampaignCard: React.FC<{
 		chain,
 		donateLoading,
 		activeAddress,
-		// collateralTokenContract,
 	])
 
 	useEffect(() => {
@@ -336,7 +334,7 @@ export const CampaignCard: React.FC<{
 			const { request } = await simulateContract(wagmiConfig, {
 				...collateralTokenContract,
 				functionName: 'approve',
-				args: [campaign.divaContractAddress, parseUnits(amount, decimals).add(10)],
+				args: [campaign.divaContractAddress, parseUnits(amount, decimals) + BigInt(10)],
 				account: activeAddress,
 			})
 	
@@ -372,15 +370,15 @@ export const CampaignCard: React.FC<{
 				)
 	
 				const sumCapacity = capacities.reduce(
-					(acc, capacity) => acc.add(capacity),
-					ethers.BigNumber.from(0)
+					(acc, capacity) => acc + BigInt(capacity),
+					BigInt(0)
 				)
 	
 				// Prepare args for `batchAddLiquidity` smart contract call
 				const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
 					const collateralAmountIncr = parseUnits(amount.toString(), decimals)
-						.mul(capacities[index])
-						.div(sumCapacity)
+						* BigInt(capacities[index])
+						/ BigInt(sumCapacity)
 	
 					return {
 						poolId: pool.poolId,
@@ -438,9 +436,8 @@ export const CampaignCard: React.FC<{
 					functionName: 'balanceOf',
 					args: [activeAddress],
 				}) as bigint
-				const tokenAmount = Number(
-					formatUnits(result, decimals)
-				)
+				const tokenAmount = Number(formatUnits(result, decimals))
+				console.log("tokenAmount", tokenAmount)
 				setBalance(tokenAmount)
 			}
 		}
@@ -452,8 +449,6 @@ export const CampaignCard: React.FC<{
 	}, [
 		chain,
 		activeAddress,
-		// donateLoading,
-		// collateralTokenContract,
 	])
 
 	return (
