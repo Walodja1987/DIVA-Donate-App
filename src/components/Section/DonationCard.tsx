@@ -32,6 +32,7 @@ interface DonationCardProps {
 	goal: number | 'Unlimited'
 	raised: number
 	amount: string
+	insufficientFunds: boolean
 	handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 	balance: number
 	campaign: any
@@ -58,6 +59,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	goal,
 	raised,
 	amount,
+	insufficientFunds,
 	handleAmountChange,
 	balance,
 	campaign,
@@ -71,8 +73,11 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	openConnectModal,
 	handleSwitchNetwork,
 }) => {
+	console.log("insufficientFunds", insufficientFunds)
+	console.log("approveEnabled", approveEnabled)
+	console.log("donateEnabled", donateEnabled)
 	return (
-		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px] xl:w-[777px]">
+		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px]">
 			<div className="mb-10">
 				<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
 					{thankYouMessage}
@@ -198,18 +203,16 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 							</div>
 
 							<div className="flex flex-row justify-between border-spacing-x-8 gap-4">
-								<CustomButton
-									isLoading={approveLoading}
-									onClick={handleApprove}
-									isEnabled={approveEnabled}
-									label={'Approve'}
-								/>
-								<CustomButton
-									isLoading={donateLoading}
-									onClick={handleDonation}
-									isEnabled={donateEnabled}
-									label={'Deposit'}
-								/>
+							<CustomButton
+								isLoading={approveLoading || donateLoading}
+								onClick={approveEnabled ? handleApprove : handleDonation}
+								isEnabled={!insufficientFunds && (approveEnabled || donateEnabled)}
+								label={
+									insufficientFunds 
+									? 'Insufficient Funds' 
+									: (approveEnabled ? 'Approve' : (donateEnabled ? 'Deposit' : 'Enter amount'))
+								}
+							/>
 							</div>
 						</>
 					) : (
@@ -285,20 +288,19 @@ const CustomButton: React.FC<any> = ({
 	onClick,
 	isEnabled,
 	label,
-}) => {
+  }) => {
 	return (
-		<button
-			onClick={onClick}
-			className={`w-full disabled:opacity-25 flex justify-center items-center mt-10 py-3 text-lg text-white bg-[#042940] rounded-[10px] hover:bg-[#042940] focus:outline-none focus:ring-2 focus:ring-[#005C53] focus:ring-opacity-50 ${
-				isLoading ? 'relative' : ''
-			}`}
-			type="button"
-			style={{ width: '50%' }}
-			disabled={!isEnabled || isLoading}>
-			{isLoading ? <Spinner /> : label}
-		</button>
+	  <button
+		onClick={onClick}
+		className={`w-full disabled:opacity-25 flex justify-center items-center mt-10 py-3 text-lg text-white bg-[#042940] rounded-[10px] hover:bg-[#042940] focus:outline-none focus:ring-2 focus:ring-[#005C53] focus:ring-opacity-50 ${
+		  isLoading ? 'relative' : ''
+		}`}
+		type="button"
+		disabled={!isEnabled || isLoading}>
+		{isLoading ? <Spinner /> : label}
+	  </button>
 	)
-}
+  }
 
 const UnsupportedNetworkModal: React.FC<any> = ({
 	handleSwitchNetwork,

@@ -104,6 +104,7 @@ export const CampaignCard: React.FC<{
 }> = ({ campaign, thankYouMessage }) => {
 	const [balance, setBalance] = useState<number>(0)
 	const [amount, setAmount] = useState<string>('')
+	const [insufficientFunds, setInsufficientFunds] = useState<boolean>(false)
 	const [goal, setGoal] = useState<number | 'Unlimited'>(0)
 	const [raised, setRaised] = useState<number>(0)
 	const [toGo, setToGo] = useState<number | 'Unlimited'>(0)
@@ -207,16 +208,52 @@ export const CampaignCard: React.FC<{
 
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	useEffect(() => {
-		if (chain) {
-			if (chainId === campaignChainId && activeAddress != null) {
-				checkAllowance()
+		const checkAllowanceAndBalance = async () => {
+		  const sanitized = debouncedAmount?.replace(/,/g, '.')
+		  if (Number(sanitized) > 0 && collateralTokenContract != null) {
+			const allowance = await readContract(wagmiConfig, {
+			  ...collateralTokenContract,
+			  functionName: 'allowance',
+			  args: [activeAddress, campaign.divaContractAddress],
+			}) as bigint
+	  
+			// Check for insufficient funds
+			const hasInsufficientFunds = Number(sanitized) > balance
+			setInsufficientFunds(hasInsufficientFunds)
+	  
+			// Update approve and donate states if funds are sufficient.
+			// In particular handles the scenario where the entered amount renders funds to be insufficient
+			// but the user then changes the amount to a value that is sufficient.
+			if (!hasInsufficientFunds) {
+				if (allowance >= parseUnits(sanitized, decimals)) {
+				  setApproveEnabled(false)
+				  setDonateEnabled(true)
+				} else {
+				  setApproveEnabled(true)
+				  setDonateEnabled(false)
+				}
+			  } else {
+				setApproveEnabled(false)
+				setDonateEnabled(false)
+			  }
+			} else {
+			  setInsufficientFunds(false)
+			  setApproveEnabled(false)
+			  setDonateEnabled(false)
 			}
 		}
-	}, [
+	  
+		if (chain) {
+		  if (chainId === campaignChainId && activeAddress != null) {
+			checkAllowanceAndBalance()
+		  }
+		}
+	  }, [
 		activeAddress,
 		debouncedAmount,
-		chain
-	])
+		chain,
+		balance
+	  ])
 
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
@@ -477,6 +514,7 @@ export const CampaignCard: React.FC<{
 								amount={amount}
 								handleAmountChange={handleAmountChange}
 								balance={balance}
+								insufficientFunds={insufficientFunds}
 								campaign={campaign}
 								approveLoading={approveLoading}
 								handleApprove={handleApprove}
