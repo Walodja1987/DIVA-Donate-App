@@ -397,7 +397,7 @@ export const CampaignCard: React.FC<{
 				})
 	
 				// First, simulate the contract call. That's the recommended practice in the viem docs:
-			// https://viem.sh/docs/contract/writeContract.html#usage
+				// https://viem.sh/docs/contract/writeContract.html#usage
 				const { request } = await simulateContract(wagmiConfig, {
 					...divaContract,
 					functionName: 'batchAddLiquidity',
@@ -412,6 +412,7 @@ export const CampaignCard: React.FC<{
 				await waitForTransactionReceipt(wagmiConfig, { hash })
 	
 				setDonateLoading(false)
+				checkAllowance()
 				onOpen() // Open Success Modal
 			} catch (err) {
 				console.error('Error in batchAddLiquidity transaction:', err)
@@ -454,9 +455,6 @@ export const CampaignCard: React.FC<{
 		// donateLoading,
 		// collateralTokenContract,
 	])
-
-	console.log("connectedChainId", chainId)
-	console.log("campaignChainId", campaignChainId)
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
