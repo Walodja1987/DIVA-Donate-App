@@ -43,6 +43,7 @@ import {
 	readContract,
 	writeContract,
 	waitForTransactionReceipt,
+	getChains,
 	type WriteContractReturnType
 } from '@wagmi/core'
 
@@ -102,7 +103,6 @@ export const CampaignCard: React.FC<{
 	thankYouMessage: string
 }> = ({ campaign, thankYouMessage }) => {
 	const [balance, setBalance] = useState<number>(0)
-	const { data } = useEstimateFeesPerGas({ chainId: chainConfig.chainId })
 	const [amount, setAmount] = useState<string>('')
 	const [goal, setGoal] = useState<number | 'Unlimited'>(0)
 	const [raised, setRaised] = useState<number>(0)
@@ -117,31 +117,41 @@ export const CampaignCard: React.FC<{
 	// Privy hooks
 	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
 	const {wallets, ready: walletsReady} = useWallets();
+	const wallet = wallets[0]
 	
 	// WAGMI hooks
 	const { address: activeAddress, isConnected, chain, chainId } = useAccount()  // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
 	// const collateralTokenContract = useERC20Contract(campaign.collateralToken) // @todo needs update when using wagmi and privy
 
 	// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
-	const decimals = campaign.decimals
+	const decimals = Number(campaign.decimals)
+
+	// Get the name of the campaign chain to display in the switch wallet message inside the DonationCard component
+	const chains = getChains(wagmiConfig)
+	const campaignChainId = Number(campaign.chainId)
+	const campaignChainName = chains.find((chain) => chain.id === campaignChainId)?.name
 
 	// Contracts
 	const collateralTokenContract = {
 		address: campaign.collateralToken,
 		abi: ERC20ABI,
+		chainId: campaignChainId as 137 | 42161,
 	} as const
 
 	const divaContract = {
 		address: campaign.divaContractAddress,
-		abi: campaign.divaContractAddress === divaContractAddressOld && chain.id === 137
+		abi: campaign.divaContractAddress === divaContractAddressOld && campaignChainId === 137
 			? DivaABIold
 			: DivaABI,
+		chainId: campaignChainId as 137 | 42161,
 	} as const
 
 	const { switchChain } = useSwitchChain()
 	const debouncedAmount = useDebounce(amount, 300)
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
+
+	
   
 	// if (!ready) {
 	// 	// Do nothing while the PrivyProvider initializes with updated user state
@@ -169,8 +179,9 @@ export const CampaignCard: React.FC<{
 	// 		params: [{ chainId: chainConfig.chainId }],
 	// 	})
 	// }
-	const handleOpen = () => {
-		switchChain?.(chainConfig.chainId)
+	const handleSwitchNetwork = async () => {
+		// switchChain({chainId: campaignChainId})
+		await wallet.switchChain(campaignChainId);
 	}
 	
 	const checkAllowance = async () => {
@@ -198,7 +209,7 @@ export const CampaignCard: React.FC<{
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	useEffect(() => {
 		if (chain) {
-			if (chain.id === chainConfig.chainId && activeAddress != null) {
+			if (chainId === campaignChainId && activeAddress != null) {
 				checkAllowance()
 			}
 		}
@@ -212,7 +223,7 @@ export const CampaignCard: React.FC<{
 	useEffect(() => {
 		if (
 			isConnected &&
-			chain.id === chainConfig.chainId &&
+			chainId === campaignChainId &&
 			activeAddress != null
 		) {
 			let sumCapacityPools: number | 'Unlimited'
@@ -434,7 +445,7 @@ export const CampaignCard: React.FC<{
 		}
 
 	// @todo check this part as the useEffect block was dissolved and I think it's causing some issues
-		if (chain && chain.id === chainConfig.chainId && activeAddress != null) {
+		if (chain && chainId === campaignChainId && activeAddress != null) {
 			getBalance()
 		}
 	}, [
@@ -443,6 +454,9 @@ export const CampaignCard: React.FC<{
 		// donateLoading,
 		// collateralTokenContract,
 	])
+
+	console.log("connectedChainId", chainId)
+	console.log("campaignChainId", campaignChainId)
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
@@ -459,7 +473,9 @@ export const CampaignCard: React.FC<{
 							<DonationCard
 								thankYouMessage={thankYouMessage}
 								isConnected={isConnected}
-								chainId={chainId}
+								connectedChainId={chainId}
+								campaignChainId={campaignChainId}
+								campaignChainName={campaignChainName}
 								isOpen={isOpen}
 								onClose={onClose}
 								percentage={percentage}
@@ -477,7 +493,7 @@ export const CampaignCard: React.FC<{
 								handleDonation={handleDonation}
 								donateEnabled={donateEnabled}
 								openConnectModal={connectWallet}
-								handleOpen={handleOpen}
+								handleSwitchNetwork={handleSwitchNetwork}
 							/>
 						)}
 					</div>

@@ -188,7 +188,7 @@
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
-    "path": "/campaign/test",
+    "path": "/campaign/test_ongoing_dUSD_arbitrum",
     "title": "test_ongoing_dUSD_arbitrum",
     "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
     "donationRecipients" : [
@@ -217,7 +217,7 @@
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
-    "path": "/campaign/test",
+    "path": "/campaign/test_expired_dUSD_arbitrum",
     "title": "test_expired_dUSD_arbitrum",
     "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
     "donationRecipients" : [
@@ -246,7 +246,7 @@
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
-    "path": "/campaign/test",
+    "path": "/campaign/test_settled_dUSD_arbitrum",
     "title": "test_settled_dUSD_arbitrum",
     "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
     "donationRecipients" : [

@@ -23,7 +23,9 @@ import { chainConfig } from '../../constants'
 interface DonationCardProps {
 	thankYouMessage: string
 	isConnected: boolean
-	chainId: number
+	connectedChainId: number
+	campaignChainId: number
+	campaignChainName: string
 	isOpen: boolean
 	onClose: () => void
 	percentage: number
@@ -41,13 +43,15 @@ interface DonationCardProps {
 	handleDonation: () => void
 	donateEnabled: boolean
 	openConnectModal: (() => void) | undefined
-	handleOpen: () => void
+	handleSwitchNetwork: () => void
 }
 
 export const DonationCard: React.FC<DonationCardProps> = ({
 	thankYouMessage,
 	isConnected,
-	chainId,
+	connectedChainId,
+	campaignChainId,
+	campaignChainName,
 	isOpen,
 	onClose,
 	percentage,
@@ -65,7 +69,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	handleDonation,
 	donateEnabled,
 	openConnectModal,
-	handleOpen,
+	handleSwitchNetwork,
 }) => {
 	return (
 		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px] xl:w-[777px]">
@@ -74,9 +78,9 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 					{thankYouMessage}
 				</p>
 			</div>
-			{isConnected && chainId ? (
+			{isConnected && connectedChainId ? (
 				<>
-					{chainId === chainConfig.chainId ? (
+					{connectedChainId === campaignChainId ? (
 						<>
 							{/* {percentage !== 0 && (
 							<div className="mb-10 w-full bg-[#D6D58E] rounded-[10px]">
@@ -210,8 +214,8 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 						</>
 					) : (
 						<UnsupportedNetworkModal
-							openConnectModal={openConnectModal}
-							chainConfig={chainConfig}
+							handleSwitchNetwork={handleSwitchNetwork}
+							campaignChainName={campaignChainName}
 						/>
 					)}
 				</>
@@ -297,20 +301,21 @@ const CustomButton: React.FC<any> = ({
 }
 
 const UnsupportedNetworkModal: React.FC<any> = ({
-	openConnectModal,
-	chainConfig, // @todo maybe not needed as chain name is probably included in useAccount's chain statevariable
+	handleSwitchNetwork,
+	campaignChainName,
 }) => (
 	<div className="mb-10 flex flex-col items-center justify-center gap-6">
 		<div>
 			<img src="/Images/error-icon.svg" alt="error" />
 		</div>
-		<div className="text-xl font-lora text-[#042940]">Unsupported Network</div>
+		<div className="text-xl font-lora text-[#042940]">This campaign is run on the {campaignChainName} network</div>
 		<Button
 			className="bg-blue-600 text-white rounded-xl"
 			bg="blue.600"
+			color="white"
 			_hover={{ bg: 'blue.700' }}
-			onClick={openConnectModal}>
-			Switch to {chainConfig.name}
+			onClick={handleSwitchNetwork}>
+			Switch to {campaignChainName}
 		</Button>
 	</div>
 )
@@ -331,6 +336,7 @@ const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ openConnectModa
 	  <Button
 		className="bg-blue-600 text-white rounded-xl"
 		bg="blue.600"
+		color="white"
 		_hover={{ bg: 'blue.700' }}
 		onClick={openConnectModal}
 	  >
