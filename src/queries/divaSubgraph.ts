@@ -3,9 +3,12 @@ import { gql } from 'graphql-request'
 
 // Used in TopDonorsTable to query the top donors for each campaign.
 // Accepts multiple poolIds as input.
-export const queryDIVALiquidity = (poolIds: `0x${string}`[]) => gql`
+export const queryDIVALiquidity = (poolIds: `0x${string}`[], msgSender?: string) => gql`
   {
-    liquidities(where: {pool_in: [${poolIds.map(id => `"${id}"`).join(', ')}]}) {
+    liquidities(where: {
+      pool_in: [${poolIds.map(id => `"${id}"`).join(', ')}]
+      ${msgSender ? `, msgSender: "${msgSender.toLowerCase()}"` : ''}
+    }) {
       pool {
         id
         statusFinalReferenceValue

@@ -4,7 +4,6 @@
 import React, { useEffect, useState } from 'react'
 
 // Hooks
-import { useERC20Contract } from '../../utils/hooks/useContract'
 import { useDisclosure } from '@chakra-ui/react'
 import { useDebounce } from '../../utils/hooks/useDebounce'
 
@@ -12,24 +11,19 @@ import { useDebounce } from '../../utils/hooks/useDebounce'
 import { DonationCard } from './DonationCard'
 
 // viem
-import { ethers } from 'ethers'
 import { formatUnits, parseUnits } from 'viem'
-import { BigNumber } from 'ethers'
 
 // ABIs
 import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
 
 // Privy
 import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { useSetActiveWallet } from '@privy-io/wagmi';
 
 // constants
-import { chainConfig } from '../../constants'
 import { divaContractAddressOld } from '../../constants'
 
 // Utils
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
-import { getTokenBalance } from '../../utils/general'
 
 // Types
 import { Campaign, CampaignPool } from '../../types/campaignTypes'
@@ -37,14 +31,13 @@ import { PoolExtended } from '../../types/poolTypes'
 
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
-import { useAccount, useSwitchChain, useEstimateFeesPerGas } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { 
 	simulateContract,
 	readContract,
 	writeContract,
 	waitForTransactionReceipt,
 	getChains,
-	type WriteContractReturnType
 } from '@wagmi/core'
 
 

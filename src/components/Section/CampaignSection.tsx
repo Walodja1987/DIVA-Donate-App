@@ -25,15 +25,15 @@ import AddToMetamaskIcon from '@/components/AddToMetamaskIcon'
 
 // constants
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld, chainConfigs } from '../../constants'
+import { divaContractAddressOld, chainConfigs } from '@/constants'
 
 // Utils
-import { formatDate, isExpired, isUnlimited } from '../../utils/general'
+import { formatDate, isExpired, isUnlimited } from '@/utils/general'
 
 // Types
-import { Pool, StatusSubgraph } from '../../types/poolTypes'
-import { Campaign, CampaignStatus } from '../../types/campaignTypes'
-import { DIVALiquidityResponse } from '../../types/subgraphTypes'
+import { Pool, StatusSubgraph } from '@/types/poolTypes'
+import { Campaign, CampaignStatus } from '@/types/campaignTypes'
+import { DIVALiquidityResponse } from '@/types/subgraphTypes'
 
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
@@ -198,7 +198,7 @@ export const CampaignSection = () => {
         let totalGoal: number | 'Unlimited' = 0;
         let totalToGo: number | 'Unlimited' = 0;
 
-        // Process each liquidity event for this campaign
+        // Iterate through each liquidity event for this campaign
         campaignLiquidityEvents.forEach((data) => { // @todo add type so that we no longer need to cast to BigInt when using formatUnits
 			// Log statusFinalReferenceValue for each pool associated with the campaign.
 			// Campaigns that are associated with multiple pools, the statusFinalReferenceValue may be different
