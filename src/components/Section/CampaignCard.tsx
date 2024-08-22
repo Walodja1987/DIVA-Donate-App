@@ -118,11 +118,10 @@ export const CampaignCard: React.FC<{
 	// Privy hooks
 	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
 	const {wallets, ready: walletsReady} = useWallets();
-	const wallet = wallets[0]
+	const wallet = wallets[0] // active/connected wallet
 	
 	// WAGMI hooks
-	const { address: activeAddress, isConnected, chain, chainId } = useAccount()  // @todo consider using chainId directly instead of loading full chain object including chain.id if only id is used
-	// const collateralTokenContract = useERC20Contract(campaign.collateralToken) // @todo needs update when using wagmi and privy
+	const { address: activeAddress, isConnected, chain, chainId } = useAccount()
 
 	// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
 	const decimals = Number(campaign.decimals)
@@ -151,8 +150,6 @@ export const CampaignCard: React.FC<{
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
-	
-  
 	// if (!ready) {
 	// 	// Do nothing while the PrivyProvider initializes with updated user state
 	// 	console.log('PrivyProvider not ready')
@@ -171,78 +168,50 @@ export const CampaignCard: React.FC<{
 	// 	// router.push('/login');
 	// }
 
-	// @todo needed in the presence of wagmi?
-	// Test the wallet connect feature if wallet is not connected
-	// const handleOpen = () => {
-	// 	;(window as any).ethereum.request({
-	// 		method: 'wallet_switchEthereumChain',
-	// 		params: [{ chainId: chainConfig.chainId }],
-	// 	})
-	// }
 	const handleSwitchNetwork = async () => {
-		// switchChain({chainId: campaignChainId})
 		await wallet.switchChain(campaignChainId);
 	}
 	
-	const checkAllowance = async () => {
+	const checkAllowanceAndBalance = async () => {
 		// Replace commas in the `amount` string with dots to match desired format (e.g., 7.31 instead of 7,31)
 		const sanitized = debouncedAmount?.replace(/,/g, '.')
+
+		// Proceed if entered amount is greater than 0 and collateral token contract is defined
 		if (Number(sanitized) > 0 && collateralTokenContract != null) {
-			const allowance = await readContract(wagmiConfig, {
-				...collateralTokenContract,
-				functionName: 'allowance',
-				args: [activeAddress, campaign.divaContractAddress],
-			}) as bigint
-			if (allowance >= parseUnits(sanitized!, decimals)) {
+		  const allowance = await readContract(wagmiConfig, {
+			...collateralTokenContract,
+			functionName: 'allowance',
+			args: [activeAddress, campaign.divaContractAddress],
+		  }) as bigint
+	
+		  // Check for insufficient funds
+		  const hasInsufficientFunds = Number(sanitized) > balance
+		  setInsufficientFunds(hasInsufficientFunds)
+	
+		  // Update approve and donate states if funds are sufficient.
+		  // In particular handles the scenario where the entered amount renders funds to be insufficient
+		  // but the user then changes the amount to a value that is sufficient.
+		  if (!hasInsufficientFunds) {
+			  if (allowance >= parseUnits(sanitized, decimals)) {
 				setApproveEnabled(false)
 				setDonateEnabled(true)
-			} else {
-				setApproveEnabled(true)
-				setDonateEnabled(false)
-			}
-		} else {
-			setApproveEnabled(false)
-			setDonateEnabled(false)
-		}
-	}
-
-	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
-	useEffect(() => {
-		const checkAllowanceAndBalance = async () => {
-		  const sanitized = debouncedAmount?.replace(/,/g, '.')
-		  if (Number(sanitized) > 0 && collateralTokenContract != null) {
-			const allowance = await readContract(wagmiConfig, {
-			  ...collateralTokenContract,
-			  functionName: 'allowance',
-			  args: [activeAddress, campaign.divaContractAddress],
-			}) as bigint
-	  
-			// Check for insufficient funds
-			const hasInsufficientFunds = Number(sanitized) > balance
-			setInsufficientFunds(hasInsufficientFunds)
-	  
-			// Update approve and donate states if funds are sufficient.
-			// In particular handles the scenario where the entered amount renders funds to be insufficient
-			// but the user then changes the amount to a value that is sufficient.
-			if (!hasInsufficientFunds) {
-				if (allowance >= parseUnits(sanitized, decimals)) {
-				  setApproveEnabled(false)
-				  setDonateEnabled(true)
-				} else {
-				  setApproveEnabled(true)
-				  setDonateEnabled(false)
-				}
 			  } else {
-				setApproveEnabled(false)
+				setApproveEnabled(true)
 				setDonateEnabled(false)
 			  }
 			} else {
-			  setInsufficientFunds(false)
 			  setApproveEnabled(false)
 			  setDonateEnabled(false)
 			}
-		}
-	  
+		  } else {
+			setInsufficientFunds(false)
+			setApproveEnabled(false)
+			setDonateEnabled(false)
+		  }
+	  }
+
+	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
+	useEffect(() => {
 		if (chain) {
 		  if (chainId === campaignChainId && activeAddress != null) {
 			checkAllowanceAndBalance()
@@ -447,7 +416,7 @@ export const CampaignCard: React.FC<{
 				await waitForTransactionReceipt(wagmiConfig, { hash })
 	
 				setDonateLoading(false)
-				checkAllowance()
+				checkAllowanceAndBalance()
 				onOpen() // Open Success Modal
 			} catch (err) {
 				console.error('Error in batchAddLiquidity transaction:', err)
