@@ -168,7 +168,7 @@ export const CampaignSection = () => {
   const isLoading = chainQueries?.some(query => query.isLoading)
   const isError = chainQueries?.some(query => query.isError)
 
-  const fetchCampaignStats = () => {
+  const fetchCampaignStatsFromDIVASubgraph = () => {
       // Combine liquidity event data from all chain queries into a single array
       const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
 
@@ -320,7 +320,7 @@ export const CampaignSection = () => {
 
   useEffect(() => {
 	if (!isLoading && !isError) {
-	  const newStats = fetchCampaignStats();
+	  const newStats = fetchCampaignStatsFromDIVASubgraph();
 	  setCampaignStats(newStats);
 	} else if (isLoading) {
 	  console.log("Loading campaign data...");

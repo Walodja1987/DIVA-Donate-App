@@ -60,6 +60,7 @@ import {
 	writeContract,
 	waitForTransactionReceipt,
 	getChains,
+	multicall,
 	type WriteContractReturnType,
 	type ReadContractReturnType
 } from '@wagmi/core'
@@ -171,21 +172,21 @@ export default function Donations() {
 	const isLoading = chainQueries?.some(query => query.isLoading)
 	const isError = chainQueries?.some(query => query.isError)
 
-	const fetchDonationStats = () => {
+	const fetchDonationStatsFromDIVASubgraph = () => {
         // Combine liquidity event data from all chain queries into a single array
 		const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
 
 		// Check if we have any data to process
         if (allLiquidityEventData.length === 0) {
           console.log("No outstanding donations found for address ", activeAddress);
-          return { newStats: {}, nbrCampaignsParticipated: 0 };
+          return { stats: {}, countCampaignsParticipated: 0 };
         }
 
 		// Initialize a counter for the number of campaigns the user has participated in
-		let nbrCampaignsParticipated = 0;
+		let countCampaignsParticipated = 0;
 		
-		// Initialize an object to store the new stats for each campaign
-        const newStats = {} as typeof donationStats; 
+		// Initialize an object to store the stats for each campaign
+        const stats = {} as typeof donationStats; 
 
 		// Iterate through each campaign
         campaigns.forEach((campaign: Campaign) => {
@@ -240,7 +241,7 @@ export default function Donations() {
           });
 
           if (campaignBalance > 0) {
-            nbrCampaignsParticipated++;
+            countCampaignsParticipated++;
 
 			// Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
 			let campaignStatus: CampaignStatus;
@@ -257,7 +258,7 @@ export default function Donations() {
 				campaignStatus = 'Ongoing';
 			  }
 
-            newStats[campaign.campaignId] = {
+            stats[campaign.campaignId] = {
               campaignBalance,
               donated,
               percentageDonated: (donated / campaignBalance) * 100,
@@ -267,16 +268,16 @@ export default function Donations() {
           }
         });
 
-        // setDonationStats(newStats);
-        // setCampaignsParticipated(nbrCampaignsParticipated);
-		return { newStats, nbrCampaignsParticipated };
+        // setDonationStats(stats);
+        // setCampaignsParticipated(countCampaignsParticipated);
+		return { stats, countCampaignsParticipated };
       };
 
 	  useEffect(() => {
 		if (!isLoading && !isError && activeAddress) {
-		  const { newStats, nbrCampaignsParticipated } = fetchDonationStats();
-		  setDonationStats(newStats);
-		  setCampaignsParticipated(nbrCampaignsParticipated);
+		  const { stats, countCampaignsParticipated } = fetchDonationStatsFromDIVASubgraph();
+		  setDonationStats(stats);
+		  setCampaignsParticipated(countCampaignsParticipated);
 		} else if (isLoading) {
 		  console.log("Loading donation data...");
 		} else if (isError) {
@@ -287,6 +288,141 @@ export default function Donations() {
 	const handleSwitchNetwork = async (campaignChainId: number) => {
 		await wallet.switchChain(campaignChainId);
 	}
+
+
+	///// NEWWWW 
+	// Fetch all the campaigns from the subgraph that the user has donated to.
+	const getUserCampaigns = (liquidityEventData: any[], campaigns: Campaign[]) => {
+		// Create a unique collection of all pool IDs the user has interacted with
+		// Only consider "Added" or "Issued" events
+		const userPoolIds = new Set(
+		  liquidityEventData
+			.filter(event => event.eventType === 'Added' || event.eventType === 'Issued')
+			.map(event => event.pool.id)
+		);
+	  
+		// Filter campaigns to only those the user has contributed to
+		const userCampaigns = campaigns.filter(campaign => 
+		  campaign.pools.some(pool => userPoolIds.has(pool.poolId))
+		);
+	  
+		return userCampaigns;
+	};
+
+	// Fetch donor token balances for campaigns the user has participated in.
+	const fetchUserDonorTokenBalances = async (userCampaigns: Campaign[], userAddress: `0x${string}`) => {
+		// Example output:
+		// const balances = {
+		// 	"campaign1": {
+		// 	  "0x1234567890123456789012345678901234567890": 1000000000000000000n,
+		// 	  "0x2345678901234567890123456789012345678901": 500000000000000000n
+		// 	},
+		// 	"campaign2": {
+		// 	  "0x3456789012345678901234567890123456789012": 750000000000000000n
+		// 	},
+		// 	"campaign3": {
+		// 	  "0x4567890123456789012345678901234567890123": 250000000000000000n,
+		// 	  "0x5678901234567890123456789012345678901234": 100000000000000000n
+		// 	}
+		//   };
+		const balances: { [campaignId: string]: { [poolId: `0x${string}`]: bigint } } = {};
+		
+		// Group calls by chainId. Example output:
+		// const callsByChain = {
+		// 	137: [
+		// 	  {
+		// 		campaignId: "campaign1",
+		// 		poolId: "0x1234567890123456789012345678901234567890",
+		// 		call: {
+		// 		  address: "0xabcdef1234567890abcdef1234567890abcdef12",
+		// 		  abi: ERC20ABI,
+		// 		  functionName: "balanceOf",
+		// 		  args: ["0x9876543210987654321098765432109876543210"]
+		// 		}
+		// 	  },
+		// 	  {
+		// 		campaignId: "campaign2",
+		// 		poolId: "0x2345678901234567890123456789012345678901",
+		// 		call: {
+		// 		  address: "0xbcdef1234567890abcdef1234567890abcdef123",
+		// 		  abi: ERC20ABI,
+		// 		  functionName: "balanceOf",
+		// 		  args: ["0x9876543210987654321098765432109876543210"]
+		// 		}
+		// 	  }
+		// 	],
+		// 	42161: [
+		// 	  {
+		// 		campaignId: "campaign3",
+		// 		poolId: "0x3456789012345678901234567890123456789012",
+		// 		call: {
+		// 		  address: "0xcdef1234567890abcdef1234567890abcdef1234",
+		// 		  abi: ERC20ABI,
+		// 		  functionName: "balanceOf",
+		// 		  args: ["0x9876543210987654321098765432109876543210"]
+		// 		}
+		// 	  }
+		// 	]
+		//   };
+		const callsByChain: { [chainId: number]: { campaignId: string; poolId: `0x${string}`; call: any }[] } = {};
+	  
+		userCampaigns.forEach(campaign => {
+		// Check if the chainId is already in the callsByChain object. If not, initialize it.
+		  const chainId = Number(campaign.chainId);
+		  if (!callsByChain[chainId]) {
+			callsByChain[chainId] = [];
+		  }
+	  
+		  // 
+		  campaign.pools.forEach(pool => {
+			callsByChain[chainId].push({
+			  campaignId: campaign.campaignId,
+			  poolId: pool.poolId as `0x${string}`,
+			  call: {
+				address: pool.donorToken as `0x${string}`,
+				abi: ERC20ABI,
+				functionName: 'balanceOf',
+				args: [userAddress],
+				chainId: Number(campaign.chainId) as 137 | 42161
+			  }
+			});
+		  });
+		});
+	  
+		// Execute multicall for each chain
+		for (const [chainId, items] of Object.entries(callsByChain)) {
+		  try {
+			const results = await multicall(wagmiConfig, {
+			  contracts: items.map(c => ({ ...c.call })),
+			  allowFailure: false,
+			});
+	  
+			// Process results
+			results.forEach((result, index) => {
+				// Extract campaignId and poolId from the items element
+			  const { campaignId, poolId } = items[index];
+			  // If the campaignId doesn't exist in the balances object, initialize it.
+			  if (!balances[campaignId]) {
+				balances[campaignId] = {};
+			  }
+			  // Set the balance for the poolId in the campaignId.
+			  balances[campaignId][poolId] = result as bigint;
+			});
+		  } catch (error) {
+			console.error(`Error fetching balances for chain ${chainId}:`, error);
+			// Set balances to 0 for all calls in this chain if there was an error.
+			// In this case, those campaigns will not be displayed.
+			items.forEach(({ campaignId, poolId }) => {
+			  if (!balances[campaignId]) {
+				balances[campaignId] = {};
+			  }
+			  balances[campaignId][poolId] = BigInt(0);
+			});
+		  }
+		}
+	  
+		return balances;
+	};
 
 	// const updateCampaignBalance = (campaignId: string, tokenAmount: number) => {
 	// 	setCampaignBalance((prev) => ({
@@ -358,10 +494,10 @@ export default function Donations() {
 				)
 			)
 	
-			// Get user's donor position token balances.
-			// Reading from smart contract hear in order to get the exact
+			// Get user's donor token balances for the pool associated with the campaign.
+			// Reading from smart contract hear in order to get the exact balance
 			// token balances at the time of redemption.
-			const balanceData = await Promise.all(
+			const donorTokenBalance = await Promise.all(
 				poolData.map(async (pool: Pool) => {
 					const donorPositionToken =
 						campaign.pools[0].beneficiarySide === 'short'
@@ -384,7 +520,7 @@ export default function Donations() {
 			)
 	
 			// Prepare args for `batchRedeemPositionToken` smart contract call.
-			const batchRedeemPositionTokenArgs = balanceData.map((pool) => ({
+			const batchRedeemPositionTokenArgs = donorTokenBalance.map((pool) => ({
 				positionToken: pool.donorPositionToken,
 				amount: pool.balance,
 			}))
@@ -419,13 +555,14 @@ export default function Donations() {
 				address: campaign.divaContractAddress,
 				abi: campaign.divaContractAddress === divaContractAddressOld
 					? DivaABIold
-					: DivaABI
+					: DivaABI,
+				chainId: Number(campaign.chainId) as 137 | 42161
 			} as const
 
 			const poolParams = await readContract(wagmiConfig, {
 				...divaContract,
 				functionName: 'getPoolParameters',
-				args: [pool.poolId]
+				args: [pool.poolId],
 			}) as Pool // @todo is the poolType here correct? Not ReadContractReturnType?
 
 			const donorPositionToken: `0x${string}` =
@@ -436,12 +573,15 @@ export default function Donations() {
 			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
+				chainId: Number(campaign.chainId) as 137 | 42161
 			} as const
 
 			const decimals = await readContract(wagmiConfig, {
 				...tokenContract,
 				functionName: 'decimals',
 			}) as bigint
+			console.log('chainId', Number(campaign.chainId))
+			console.log('decimals', decimals)
 			const symbol = await readContract(wagmiConfig, {
 				...tokenContract,
 				functionName: 'symbol',
@@ -467,141 +607,242 @@ export default function Donations() {
 		}
 	}
 
-	type BalanceData = {
+	// useEffect(() => {
+	// 	const fetchPoolData = async () => {
+	// 	  for (const campaign of campaigns) {
+	// 		const chainId = Number(campaign.chainId) as 137 | 42161;
+	// 		console.log(`Fetching data for campaign ${campaign.campaignId} on chain ${chainId}`);
+	
+	// 		const divaContract = {
+	// 		  address: campaign.divaContractAddress as `0x${string}`,
+	// 		  abi: campaign.divaContractAddress === divaContractAddressOld && chainId === 137
+	// 			? DivaABIold
+	// 			: DivaABI,
+	// 		  chainId: chainId
+	// 		} as const;
+	
+	// 		try {
+	// 		  const poolData = await Promise.all(
+	// 			campaign.pools.map((pool: CampaignPool) =>
+	// 			  readContract(wagmiConfig, {
+	// 				...divaContract,
+	// 				functionName: 'getPoolParameters',
+	// 				args: [pool.poolId],
+	// 			  })
+	// 			)
+	// 		  );
+	
+	// 		  console.log(`Pool data for campaign ${campaign.campaignId} on chain ${chainId}:`, poolData);
+	// 		} catch (error) {
+	// 		  console.error(`Error fetching pool data for campaign ${campaign.campaignId}:`, error);
+	// 		}
+	// 	  }
+	// 	};
+	
+	// 	fetchPoolData();
+	//   }, []);
+
+	// useEffect(() => {
+	// 	const fetchPoolData = async () => {
+	// 	  // Group contracts by chainId for multicall. The reason is that multicall can only be called on one chain at a time.
+	// 	  const contractsByChain = campaigns.reduce((acc, campaign) => {
+	// 		const chainId = Number(campaign.chainId) as 137 | 42161;
+	// 		if (!acc[chainId]) acc[chainId] = [];
+			
+	// 		const divaContract = {
+	// 		  address: campaign.divaContractAddress as `0x${string}`,
+	// 		  abi: campaign.divaContractAddress === divaContractAddressOld && chainId === 137
+	// 			? DivaABIold
+	// 			: DivaABI,
+	// 		  chainId: chainId
+	// 		} as const;
+	  
+	// 		campaign.pools.forEach((pool: CampaignPool) => {
+	// 		  acc[chainId].push({
+	// 			...divaContract,
+	// 			functionName: 'getPoolParameters' as const,
+	// 			args: [pool.poolId] as const,
+	// 		  });
+	// 		});
+	  
+	// 		return acc;
+	// 	  }, {} as Record<137 | 42161, any[]>);
+	  
+	// 	  for (const [chainId, contracts] of Object.entries(contractsByChain)) {
+	// 		try {
+	// 		  console.log(`Preparing multicall for chain ${chainId}`);
+	// 		  const poolData = await multicall(wagmiConfig, {
+	// 			contracts,
+	// 			chainId: Number(chainId) as 137 | 42161,
+	// 			allowFailure: false,
+	// 		  });
+	  
+	// 		  console.log(`Pool data for chain ${chainId}:`, poolData);
+	// 		  // Process poolData here if needed
+	// 		} catch (error) {
+	// 		  console.error(`Error fetching pool data for chain ${chainId}:`, error);
+	// 		}
+	// 	  }
+	// 	};
+	  
+	// 	fetchPoolData();
+	//   }, []); // Add any dependencies if needed
+
+	type donorTokenBalance = {
 		poolParams: Pool;
 		balance: bigint;
 	};
 
-	// useEffect(() => {
-	// 	if (
-	// 	  chainId === chainConfig.chainId &&
-	// 	  activeAddress != null &&
-	// 	  !isOpen
-	// 	) {
-	// 		// Variable used as a flag to display "Explore campaigns" message if user didn't make any donations
-	// 		// yet or has already re-claimed the funds from previous campaigns.
-	// 		let countCampaignsParticipated = 0
-	
-	// 		// Loop through each campaign in `campaign.json`, fetch the corresponding data and update the state variables.
-	// 		const fetchCampaignData = async () => {
-	// 			for (const campaign of campaigns) {
-	// 			const decimals = Number(campaign.decimals)
-		
-	// 			// Connect to corresponding contract. Note that the first campaign was using a pre-audited
-	//  			// version of the DIVA Protocol contract on Polygon. All subsequent campaigns are using the audited final version.
-	// 			const divaContract = {
-	// 				address: campaign.divaContractAddress as `0x${string}`,
-	// 				abi: campaign.divaContractAddress === divaContractAddressOld && chainId === 137
-	// 				? DivaABIold
-	// 				: DivaABI,
-	// 			} as const
-		
-	// 			try {
-	// 				// Get pool parameters for each pool in the campaign
-	// 				// @todo replace with multicall at a later stage
-	// 				const poolData = await Promise.all(
-	// 					campaign.pools.map((pool: CampaignPool) =>
-	// 						readContract(wagmiConfig, {
-	// 						...divaContract,
-	// 						functionName: 'getPoolParameters',
-	// 						args: [pool.poolId],
-	// 						})
-	// 					)
-	// 				)
-		
-	// 				// Get user's position token balances
-	// 				const balanceData = await Promise.all(
-	// 					// async needed inside map?
-	// 					poolData.map(async (pool: Pool): Promise<BalanceData> => {
-	// 						const donorPositionToken =
-	// 							campaign.pools[0].beneficiarySide === 'short'
-	// 								? pool.longToken
-	// 								: pool.shortToken
-			
-	// 						const balance = await readContract(wagmiConfig, {
-	// 							address: donorPositionToken,
-	// 							abi: ERC20ABI,
-	// 							functionName: 'balanceOf',
-	// 							args: [activeAddress],
-	// 						}) as bigint
-			
-	// 						return {
-	// 							poolParams: pool,
-	// 							balance: balance,
-	// 						} // @todo Do we need to return donorPositionToken like we did in the handleRedeemPositionToken function?
-	// 					})
-	// 				)
-		
-	// 				const sumTokenBalanceFormatted = Number(
-	// 					formatUnits(
-	// 						balanceData.reduce((acc, data) => acc + data.balance, BigInt(0)),
-	// 						decimals
-	// 					)
-	// 				)
-					
-		
-	// 				if (sumTokenBalanceFormatted > 0) {
-	// 					countCampaignsParticipated += 1
-	// 				}
-		
-	// 				let sumDonated
-	// 				if (campaign.pools[0].beneficiarySide === 'short') {
-	// 					sumDonated = balanceData.reduce(
-	// 						(acc, data) => acc + BigInt(data.poolParams.payoutShort) * BigInt(data.balance),
-	// 						BigInt(0)
-	// 					)
-	// 				} else {
-	// 					sumDonated = balanceData.reduce(
-	// 						(acc, data) => acc + BigInt(data.poolParams.payoutLong) * BigInt(data.balance),
-	// 						BigInt(0)
-	// 					)
-	// 				}
+	// Target logic:
+	// 1. Get all the campaigns that the user has donated to from the subgraph
+	// 2. For the campaigns, check the user's donor token balances
+	// 3. Show campaigns where donor Token balances > 0
 
-	// 				const divisor = parseUnits('1', decimals)
+	useEffect(() => {
+		if (
+		//   chainId === chainConfig.chainId &&
+		  activeAddress != null &&
+		  !isOpen
+		) {
+			
+	
+			// Loop through each campaign in `campaign.json`, fetch the corresponding data and update the state variables.
+			const fetchCampaignDataFromDIVASmartContract = async () => {
+				// Variable used as a flag to display "Explore campaigns" message if user didn't make any donations
+				// yet or has already re-claimed the funds from previous campaigns.
+				let countCampaignsParticipated = 0
+
+				// Iterate through each campaign
+				for (const campaign of campaigns) {
+					// Get all pool IDs associated with this campaign
+					const campaignPoolIds = campaign.pools.map(pool => pool.poolId);
+
+					const decimals = Number(campaign.decimals)
+			
+					// Connect to corresponding contract. Note that the first campaign was using a pre-audited
+					// version of the DIVA Protocol contract on Polygon. All subsequent campaigns are using the audited final version.
+					const divaContract = {
+						address: campaign.divaContractAddress as `0x${string}`,
+						abi: campaign.divaContractAddress === divaContractAddressOld
+							? DivaABIold
+							: DivaABI,
+						chainId: Number(campaign.chainId) as 137 | 42161
+					} as const
+			
+					try {
+						// Get pool parameters for each pool associated with the campaign
+						const poolData = await Promise.all(
+							campaign.pools.map((pool: CampaignPool) =>
+								readContract(wagmiConfig, {
+									...divaContract,
+									functionName: 'getPoolParameters',
+									args: [pool.poolId]
+								})
+							)
+						)
+			
+						// Get user's donor token in the campaign. If multiple pools are associated with the campaign,
+						// it returns an array of balances.
+						// @todo Use multicall here as it's on the same chain
+						const donorTokenBalance = await Promise.all(
+							// async needed inside map?
+							campaignPoolIds.map(async (poolId, index) => {
+								// const donorPositionToken =
+								// 	campaign.pools[0].beneficiarySide === 'short'
+								// 		? pool.longToken
+								// 		: pool.shortToken
+				
+								const balance = await readContract(wagmiConfig, {
+									address: campaign.pools[index].donorToken as `0x${string}`,
+									abi: ERC20ABI,
+									functionName: 'balanceOf',
+									args: [activeAddress],
+								}) as bigint
+				
+								return {
+									// poolParams: pool,
+									balance: balance,
+								} // @todo Do we need to return donorPositionToken like we did in the handleRedeemPositionToken function?
+							})
+						)
+			
+						// Sum up the balances within the donorTokenBalance array.
+						const sumTokenBalanceFormatted = Number(
+							formatUnits(
+								donorTokenBalance.reduce((acc, data) => acc + data, BigInt(0)),
+								decimals
+							)
+						)
+						
+						// If the user has donated to the campaign, increment the counter.
+						if (sumTokenBalanceFormatted > 0) {
+							countCampaignsParticipated += 1
+						}
+			
+						// @todo pull donated from subgraph for campaigns that the user has outstanding donations to.
+						let sumDonated
+						if (campaign.pools[0].beneficiarySide === 'short') {
+							sumDonated = donorTokenBalance.reduce(
+								(acc, data) => acc + BigInt(data.poolParams.payoutShort) * BigInt(data.balance),
+								BigInt(0)
+							)
+						} else {
+							sumDonated = donorTokenBalance.reduce(
+								(acc, data) => acc + BigInt(data.poolParams.payoutLong) * BigInt(data.balance),
+								BigInt(0)
+							)
+						}
+
+						const divisor = parseUnits('1', decimals)
+			
+						const sumDonatedFormatted = Number(
+							formatUnits(sumDonated / divisor, decimals)
+						) // @todo Chekc if this is the correct way to format the sumDonated
+						
+						
+			
+						const currentStatusFinalReferenceValue =
+							Number(donorTokenBalance[0].poolParams.statusFinalReferenceValue) as Status
+			
+						const claimEnabled =
+							isConnected &&
+							currentStatusFinalReferenceValue === 3 &&
+							sumTokenBalanceFormatted * 0.997 - sumDonatedFormatted > 0
+			
+							updateCampaignBalance(
+								campaign.campaignId,
+								sumTokenBalanceFormatted
+							)
+							updateDonated(campaign.campaignId, sumDonatedFormatted)
+							updatePercentageDonated(
+								campaign.campaignId,
+								(sumDonatedFormatted / sumTokenBalanceFormatted) * 100
+							)
+							updateClaimEnabled(campaign.campaignId, claimEnabled)
+						updateStatusFinalReferenceValue(
+							campaign.campaignId,
+							currentStatusFinalReferenceValue
+						)
+					} catch (error) {
+						console.error(`Error fetching data for campaign ${campaign.campaignId}:`, error)
+					}
+				}
 		
-	// 				const sumDonatedFormatted = Number(
-	// 					formatUnits(sumDonated / divisor, decimals)
-	// 				) // @todo Chekc if this is the correct way to format the sumDonated
-					
-					
+				setCampaignsParticipated(countCampaignsParticipated)
+			}
 		
-	// 				const currentStatusFinalReferenceValue =
-	// 					Number(balanceData[0].poolParams.statusFinalReferenceValue) as Status
-		
-	// 				const claimEnabled =
-	// 					isConnected &&
-	// 					currentStatusFinalReferenceValue === 3 &&
-	// 					sumTokenBalanceFormatted * 0.997 - sumDonatedFormatted > 0
-		
-	// 					updateCampaignBalance(
-	// 						campaign.campaignId,
-	// 						sumTokenBalanceFormatted
-	// 					)
-	// 					updateDonated(campaign.campaignId, sumDonatedFormatted)
-	// 					updatePercentageDonated(
-	// 						campaign.campaignId,
-	// 						(sumDonatedFormatted / sumTokenBalanceFormatted) * 100
-	// 					)
-	// 					updateClaimEnabled(campaign.campaignId, claimEnabled)
-	// 				updateStatusFinalReferenceValue(
-	// 					campaign.campaignId,
-	// 					currentStatusFinalReferenceValue
-	// 				)
-	// 			} catch (error) {
-	// 				console.error(`Error fetching data for campaign ${campaign.campaignId}:`, error)
-	// 			}
-	// 			}
-		
-	// 			setCampaignsParticipated(countCampaignsParticipated)
-	// 		}
-		
-	// 		fetchCampaignData()
-	// 		}
-	//   }, [chainId, activeAddress, isOpen, isConnected])
+			fetchCampaignDataFromDIVASmartContract()
+			}
+	  }, [chainId, activeAddress, isOpen, isConnected])
 
 	if (isLoading) return <div>Loading campaign data...</div>
 	if (isError) return <div>Error loading campaign data</div>
   
+
+
+
+
+
 
 	// @todo Navigating from Donations to Home breaks the app
 	return (

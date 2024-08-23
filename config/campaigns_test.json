@@ -1,69 +1,12 @@
 [
   {
-    "campaignId": "test_ongoing_USDT_polygon",
-    "pools": [
-      {
-        "poolId": "0x78533b558a98047f46755d905cc40122d60a6f52b1582685f19555472d4f9a1a",
-        "beneficiarySide": "short",
-        "positionToken": "0x0F44DD16F5F6935A7f52CE80f81Da495FD5268C8"
-      }
-    ],
-    "img": "/Images/pastoralists_mar_may_2024.jpg",
-    "path": "/campaign/test",
-    "title": "test_ongoing_USDT_polygon",
-    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
-    "donationRecipients" : [
-      {
-        "name": "DIVA",
-        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
-        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
-      }
-    ],
-    "goal": "10000",
-    "raised": "",
-    "donated": "",
-    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-    "decimals": "6",
-    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-    "chainId": "137",
-    "expiryTimestamp": "1738042400"
-  },
-  {
-    "campaignId": "test_settled_USDT_polygon",
-    "pools": [
-      {
-        "poolId": "0x83501abaf31d930e6b26f2c60725ef92ba2781ef8b0b5dc81f2a5a8d54099a09",
-        "beneficiarySide": "short",
-        "positionToken": "0x7aA4beEA201247C7a76640BEb0dC7e8d984775D8"
-      }
-    ],
-    "img": "/Images/pastoralists_mar_may_2024.jpg",
-    "path": "/campaign/test",
-    "title": "test_settled_USDT_polygon",
-    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
-    "donationRecipients" : [
-      {
-        "name": "DIVA",
-        "address": "0x2e33876D29BAC51e1FFD128659BF9D36ba13259D",
-        "url": "https://polygonscan.com/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
-      }
-    ],
-    "goal": "10000",
-    "raised": "",
-    "donated": "",
-    "collateralToken": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
-    "decimals": "6",
-    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
-    "chainId": "137",
-    "expiryTimestamp": "1723926629"
-  },
-  {
     "campaignId": "test_ongoing_dUSD_polygon",
     "pools": [
       {
         "poolId": "0x3ed05b4c5a4509b15bf6ea9e529fce74d5d6bd5ecbaa839ef83a1a30e2edcdb0",
         "beneficiarySide": "short",
-        "positionToken": "0x3e0EDAB92D2e3d9cDEc20Ae386f6529D2BAeF361"
+        "beneficiaryToken": "0x3e0EDAB92D2e3d9cDEc20Ae386f6529D2BAeF361",
+        "donorToken": "0xDD27b65d409B41697E993A3eD6A67f78c277b98B"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -92,7 +35,8 @@
       {
         "poolId": "0x7ac7585f18fd122316bb12df073f582bbea41be1ab172a5b567693d66df4b882",
         "beneficiarySide": "short",
-        "positionToken": "0xd972f5aFA0a8f2FF4C4f3eD2e133482A4BA4534F"
+        "beneficiaryToken": "0xd972f5aFA0a8f2FF4C4f3eD2e133482A4BA4534F",
+        "donorToken": "0x402915e48D4A521544BB058c86941AC2D07d2ABE"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -121,7 +65,8 @@
       {
         "poolId": "0xf60c6476cfbbb5455d704aacbff295540cfcfd42c98678e345d3afae7fe910a3",
         "beneficiarySide": "short",
-        "positionToken": "0xFfE8DC93d6CCbF1854788fcD6d4fB8548de986ea"
+        "beneficiaryToken": "0xFfE8DC93d6CCbF1854788fcD6d4fB8548de986ea",
+        "donorToken": "0x12a984690ec18b45CcB0eD177FCFc4eF90e3B5DD"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -150,7 +95,8 @@
       {
         "poolId": "0x9dad0b12eecb15c02afc16e09663bbfd409dcb14de489002ec5842f3a4066438",
         "beneficiarySide": "short",
-        "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba"
+        "beneficiaryToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
+        "donorToken": "0xFD357c259C55fF5a6ed753b5F7e4f8fE7cd46d63"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -179,7 +125,8 @@
       {
         "poolId": "0x559347e0d02ff957f8efa37945f4d82cf42bed8dd95946101c99d2c353477b38",
         "beneficiarySide": "short",
-        "positionToken": "0x4BCe5A3dE3dd742f9C30350c165Afb0BFD7843d8"
+        "beneficiaryToken": "0x4BCe5A3dE3dd742f9C30350c165Afb0BFD7843d8",
+        "donorToken": "0x2E5E3768AD97D96cCCe1d15d1b5F6F09FE857E28"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -208,7 +155,8 @@
       {
         "poolId": "0x17c8c42eb2944a5ceb4b529f8e2aba342f67a48f881bd5a732d15bd9f065e37c",
         "beneficiarySide": "short",
-        "positionToken": "0xBC50b113d503054Fa80c10e4Ff03ee6D86F2f538"
+        "beneficiaryToken": "0xBC50b113d503054Fa80c10e4Ff03ee6D86F2f538",
+        "donorToken": "0x63295Ec192D0b8F49E89903a21B7f589c321d2f0"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",

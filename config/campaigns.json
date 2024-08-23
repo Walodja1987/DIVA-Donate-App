@@ -5,7 +5,8 @@
       {
         "poolId": "8",
         "beneficiarySide": "short",
-        "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1"
+        "beneficiaryToken": "0xBd3F0b44f4273a55C7b60241b51ADD4E4f75B79B",
+        "donorToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1"
       }
     ],
     "img": "/Images/pastrolists400pxVertical.png",
@@ -34,12 +35,14 @@
       {
         "poolId": "0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0",
         "beneficiarySide": "short",
-        "positionToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59"
+        "beneficiaryToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59",
+        "donorToken": "0x664E9390DB669f67DC76d2D38b43CbA51a25Abb3"
       },
       {
         "poolId": "0x8456bb83c6fb307cdbeb79a1308e6a4fefd5f2a706a755302850fcf3607acbf4",
         "beneficiarySide": "short",
-        "positionToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB"
+        "beneficiaryToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB",
+        "donorToken": "0xA0AaaA8C64761Cb24FE80bbEd3b07cD423aab4a5"
       }
     ],
     "img": "/Images/pastoralists_mcv_pilot.png",
@@ -68,7 +71,8 @@
       {
         "poolId": "0x8c85108a28a163d1722c2140eea57f9d1cb7f83f69dfc04eb0d9e51298dea2b6",
         "beneficiarySide": "short",
-        "positionToken": "0xC6426753264774EAB988d91DD29CfE6a626b14a0"
+        "beneficiaryToken": "0xC6426753264774EAB988d91DD29CfE6a626b14a0",
+        "donorToken": "0xF253278A45fD1EB0F2B16260C9314b8740Fa94cf"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -97,7 +101,8 @@
       {
         "poolId": "0x3ed05b4c5a4509b15bf6ea9e529fce74d5d6bd5ecbaa839ef83a1a30e2edcdb0",
         "beneficiarySide": "short",
-        "positionToken": "0x3e0EDAB92D2e3d9cDEc20Ae386f6529D2BAeF361"
+        "beneficiaryToken": "0x3e0EDAB92D2e3d9cDEc20Ae386f6529D2BAeF361",
+        "donorToken": "0xDD27b65d409B41697E993A3eD6A67f78c277b98B"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -126,7 +131,8 @@
       {
         "poolId": "0x7ac7585f18fd122316bb12df073f582bbea41be1ab172a5b567693d66df4b882",
         "beneficiarySide": "short",
-        "positionToken": "0xd972f5aFA0a8f2FF4C4f3eD2e133482A4BA4534F"
+        "beneficiaryToken": "0xd972f5aFA0a8f2FF4C4f3eD2e133482A4BA4534F",
+        "donorToken": "0x402915e48D4A521544BB058c86941AC2D07d2ABE"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -155,7 +161,8 @@
       {
         "poolId": "0xf60c6476cfbbb5455d704aacbff295540cfcfd42c98678e345d3afae7fe910a3",
         "beneficiarySide": "short",
-        "positionToken": "0xFfE8DC93d6CCbF1854788fcD6d4fB8548de986ea"
+        "beneficiaryToken": "0xFfE8DC93d6CCbF1854788fcD6d4fB8548de986ea",
+        "donorToken": "0x12a984690ec18b45CcB0eD177FCFc4eF90e3B5DD"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -184,7 +191,8 @@
       {
         "poolId": "0x9dad0b12eecb15c02afc16e09663bbfd409dcb14de489002ec5842f3a4066438",
         "beneficiarySide": "short",
-        "positionToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba"
+        "beneficiaryToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
+        "donorToken": "0xFD357c259C55fF5a6ed753b5F7e4f8fE7cd46d63"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -213,7 +221,8 @@
       {
         "poolId": "0x559347e0d02ff957f8efa37945f4d82cf42bed8dd95946101c99d2c353477b38",
         "beneficiarySide": "short",
-        "positionToken": "0x4BCe5A3dE3dd742f9C30350c165Afb0BFD7843d8"
+        "beneficiaryToken": "0x4BCe5A3dE3dd742f9C30350c165Afb0BFD7843d8",
+        "donorToken": "0x2E5E3768AD97D96cCCe1d15d1b5F6F09FE857E28"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -242,7 +251,8 @@
       {
         "poolId": "0x17c8c42eb2944a5ceb4b529f8e2aba342f67a48f881bd5a732d15bd9f065e37c",
         "beneficiarySide": "short",
-        "positionToken": "0xBC50b113d503054Fa80c10e4Ff03ee6D86F2f538"
+        "beneficiaryToken": "0xBC50b113d503054Fa80c10e4Ff03ee6D86F2f538",
+        "donorToken": "0x63295Ec192D0b8F49E89903a21B7f589c321d2f0"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
