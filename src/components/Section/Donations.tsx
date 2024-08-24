@@ -344,13 +344,13 @@ export default function Donations() {
 		//     chainId: 42161
 		//   }
 		// ]
-		const allContracts = tokenInfos.map(tokenInfo => ({
+		const allContracts: ReadContractsParameters["contracts"] = tokenInfos.map(tokenInfo => ({
 		  address: tokenInfo.donorToken,
 		  abi: ERC20ABI,
 		  functionName: 'balanceOf',
 		  args: [userAddress],
 		  chainId: tokenInfo.chainId
-		} as const)) as ReadContractsParameters["contracts"];
+		} as const));
 			
 		// Initialize variable to store balances for each campaign and poolId. Having the poolId will be useful
 		// when querying the DIVA subgraph.
