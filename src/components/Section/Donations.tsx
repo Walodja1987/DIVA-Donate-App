@@ -122,57 +122,57 @@ export default function Donations() {
 	// const campaignChainId = Number(campaign.chainId)
 	// const campaignChainName = chains.find((chain) => chain.id === campaignChainId)?.name
 	
-	// Group pool IDs by chain ID. Using the `reduce` method on the campaigns array to iterate
-	// over all campaigns and accumulate a result.
-	// Example output:
-	// {
-	// 	"137": ["0x12...9ab", "0x45...567"],
-	// 	"42161": ["0xde...234"]
-	// }
-	// useMemo hook with an empty dependency array is used to compute poolIdsByChain only once, when the component mounts.
-	const poolIdsByChain = useMemo(() => {
-		return campaigns.reduce((acc, campaign) => {
-		  const chainId = Number(campaign.chainId)
-		  // Check if there's already an entry for this chain ID in our accumulator.
-		  if (!acc[chainId]) {
-			acc[chainId] = []
-		  }
-		  // Add all pool IDs from this campaign to the array for this chain ID.
-		  acc[chainId].push(...campaign.pools.map(pool => pool.poolId as `0x${string}`))
-		  return acc
-		}, {} as { [chainId: number]: `0x${string}`[] })
-	  }, [])
+	// // Group pool IDs by chain ID. Using the `reduce` method on the campaigns array to iterate
+	// // over all campaigns and accumulate a result.
+	// // Example output:
+	// // {
+	// // 	"137": ["0x12...9ab", "0x45...567"],
+	// // 	"42161": ["0xde...234"]
+	// // }
+	// // useMemo hook with an empty dependency array is used to compute poolIdsByChain only once, when the component mounts.
+	// const poolIdsByChain = useMemo(() => {
+	// 	return campaigns.reduce((acc, campaign) => {
+	// 	  const chainId = Number(campaign.chainId)
+	// 	  // Check if there's already an entry for this chain ID in our accumulator.
+	// 	  if (!acc[chainId]) {
+	// 		acc[chainId] = []
+	// 	  }
+	// 	  // Add all pool IDs from this campaign to the array for this chain ID.
+	// 	  acc[chainId].push(...campaign.pools.map(pool => pool.poolId as `0x${string}`))
+	// 	  return acc
+	// 	}, {} as { [chainId: number]: `0x${string}`[] })
+	//   }, [])
 
-		// Create a query for each chain. Using useQueries hook to perform multiple queries in parallel
-		// in case there are multiple chains.
-		// The result, chainQueries, is an array of query results, one for each chain.
-		// Each query result object contains properties like data, isLoading, isError, etc., which we can use to handle the state of each query.
-	  const chainQueries = useQueries({
-		// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
-		// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
-		// Example:
-		// [
-		// 	[137, ["0x12...9ab", "0x45...567"]],
-		// 	[42161, ["0xde...234"]]
-		// ]
-		queries: Object.entries(poolIdsByChain).map(([chainId, poolIds]) => ({
-		  		// Set unique identifier for the query.
-			queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
-		  	  // Define the query function that fetches the data for the given chain and pool IDs.
-			queryFn: async () => {
-			const response = await request<DIVALiquidityResponse>(
-			  chainConfigs[chainId].graphUrl,
-			  queryDIVALiquidity(poolIds, activeAddress)
-			)
-			return response.liquidities || []
-		  },
-		  enabled: !!activeAddress
-		}))
-	  })
+	// 	// Create a query for each chain. Using useQueries hook to perform multiple queries in parallel
+	// 	// in case there are multiple chains.
+	// 	// The result, chainQueries, is an array of query results, one for each chain.
+	// 	// Each query result object contains properties like data, isLoading, isError, etc., which we can use to handle the state of each query.
+	//   const chainQueries = useQueries({
+	// 	// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
+	// 	// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
+	// 	// Example:
+	// 	// [
+	// 	// 	[137, ["0x12...9ab", "0x45...567"]],
+	// 	// 	[42161, ["0xde...234"]]
+	// 	// ]
+	// 	queries: Object.entries(poolIdsByChain).map(([chainId, poolIds]) => ({
+	// 	  		// Set unique identifier for the query.
+	// 		queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
+	// 	  	  // Define the query function that fetches the data for the given chain and pool IDs.
+	// 		queryFn: async () => {
+	// 		const response = await request<DIVALiquidityResponse>(
+	// 		  chainConfigs[chainId].graphUrl,
+	// 		  queryDIVALiquidity(poolIds, activeAddress)
+	// 		)
+	// 		return response.liquidities || []
+	// 	  },
+	// 	  enabled: !!activeAddress
+	// 	}))
+	//   })
 
 	  // Check if any of the queries are still loading or if there was an error.
-	const isLoading = chainQueries?.some(query => query.isLoading)
-	const isError = chainQueries?.some(query => query.isError)
+	// const isLoading = chainQueries?.some(query => query.isLoading)
+	// const isError = chainQueries?.some(query => query.isError)
 
 	// const fetchDonationStatsFromDIVASubgraph = () => {
     //     // Combine liquidity event data from all chain queries into a single array
@@ -297,6 +297,8 @@ export default function Donations() {
 		campaignId: string;
 		poolId: `0x${string}`;
 	  };
+
+	  const [tokenBalances, setTokenBalances] = useState<(TokenInfo & { donorTokenBalance: bigint })[]>([]);
 	  
 	// @notice Fetches the balances of the donor tokens for all campaigns for the connected wallet.
 	const fetchDonorTokenBalances = async (userAddress: `0x${string}`) => {
@@ -361,7 +363,7 @@ export default function Donations() {
 			// Return tokenInfos with the balance added
 			return tokenInfos.map((info, index) => ({
 			  ...info,
-			  balance: results[index] as bigint
+			  donorTokenBalance: results[index] as bigint
 			}));
 		
 		  } catch (error) {
@@ -369,58 +371,9 @@ export default function Donations() {
 			// Set balances to 0 for all tokens if there was an error
 			return tokenInfos.map(info => ({
 			  ...info,
-			  balance: BigInt(0)
+			  donorTokenBalance: BigInt(0)
 			}));
-		  }
-			
-		// // Initialize variable to store balances for each campaign and poolId. Having the poolId will be useful
-		// // when querying the DIVA subgraph.
-		// // Example:
-		// // const balances = {
-		// //   "pastoralists_1": {
-		// //     "0x123...": 1000000000000000000n
-		// //   },
-		// //   "pastoralists_2": {
-		// //     "0x456...": 500000000000000000n,
-		// //     "0x789...": 750000000000000000n
-		// //   },
-		// //   "test_ongoing_dUSD_arbitrum": {
-		// //     "0xabc...": 250000000000000000n
-		// //   }
-		// // };
-		// const balances: { [campaignId: string]: { [poolId: `0x${string}`]: bigint } } = {};
-		
-		// try {
-		//  // Get user's donor token balances. `readContracts` can handle calls on multiple chains
-		//  // at once. Do not use `multicall` here because it will not work with multiple chains.
-		//   const results = await readContracts(wagmiConfig, {
-		// 	contracts: allContracts,
-		// 	allowFailure: false,
-		//   });
-		
-		//   // Process results by storing the balances in the `balances` object
-		//   results.forEach((result, index) => {
-		// 	const { campaignId, poolId } = tokenInfos[index];
-	
-		// 	if (!balances[campaignId]) {
-		// 	  balances[campaignId] = {};
-		// 	}
-		// 	balances[campaignId][poolId] = result as bigint;
-		//   });
-		
-		// } catch (error) {
-		//   console.error("Error fetching balances. Setting balances to 0 for all tokens.", error);
-		  
-		//   // Set balances to 0 for all tokens if there was an error
-		//   tokenInfos.forEach(({ campaignId, poolId }) => {
-		// 	if (!balances[campaignId]) {
-		// 	  balances[campaignId] = {};
-		// 	}
-		// 	balances[campaignId][poolId] = BigInt(0);
-		//   });
-		// }
-		
-		// return balances;
+		  }			
 	  };
 
 	  
@@ -443,7 +396,39 @@ export default function Donations() {
 	  }, [activeAddress]);
 
 
+	  // Update the filter condition in the useMemo hook
+	const activePoolIdsByChain = useMemo(() => {
+		return tokenBalances
+		.filter(info => info.donorTokenBalance > BigInt(0))
+		.reduce((acc, info) => {
+			if (!acc[info.chainId]) acc[info.chainId] = [];
+			acc[info.chainId].push(info.poolId);
+			return acc;
+		}, {} as { [chainId: number]: `0x${string}`[] });
+	}, [tokenBalances]);
 
+	// The rest of the code remains the same
+	const subgraphQueries = useQueries({
+		queries: Object.entries(activePoolIdsByChain).map(([chainId, poolIds]) => ({
+		queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
+		queryFn: async () => {
+			const response = await request<DIVALiquidityResponse>(
+			chainConfigs[Number(chainId)].graphUrl,
+			queryDIVALiquidity(poolIds, activeAddress)
+			);
+			return response.liquidities || [];
+		},
+		enabled: !!activeAddress && poolIds.length > 0
+		}))
+  	});
+
+	  const isLoading = subgraphQueries.some(query => query.isLoading);
+	  const isError = subgraphQueries.some(query => query.isError);
+
+	  const allLiquidityData = useMemo(() => {
+		if (isLoading || isError) return [];
+		return subgraphQueries.flatMap(query => query.data || []);
+	  }, [isLoading, isError, subgraphQueries]);
 
 	// ///// NEWWWW 
 	// // Fetch all the campaigns from the subgraph that the user has donated to.
