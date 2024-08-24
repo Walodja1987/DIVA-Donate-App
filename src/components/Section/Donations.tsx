@@ -297,8 +297,6 @@ export default function Donations() {
 		campaignId: string;
 		poolId: `0x${string}`;
 	  };
-
-	  const [tokenBalances, setTokenBalances] = useState<(TokenInfo & { donorTokenBalance: bigint })[]>([]);
 	  
 	// @notice Fetches the balances of the donor tokens for all campaigns for the connected wallet.
 	const fetchDonorTokenBalances = async (userAddress: `0x${string}`) => {
@@ -376,59 +374,116 @@ export default function Donations() {
 		  }			
 	  };
 
+	// useEffect(() => {
+	// 	if (activeAddress) {
+	// 	  const fetchBalances = async () => {
+	// 		try {
+	// 		  const balances = await fetchDonorTokenBalances(activeAddress);
+	// 		  console.log('Donor token balances:', balances);
+	// 		} catch (error) {
+	// 		  console.error('Error fetching donor token balances:', error);
+	// 		}
+	// 	  };
 	  
+	// 	  fetchBalances();
+	// 	}
+	//   }, [activeAddress]);
 
-	
-
-	useEffect(() => {
-		if (activeAddress) {
-		  const fetchBalances = async () => {
-			try {
-			  const balances = await fetchDonorTokenBalances(activeAddress);
-			  console.log('Donor token balances:', balances);
-			} catch (error) {
-			  console.error('Error fetching donor token balances:', error);
-			}
-		  };
-	  
-		  fetchBalances();
-		}
+	// Use useMemo to fetch and memoize the token balances
+	const donorTokenBalances = useMemo(async () => {
+		if (!activeAddress) return [];
+		return await fetchDonorTokenBalances(activeAddress);
 	  }, [activeAddress]);
 
-
-	  // Update the filter condition in the useMemo hook
-	const activePoolIdsByChain = useMemo(() => {
-		return tokenBalances
-		.filter(info => info.donorTokenBalance > BigInt(0))
-		.reduce((acc, info) => {
-			if (!acc[info.chainId]) acc[info.chainId] = [];
-			acc[info.chainId].push(info.poolId);
-			return acc;
-		}, {} as { [chainId: number]: `0x${string}`[] });
-	}, [tokenBalances]);
+	  // Update the filter condition in the useMemo hook.
+	  // Active means that the user's donor token balance is greater than 0.
+	const activePoolIdsByChain = useMemo(async () => {
+		return (await donorTokenBalances)
+			.filter(info => info.donorTokenBalance > BigInt(0))
+			.reduce((acc, info) => {
+				if (!acc[info.chainId]) acc[info.chainId] = [];
+				acc[info.chainId].push(info.poolId);
+				return acc;
+			}, {} as { [chainId: number]: `0x${string}`[] });
+	}, [donorTokenBalances]);
 
 	// The rest of the code remains the same
+	// If activePoolIdsByChain is empty or undefined, Object.entries(activePoolIdsByChain) will produce an empty array, so no queries will be created.
+	// For each chain that does have pools, the enabled condition !!activeAddress && poolIds.length > 0 ensures that the query will only run if there are actually pool IDs for that chain.
 	const subgraphQueries = useQueries({
 		queries: Object.entries(activePoolIdsByChain).map(([chainId, poolIds]) => ({
-		queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
-		queryFn: async () => {
-			const response = await request<DIVALiquidityResponse>(
-			chainConfigs[Number(chainId)].graphUrl,
-			queryDIVALiquidity(poolIds, activeAddress)
-			);
-			return response.liquidities || [];
-		},
-		enabled: !!activeAddress && poolIds.length > 0
-		}))
+			queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
+			queryFn: async () => {
+				const response = await request<DIVALiquidityResponse>(
+				chainConfigs[Number(chainId)].graphUrl,
+				queryDIVALiquidity(poolIds, activeAddress)
+				);
+				return response.liquidities || [];
+			},
+			enabled: !!activeAddress && poolIds.length > 0
+			})
+		)
   	});
 
 	  const isLoading = subgraphQueries.some(query => query.isLoading);
 	  const isError = subgraphQueries.some(query => query.isError);
 
-	  const allLiquidityData = useMemo(() => {
-		if (isLoading || isError) return [];
-		return subgraphQueries.flatMap(query => query.data || []);
-	  }, [isLoading, isError, subgraphQueries]);
+	//   const allLiquidityData = useMemo(() => {
+	// 	if (isLoading || isError) return [];
+	// 	return subgraphQueries.flatMap(query => query.data || []);
+	//   }, [isLoading, isError, subgraphQueries]);
+
+	const processSubgraphData = useMemo(() => {
+		if (isLoading || isError) return {};
+	  
+		// Create a map of poolId to campaign and beneficiary side for quick lookup
+		// Example:
+		// {
+		// 	"0x1234...": {
+		// 	  campaignId: "campaign_1",
+		// 	  beneficiarySide: "short",
+		// 	  donationRecipient: "0xabcd..."
+		// 	},
+		// 	"0x5678...": {
+		// 	  campaignId: "campaign_1",
+		// 	  beneficiarySide: "long",
+		// 	  donationRecipient: "0xabcd..."
+		// 	}
+		// }
+		const poolToCampaignMap = campaigns.reduce((acc, campaign) => {
+		  campaign.pools.forEach(pool => {
+			acc[pool.poolId] = {
+			  campaignId: campaign.campaignId,
+			  beneficiarySide: pool.beneficiarySide,
+			  donationRecipient: campaign.donationRecipients[0].address // Assuming there's only one recipient
+			};
+		  });
+		  return acc;
+		}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipient: string }>);
+	  
+		// Process the subgraph data
+		const campaignCommitments = subgraphQueries
+		  .flatMap(query => query.data || [])
+		  .filter(event => event.eventType === 'Added' || event.eventType === 'Issued')
+		  .reduce((acc, event) => {
+			const poolInfo = poolToCampaignMap[event.pool.id];
+			if (!poolInfo) return acc; // Skip if pool is not in our campaigns
+	  
+			const { campaignId, beneficiarySide, donationRecipient } = poolInfo;
+			const relevantTokenHolder = beneficiarySide === 'short' ? event.shortTokenHolder : event.longTokenHolder;
+	  
+			if (relevantTokenHolder.toLowerCase() === donationRecipient.toLowerCase()) {
+			  if (!acc[campaignId]) {
+				acc[campaignId] = { sumCommitted: BigInt(0) };
+			  }
+			  acc[campaignId].sumCommitted += BigInt(event.collateralAmount);
+			}
+	  
+			return acc;
+		  }, {} as Record<string, { sumCommitted: bigint }>);
+	  
+		return campaignCommitments;
+	  }, [subgraphQueries, isLoading, isError, campaigns]);
 
 	// ///// NEWWWW 
 	// // Fetch all the campaigns from the subgraph that the user has donated to.
