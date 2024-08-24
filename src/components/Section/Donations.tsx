@@ -344,67 +344,88 @@ export default function Donations() {
 		//     chainId: 42161
 		//   }
 		// ]
-		const allContracts: ReadContractsParameters["contracts"] = tokenInfos.map(tokenInfo => ({
+		const allContracts = tokenInfos.map(tokenInfo => ({
 		  address: tokenInfo.donorToken,
 		  abi: ERC20ABI,
 		  functionName: 'balanceOf',
 		  args: [userAddress],
 		  chainId: tokenInfo.chainId
 		} as const));
-			
-		// Initialize variable to store balances for each campaign and poolId. Having the poolId will be useful
-		// when querying the DIVA subgraph.
-		// Example:
-		// const balances = {
-		//   "pastoralists_1": {
-		//     "0x123...": 1000000000000000000n
-		//   },
-		//   "pastoralists_2": {
-		//     "0x456...": 500000000000000000n,
-		//     "0x789...": 750000000000000000n
-		//   },
-		//   "test_ongoing_dUSD_arbitrum": {
-		//     "0xabc...": 250000000000000000n
-		//   }
-		// };
-		const balances: { [campaignId: string]: { [poolId: `0x${string}`]: bigint } } = {};
-		
+
 		try {
-		  const results = await readContracts(wagmiConfig, {
-			contracts: allContracts,
-			allowFailure: false,
-		  });
-	
-		  console.log("Results from all chains:", results);
-	
-		  // Process results
-		  results.forEach((result, index) => {
-			const { campaignId, poolId } = tokenInfos[index];
-			console.log(`Result for campaign ${campaignId}, pool ${poolId}:`, result);
-	
-			if (!balances[campaignId]) {
-			  balances[campaignId] = {};
-			}
-			balances[campaignId][poolId] = result as bigint;
-		  });
-	
-		  console.log("Final balances:", balances);
-	
-		} catch (error) {
-		  console.error("Error fetching balances for all chains:", error);
-		  
-		  // Set balances to 0 for all tokens if there was an error
-		  tokenInfos.forEach(({ campaignId, poolId }) => {
-			if (!balances[campaignId]) {
-			  balances[campaignId] = {};
-			}
-			balances[campaignId][poolId] = BigInt(0);
-			console.log(`Set balance to 0 for campaign ${campaignId}, pool ${poolId}`);
-		  });
-		}
+			const results = await readContracts(wagmiConfig, {
+			  contracts: allContracts,
+			  allowFailure: false,
+			});
+			
+			// Return tokenInfos with the balance added
+			return tokenInfos.map((info, index) => ({
+			  ...info,
+			  balance: results[index] as bigint
+			}));
 		
-		return balances;
+		  } catch (error) {
+			console.error("Error fetching balances:", error);
+			// Set balances to 0 for all tokens if there was an error
+			return tokenInfos.map(info => ({
+			  ...info,
+			  balance: BigInt(0)
+			}));
+		  }
+			
+		// // Initialize variable to store balances for each campaign and poolId. Having the poolId will be useful
+		// // when querying the DIVA subgraph.
+		// // Example:
+		// // const balances = {
+		// //   "pastoralists_1": {
+		// //     "0x123...": 1000000000000000000n
+		// //   },
+		// //   "pastoralists_2": {
+		// //     "0x456...": 500000000000000000n,
+		// //     "0x789...": 750000000000000000n
+		// //   },
+		// //   "test_ongoing_dUSD_arbitrum": {
+		// //     "0xabc...": 250000000000000000n
+		// //   }
+		// // };
+		// const balances: { [campaignId: string]: { [poolId: `0x${string}`]: bigint } } = {};
+		
+		// try {
+		//  // Get user's donor token balances. `readContracts` can handle calls on multiple chains
+		//  // at once. Do not use `multicall` here because it will not work with multiple chains.
+		//   const results = await readContracts(wagmiConfig, {
+		// 	contracts: allContracts,
+		// 	allowFailure: false,
+		//   });
+		
+		//   // Process results by storing the balances in the `balances` object
+		//   results.forEach((result, index) => {
+		// 	const { campaignId, poolId } = tokenInfos[index];
+	
+		// 	if (!balances[campaignId]) {
+		// 	  balances[campaignId] = {};
+		// 	}
+		// 	balances[campaignId][poolId] = result as bigint;
+		//   });
+		
+		// } catch (error) {
+		//   console.error("Error fetching balances. Setting balances to 0 for all tokens.", error);
+		  
+		//   // Set balances to 0 for all tokens if there was an error
+		//   tokenInfos.forEach(({ campaignId, poolId }) => {
+		// 	if (!balances[campaignId]) {
+		// 	  balances[campaignId] = {};
+		// 	}
+		// 	balances[campaignId][poolId] = BigInt(0);
+		//   });
+		// }
+		
+		// return balances;
 	  };
+
+	  
+
+	
 
 	useEffect(() => {
 		if (activeAddress) {
@@ -420,6 +441,8 @@ export default function Donations() {
 		  fetchBalances();
 		}
 	  }, [activeAddress]);
+
+
 
 
 	// ///// NEWWWW 
