@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 // React
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 
 // Query
 import { useQueries } from '@tanstack/react-query';
@@ -18,7 +18,7 @@ import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 
 // viem
-import { formatUnits, parseUnits } from 'viem'
+import { formatUnits } from 'viem'
 
 // Assets
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
@@ -49,7 +49,6 @@ import {
 	Progress,
 	ProgressLabel,
 	Text,
-	useFormControlStyles
 } from '@chakra-ui/react'
 
 // Wagmi
@@ -61,48 +60,50 @@ import {
 	readContracts,
 	writeContract,
 	waitForTransactionReceipt,
-	getChains,
-	multicall,
-	type WriteContractReturnType,
 	type ReadContractReturnType,
-	type ReadContractsParameters
 } from '@wagmi/core'
 
 // Subgraph queries
 import { queryDIVALiquidity } from '@/queries/divaSubgraph'
 
-// Step 1: Fetch donor token balances and 
-// Step 2: Get activePoolIdsByChain
-// Step 3: Query subgraph data
-// Step 4: Process subgraph data by filtering out relevant events
+// The Donations component renders the My Donations section of the app.
+// It displays and manages user's active donations across various campaigns and chains.
+//
+// Data fetching and processing:
+// Step 1: Fetch donor token balances defined in `campaigns.json`
+// Step 2: Extract poolIds where donor token balance is greater than 0 (active pools)
+// Step 3: Query liquidity event data from the DIVA subgraph for active pools
+// Step 4: Process subgraph data by filtering all events where the donation recipient address is the expected one
+// Step 5: Calculate donation stats
+// Step 6: Update UI with the relevant campaigns and stats
 export default function Donations() {
 	const [donationStats, setDonationStats] = useState<{
 		[campaignId: string]: {
 		  campaignBalance: number,
 		  donated: number,
-		//   campaignBalance: number,
 		  percentageDonated: number,
 		  claimEnabled: boolean,
 		  status: CampaignStatus
 		}
-	  }>({})
+	}>({})
 	  
-	  const [campaignsParticipated, setCampaignsParticipated] = useState(0)
-
-	  const [donorTokenBalances, setDonorTokenBalances] = useState<TokenInfoWithBalance[]>([]);
-	  const [activePoolIdsByChain, setActivePoolIdsByChain] = useState<{ [chainId: number]: `0x${string}`[] }>({});
-	  
-	  // RedeemLoading state defined by campaign so that the loading wheel only appears for the campaign that is being redeemed
-	  const [redeemLoading, setRedeemLoading] = useState<{
-		[campaignId: string]: boolean
-	  }>({})
+	const [campaignsParticipated, setCampaignsParticipated] = useState(0)
+	const [activePoolIdsByChain, setActivePoolIdsByChain] = useState<{ [chainId: number]: `0x${string}`[] }>({});
+	
+	// RedeemLoading state defined by campaign so that the loading wheel only appears for the campaign that is being redeemed
+	const [redeemLoading, setRedeemLoading] = useState<{
+	[campaignId: string]: boolean
+	}>({})
 
 	// Privy hooks
 	const { connectWallet } = usePrivy();
 	const { wallets} = useWallets();
 	const wallet = wallets[0] // active/connected wallet
 
+	// Wagmi hooks
 	const { address: activeAddress, isConnected, chain, chainId } = useAccount()
+
+	// Chakra hooks
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
 	// // Get the name of the campaign chain to display in the switch wallet message inside the DonationCard component
@@ -117,19 +118,6 @@ export default function Donations() {
 	// // 	"137": ["0x12...9ab", "0x45...567"],
 	// // 	"42161": ["0xde...234"]
 	// // }
-	// // useMemo hook with an empty dependency array is used to compute poolIdsByChain only once, when the component mounts.
-	// const poolIdsByChain = useMemo(() => {
-	// 	return campaigns.reduce((acc, campaign) => {
-	// 	  const chainId = Number(campaign.chainId)
-	// 	  // Check if there's already an entry for this chain ID in our accumulator.
-	// 	  if (!acc[chainId]) {
-	// 		acc[chainId] = []
-	// 	  }
-	// 	  // Add all pool IDs from this campaign to the array for this chain ID.
-	// 	  acc[chainId].push(...campaign.pools.map(pool => pool.poolId as `0x${string}`))
-	// 	  return acc
-	// 	}, {} as { [chainId: number]: `0x${string}`[] })
-	//   }, [])
 
 	// 	// Create a query for each chain. Using useQueries hook to perform multiple queries in parallel
 	// 	// in case there are multiple chains.
@@ -370,9 +358,6 @@ export default function Donations() {
 		  }			
 	  };
 	
-
-
-
 	// Update the filter condition in the useMemo hook.
 	// Active means that the user's donor token balance is greater than 0.
 	const getActivePoolIdsByChain = useCallback((balances: TokenInfoWithBalance[]) => {
@@ -386,8 +371,7 @@ export default function Donations() {
 	}, []);
 
 	
-
-	// Fetches user's donor token balances and extract the active poolIds by chain.
+	// Steps 1 & 2: Fetch user's donor token balances and extract the active poolIds by chain.
 	// Active pools are those where the user has a non-zero balance of donor tokens,
 	// indicating an outstanding contribution or unclaimed funds.
 	// Triggers on component mount and when activeAddress changes.
@@ -403,14 +387,12 @@ export default function Donations() {
 		})();
 	  }, [activeAddress]);
 
-	  
-	  
-	//   const activePoolIdsByChain = getActivePoolIdsByChain(donorTokenBalances);
-
-	  // Step 3: Query subgraph data
-	// The rest of the code remains the same
+	// Step 3: Query subgraph data.
+	// Uses useQueries hook to perform parallel queries for each chain with active pools.
+	// Each query runs only if activeAddress exists and there are active pool IDs for that chain.
+	// Each item in the query results array contains data, isLoading, isError, and isSuccess properties.
 	// If activePoolIdsByChain is empty or undefined, Object.entries(activePoolIdsByChain) will produce an empty array, so no queries will be created.
-	// For each chain that does have pools, the enabled condition !!activeAddress && poolIds.length > 0 ensures that the query will only run if there are actually pool IDs for that chain.
+	// Queries are enabled only when an active address exists and the chain has active pool IDs.
 	const subgraphQueries = useQueries({
 		// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
 		// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
@@ -420,7 +402,10 @@ export default function Donations() {
 		// 	[42161, ["0xde...234"]]
 		// ]
 		queries: Object.entries(activePoolIdsByChain).map(([chainId, poolIds]) => ({
+			// Query key is an array containing the query name, chainId, poolIds, and activeAddress.
+			// This is used to identify the query and to invalidate it when any of the array variables change.
 			queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
+			// Query function to fetch data from the subgraph.
 			queryFn: async () => {
 				const response = await request<DIVALiquidityResponse>(
 					chainConfigs[chainId].graphUrl,
@@ -429,7 +414,8 @@ export default function Donations() {
 				// console.log(`Response for chain ${chainId}:`, response);
 				return response.liquidities || [];
 			},
-			enabled: !!activeAddress && poolIds.length > 0 && Object.keys(activePoolIdsByChain).length > 0
+			// Query is enabled only when an active address exists and the chain has active pool IDs.
+			enabled: !!activeAddress && poolIds.length > 0
 			})
 		)
   	});
