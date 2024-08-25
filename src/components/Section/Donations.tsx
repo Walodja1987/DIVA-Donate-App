@@ -459,21 +459,36 @@ export default function Donations() {
 			})
 		)
   	});
-	console.log("subgraphQueries", subgraphQueries)
 
 	useEffect(() => {
-		console.log("subgraphQueries updated:", subgraphQueries);
-		console.log("Query states:", subgraphQueries.map(q => ({
-			isLoading: q.isLoading,
-			isError: q.isError,
-			isSuccess: q.isSuccess,
-			data: q.data
-		  })));
+		// Process the campaign data from the subgraph where the user still owns the corresponding donor tokens ("active campaigns")
+		const allQueriesSuccessful = subgraphQueries.every(query => query.isSuccess);
+		
+		if (allQueriesSuccessful) {
 
+		  // Put the data from the query results into a single array (originally separated by chainId)
 		  const flattenedData = subgraphQueries
 			.filter(query => query.isSuccess && query.data)
 			.flatMap(query => query.data);
 			console.log("Flattened data:", flattenedData);
+
+			// Create a map of poolId to campaignId for quick lookup
+			const poolIdToCampaignId = campaigns.reduce((acc, campaign) => {
+				campaign.pools.forEach(pool => {
+				  acc[pool.poolId] = campaign.campaignId;
+				});
+				return acc;
+			  }, {} as Record<string, string>);
+		  
+			  // Add campaignId to each element in flattenedData
+			  const dataWithCampaignId = flattenedData.map(item => ({
+				...item,
+				campaignId: poolIdToCampaignId[item.pool.id] || 'unknown'
+			  }));
+		  
+			  console.log("Data with campaignId:", dataWithCampaignId);
+		}
+
 	  }, [subgraphQueries]);
 
 	//   useEffect(() => {
@@ -498,8 +513,8 @@ export default function Donations() {
 
 	  const isLoading = subgraphQueries?.some(query => query.isLoading);
 	  const isError = subgraphQueries?.some(query => query.isError);
-	  console.log("isLoading", isLoading)
-	  console.log("isError", isError)
+	  const isSuccess = subgraphQueries?.every(query => query.isSuccess);
+
 
 	//   const allLiquidityData = useMemo(() => {
 	// 	if (isLoading || isError) return [];
