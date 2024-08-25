@@ -591,6 +591,7 @@ export default function Donations() {
 		}))
 	}
 
+	// Function to claim back unfunded amount.
 	const handleRedeemPositionToken = async (campaign: Campaign) => {
 		const divaContract = {
 			address: campaign.divaContractAddress,
