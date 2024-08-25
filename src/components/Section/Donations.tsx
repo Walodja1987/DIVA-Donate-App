@@ -5,7 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 // React
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 
 // Query
 import { useQueries } from '@tanstack/react-query';
@@ -291,12 +291,22 @@ export default function Donations() {
 		await wallet.switchChain(campaignChainId);
 	}
 
+	
+
 	type TokenInfo = {
 		donorToken: `0x${string}`;
 		chainId: 137 | 42161;
 		campaignId: string;
 		poolId: `0x${string}`;
 	  };
+
+	// Return type from fetchDonorTokenBalances
+	type TokenInfoWithBalance = TokenInfo & {
+		donorTokenBalance: bigint;
+	};
+
+	  // Step 1: Fetch donor token balances
+	const [donorTokenBalances, setDonorTokenBalances] = useState<TokenInfoWithBalance[]>([]);
 	  
 	// @notice Fetches the balances of the donor tokens for all campaigns for the connected wallet.
 	const fetchDonorTokenBalances = async (userAddress: `0x${string}`) => {
@@ -389,53 +399,115 @@ export default function Donations() {
 	// 	}
 	//   }, [activeAddress]);
 
-	// Use useMemo to fetch and memoize the token balances
-	const donorTokenBalances = useMemo(async () => {
-		if (!activeAddress) return [];
-		return await fetchDonorTokenBalances(activeAddress);
+
+	useEffect(() => {
+		const fetchBalances = async () => {
+		  if (activeAddress) {
+			const balances = await fetchDonorTokenBalances(activeAddress);
+			setDonorTokenBalances(balances);
+		  }
+		};
+	  
+		fetchBalances();
 	  }, [activeAddress]);
 
+	// // Use useMemo to fetch and memoize the token balances
+	// const donorTokenBalances = useMemo(async () => {
+	// 	if (!activeAddress) return [];
+	// 	return await fetchDonorTokenBalances(activeAddress);
+	//   }, [activeAddress]);
+
+	  // Step 2: Get activePoolIdsByChain
 	  // Update the filter condition in the useMemo hook.
 	  // Active means that the user's donor token balance is greater than 0.
-	const activePoolIdsByChain = useMemo(async () => {
-		return (await donorTokenBalances)
-			.filter(info => info.donorTokenBalance > BigInt(0))
-			.reduce((acc, info) => {
-				if (!acc[info.chainId]) acc[info.chainId] = [];
-				acc[info.chainId].push(info.poolId);
-				return acc;
-			}, {} as { [chainId: number]: `0x${string}`[] });
-	}, [donorTokenBalances]);
+	  const getActivePoolIdsByChain = useCallback((balances: TokenInfoWithBalance[]) => {
+		console.log("balances", balances)
+		return balances
+		  .filter(info => info.donorTokenBalance > BigInt(0))
+		  .reduce((acc, info) => {
+			if (!acc[info.chainId]) acc[info.chainId] = [];
+			acc[info.chainId].push(info.poolId);
+			return acc;
+		  }, {} as { [chainId: number]: `0x${string}`[] });
+	  }, []);
+	  
+	  const activePoolIdsByChain = getActivePoolIdsByChain(donorTokenBalances);
 
+	  // Step 3: Query subgraph data
 	// The rest of the code remains the same
 	// If activePoolIdsByChain is empty or undefined, Object.entries(activePoolIdsByChain) will produce an empty array, so no queries will be created.
 	// For each chain that does have pools, the enabled condition !!activeAddress && poolIds.length > 0 ensures that the query will only run if there are actually pool IDs for that chain.
 	const subgraphQueries = useQueries({
+		// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
+		// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
+		// Example:
+		// [
+		// 	[137, ["0x12...9ab", "0x45...567"]],
+		// 	[42161, ["0xde...234"]]
+		// ]
 		queries: Object.entries(activePoolIdsByChain).map(([chainId, poolIds]) => ({
 			queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
 			queryFn: async () => {
 				const response = await request<DIVALiquidityResponse>(
-				chainConfigs[Number(chainId)].graphUrl,
-				queryDIVALiquidity(poolIds, activeAddress)
+					chainConfigs[chainId].graphUrl,
+					queryDIVALiquidity(poolIds, activeAddress)
 				);
+				console.log(`Response for chain ${chainId}:`, response);
 				return response.liquidities || [];
 			},
 			enabled: !!activeAddress && poolIds.length > 0
 			})
 		)
   	});
+	console.log("subgraphQueries", subgraphQueries)
 
-	  const isLoading = subgraphQueries.some(query => query.isLoading);
-	  const isError = subgraphQueries.some(query => query.isError);
+	useEffect(() => {
+		console.log("subgraphQueries updated:", subgraphQueries);
+		console.log("Query states:", subgraphQueries.map(q => ({
+			isLoading: q.isLoading,
+			isError: q.isError,
+			isSuccess: q.isSuccess,
+			data: q.data
+		  })));
+
+		  const flattenedData = subgraphQueries
+			.filter(query => query.isSuccess && query.data)
+			.flatMap(query => query.data);
+			console.log("Flattened data:", flattenedData);
+	  }, [subgraphQueries]);
+
+	//   useEffect(() => {
+	// 	// const allQueriesComplete = !subgraphQueries.some(query => query.isLoading);
+	// 	// const noErrors = !subgraphQueries.some(query => query.isError);
+	  
+	// 	// if (allQueriesComplete && noErrors) {
+	// 	  // Flatten the data from all successful queries
+	// 	  const flattenedData = subgraphQueries
+	// 		.filter(query => query.isSuccess && query.data)
+	// 		.flatMap(query => query.data);
+	  
+	// 	  console.log("Flattened data:", flattenedData);
+	  
+	// 	  const processed = processSubgraphData(flattenedData, campaigns as Campaign[]);
+	// 	  setProcessedData(processed);
+	// 	// } else if (allQueriesComplete && !noErrors) {
+	// 	//   console.error("Error in fetching subgraph data");
+	// 	//   // Handle error case if needed
+	// 	// }
+	//   }, []);
+
+	  const isLoading = subgraphQueries?.some(query => query.isLoading);
+	  const isError = subgraphQueries?.some(query => query.isError);
+	  console.log("isLoading", isLoading)
+	  console.log("isError", isError)
 
 	//   const allLiquidityData = useMemo(() => {
 	// 	if (isLoading || isError) return [];
 	// 	return subgraphQueries.flatMap(query => query.data || []);
 	//   }, [isLoading, isError, subgraphQueries]);
-
-	const processSubgraphData = useMemo(() => {
-		if (isLoading || isError) return {};
-	  
+	
+	// Step 4: Process subgraph data
+	const processSubgraphData = useCallback((queryResults: any[], campaigns: Campaign[]) => {
 		// Create a map of poolId to campaign and beneficiary side for quick lookup
 		// Example:
 		// {
@@ -455,35 +527,107 @@ export default function Donations() {
 			acc[pool.poolId] = {
 			  campaignId: campaign.campaignId,
 			  beneficiarySide: pool.beneficiarySide,
-			  donationRecipient: campaign.donationRecipients[0].address // Assuming there's only one recipient
+			  donationRecipient: campaign.donationRecipients[0].address
 			};
 		  });
 		  return acc;
 		}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipient: string }>);
 	  
-		// Process the subgraph data
-		const campaignCommitments = subgraphQueries
+		return queryResults
 		  .flatMap(query => query.data || [])
 		  .filter(event => event.eventType === 'Added' || event.eventType === 'Issued')
-		  .reduce((acc, event) => {
-			const poolInfo = poolToCampaignMap[event.pool.id];
-			if (!poolInfo) return acc; // Skip if pool is not in our campaigns
+		//   .reduce((acc, event) => {
+		// 	const poolInfo = poolToCampaignMap[event.pool.id];
+		// 	if (!poolInfo) return acc;
 	  
-			const { campaignId, beneficiarySide, donationRecipient } = poolInfo;
-			const relevantTokenHolder = beneficiarySide === 'short' ? event.shortTokenHolder : event.longTokenHolder;
+		// 	const { campaignId, beneficiarySide, donationRecipient } = poolInfo;
+		// 	const relevantTokenHolder = beneficiarySide === 'short' ? event.pool.shortTokenHolder : event.pool.longTokenHolder;
 	  
-			if (relevantTokenHolder.toLowerCase() === donationRecipient.toLowerCase()) {
-			  if (!acc[campaignId]) {
-				acc[campaignId] = { sumCommitted: BigInt(0) };
-			  }
-			  acc[campaignId].sumCommitted += BigInt(event.collateralAmount);
-			}
+		// 	if (relevantTokenHolder.toLowerCase() === donationRecipient.toLowerCase()) {
+		// 	  if (!acc[campaignId]) {
+		// 		acc[campaignId] = { sumCommitted: BigInt(0) };
+		// 	  }
+		// 	  acc[campaignId].sumCommitted += BigInt(event.collateralAmount);
+		// 	}
 	  
-			return acc;
-		  }, {} as Record<string, { sumCommitted: bigint }>);
+		// 	return acc;
+		//   }, {} as Record<string, { sumCommitted: bigint }>);
+	  }, []);
+
+	  const [processedData, setProcessedData] = useState<Record<string, { sumCommitted: bigint }>>({});
+
+	  useEffect(() => {
+		const allQueriesComplete = !subgraphQueries.some(query => query.isLoading);
+		const noErrors = !subgraphQueries.some(query => query.isError);
 	  
-		return campaignCommitments;
-	  }, [subgraphQueries, isLoading, isError, campaigns]);
+		if (allQueriesComplete && noErrors) {
+		  const processed = processSubgraphData(subgraphQueries, campaigns as Campaign[]);
+		  setProcessedData(processed);
+		  console.log("processedData", processedData)
+		} else if (allQueriesComplete && !noErrors) {
+		  // Handle error case
+		  console.error("Error in fetching subgraph data");
+		  // You might want to set an error state here or handle it in some other way
+		  // setError("Failed to fetch subgraph data");
+		}
+	  }, [isLoading, isError]);
+
+
+	  
+	// const processSubgraphData = useMemo(() => {
+	// 	if (isLoading || isError) return {};
+	  
+	// 	// Create a map of poolId to campaign and beneficiary side for quick lookup
+	// 	// Example:
+	// 	// {
+	// 	// 	"0x1234...": {
+	// 	// 	  campaignId: "campaign_1",
+	// 	// 	  beneficiarySide: "short",
+	// 	// 	  donationRecipient: "0xabcd..."
+	// 	// 	},
+	// 	// 	"0x5678...": {
+	// 	// 	  campaignId: "campaign_1",
+	// 	// 	  beneficiarySide: "long",
+	// 	// 	  donationRecipient: "0xabcd..."
+	// 	// 	}
+	// 	// }
+	// 	const poolToCampaignMap = campaigns.reduce((acc, campaign) => {
+	// 	  campaign.pools.forEach(pool => {
+	// 		acc[pool.poolId] = {
+	// 		  campaignId: campaign.campaignId,
+	// 		  beneficiarySide: pool.beneficiarySide,
+	// 		  donationRecipient: campaign.donationRecipients[0].address // Assuming there's only one recipient
+	// 		};
+	// 	  });
+	// 	  return acc;
+	// 	}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipient: string }>);
+	// 	console.log("poolToCampaignMap", poolToCampaignMap)
+	  
+	// 	// Process the subgraph data
+	// 	const campaignCommitments = subgraphQueries
+	// 	  .flatMap(query => query.data || [])
+	// 	  .filter(event => event.eventType === 'Added' || event.eventType === 'Issued')
+	// 	  .reduce((acc, event) => {
+	// 		const poolInfo = poolToCampaignMap[event.pool.id];
+	// 		if (!poolInfo) return acc; // Skip if pool is not in our campaigns
+	  
+	// 		const { campaignId, beneficiarySide, donationRecipient } = poolInfo;
+	// 		const relevantTokenHolder = beneficiarySide === 'short' ? event.shortTokenHolder : event.longTokenHolder;
+	  
+	// 		if (relevantTokenHolder.toLowerCase() === donationRecipient.toLowerCase()) {
+	// 		  if (!acc[campaignId]) {
+	// 			acc[campaignId] = { sumCommitted: BigInt(0) };
+	// 		  }
+	// 		  acc[campaignId].sumCommitted += BigInt(event.collateralAmount);
+	// 		}
+	  
+	// 		return acc;
+	// 	  }, {} as Record<string, { sumCommitted: bigint }>);
+	  
+	// 	return campaignCommitments;
+	//   }, [subgraphQueries, isLoading, isError, campaigns]);
+
+	//   console.log("processSubgraphData", processSubgraphData)
 
 	// ///// NEWWWW 
 	// // Fetch all the campaigns from the subgraph that the user has donated to.

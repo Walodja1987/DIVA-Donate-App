@@ -158,7 +158,7 @@ export const CampaignSection = () => {
           chainConfigs[chainId].graphUrl,
           queryDIVALiquidity(poolIds)
         )
-		// console.log(`Response for chain ${chainId}:`, response);
+		console.log(`Response for chain ${chainId}:`, response);
         return response.liquidities || []
       }
     }))
