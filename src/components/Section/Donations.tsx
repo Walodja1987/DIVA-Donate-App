@@ -466,27 +466,53 @@ export default function Donations() {
 		
 		if (allQueriesSuccessful) {
 
-		  // Put the data from the query results into a single array (originally separated by chainId)
-		  const flattenedData = subgraphQueries
-			.filter(query => query.isSuccess && query.data)
-			.flatMap(query => query.data);
-			console.log("Flattened data:", flattenedData);
+			// Put the data from the query results into a single array (originally separated by chainId)
+			const flattenedData = subgraphQueries
+				.filter(query => query.isSuccess && query.data)
+				.flatMap(query => query.data);
+				console.log("Flattened data:", flattenedData);
 
-			// Create a map of poolId to campaignId for quick lookup
-			const poolIdToCampaignId = campaigns.reduce((acc, campaign) => {
+			// Transform campaign data into a map from poolId to campaignId, beneficiarySide and donationRecipientAddress
+			// for further processing of the subgraph data (e.g., filter out all events where shortTokenHolder or longTokenHolder didn't equal
+			// the expected donation recipient).
+			const poolDetails = campaigns.reduce((acc, campaign) => {
 				campaign.pools.forEach(pool => {
-				  acc[pool.poolId] = campaign.campaignId;
+				acc[pool.poolId] = {
+					campaignId: campaign.campaignId,
+					beneficiarySide: pool.beneficiarySide,
+					donationRecipientAddress: campaign.donationRecipients[0].address
+				};
 				});
 				return acc;
-			  }, {} as Record<string, string>);
+			}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipientAddress: string }>);
 		  
-			  // Add campaignId to each element in flattenedData
-			  const dataWithCampaignId = flattenedData.map(item => ({
+			// Add campaignId to each element in flattenedData.
+			// Example of an item in dataWithCampaignId array:
+			// {
+			//   beneficiarySide: "short",
+			//   campaignId: "test_ongoing_dUSD_polygon",
+			//   collateralAmount: "1000000000000000000",
+			//   donationRecipientAddress: "0x9adefeb576dcf52f5220709c1b267d89d5208d78",
+			//   eventType: "Added",
+			//   id: "0x3ed05b4c5a4509b15bf6ea9e529fce74d5d6bd5ecbaa839ef83a1a30e2edcdb0-0x4452a2a37d4dbe1227aecce97b93d6b4",
+			//   longTokenHolder: "0x9adefeb576dcf52f5220709c1b267d89d5208d78",
+			//   msgSender: "0x9adefeb576dcf52f5220709c1b267d89d5208d78",
+			//   pool: {
+			//     id: "0x3ed05b4c5a4509b15bf6ea9e529fce74d5d6bd5ecbaa839ef83a1a30e2edcdb0",
+			//     statusFinalReferenceValue: "Open",
+			//     // ... other pool properties -> see `subgraphTypes.ts`
+			//   },
+			//   shortTokenHolder: "0x47566c6c8f70e4f16aa3e7d8eed4a2bdb3f4925b",
+			//   timestamp: "1724276061"
+			// }
+			const enrichedData = flattenedData.map(item => ({
 				...item,
-				campaignId: poolIdToCampaignId[item.pool.id] || 'unknown'
-			  }));
-		  
-			  console.log("Data with campaignId:", dataWithCampaignId);
+				campaignId: poolDetails[item.pool.id].campaignId,
+				beneficiarySide: poolDetails[item.pool.id].beneficiarySide,
+				donationRecipientAddress: poolDetails[item.pool.id].donationRecipientAddress
+			}));
+		
+			console.log("enrichedData:", enrichedData);
 		}
 
 	  }, [subgraphQueries]);
