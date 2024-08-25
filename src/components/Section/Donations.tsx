@@ -48,7 +48,8 @@ import {
 	useDisclosure,
 	Progress,
 	ProgressLabel,
-	Text
+	Text,
+	useFormControlStyles
 } from '@chakra-ui/react'
 
 // Wagmi
@@ -101,6 +102,9 @@ export default function Donations() {
 	  }>({})
 	  
 	  const [campaignsParticipated, setCampaignsParticipated] = useState(0)
+
+	  const [donorTokenBalances, setDonorTokenBalances] = useState<TokenInfoWithBalance[]>([]);
+	  const [activePoolIdsByChain, setActivePoolIdsByChain] = useState<{ [chainId: number]: `0x${string}`[] }>({});
 	  
 	  // RedeemLoading state defined by campaign so that the loading wheel only appears for the campaign that is being redeemed
 	  const [redeemLoading, setRedeemLoading] = useState<{
@@ -306,9 +310,7 @@ export default function Donations() {
 		donorTokenBalance: bigint;
 	};
 
-	  // Step 1: Fetch donor token balances
-	const [donorTokenBalances, setDonorTokenBalances] = useState<TokenInfoWithBalance[]>([]);
-	  
+	  // Step 1: Fetch donor token balances	  
 	// @notice Fetches the balances of the donor tokens for all campaigns for the connected wallet.
 	const fetchDonorTokenBalances = async (userAddress: `0x${string}`) => {
 		// For each campaign in `campaign.json`, extract the donorToken from the `pools` field and other relevant information
@@ -401,15 +403,35 @@ export default function Donations() {
 	//   }, [activeAddress]);
 
 
+	// useEffect(() => {
+	// 	const fetchBalances = async () => {
+	// 	  if (activeAddress) {
+	// 		const balances = await fetchDonorTokenBalances(activeAddress);
+	// 		console.log("balances", balances)
+	// 		setDonorTokenBalances(balances);
+	// 	  }
+	// 	};
+	  
+	// 	fetchBalances();
+	//   }, [activeAddress]);
+
 	useEffect(() => {
-		const fetchBalances = async () => {
+		const fetchBalancesAndComputeActivePools = async () => {
 		  if (activeAddress) {
+			console.log("Fetching balances for address:", activeAddress);
 			const balances = await fetchDonorTokenBalances(activeAddress);
+			console.log("Fetched balances:", balances);
 			setDonorTokenBalances(balances);
+	  
+			const newActivePoolIdsByChain = getActivePoolIdsByChain(balances);
+			console.log("Computed activePoolIdsByChain:", newActivePoolIdsByChain);
+			setActivePoolIdsByChain(newActivePoolIdsByChain);
+		  } else {
+			console.log("No active address, skipping balance fetch");
 		  }
 		};
 	  
-		fetchBalances();
+		fetchBalancesAndComputeActivePools();
 	  }, [activeAddress]);
 
 	// // Use useMemo to fetch and memoize the token balances
@@ -422,7 +444,6 @@ export default function Donations() {
 	  // Update the filter condition in the useMemo hook.
 	  // Active means that the user's donor token balance is greater than 0.
 	  const getActivePoolIdsByChain = useCallback((balances: TokenInfoWithBalance[]) => {
-		console.log("balances", balances)
 		return balances
 		  .filter(info => info.donorTokenBalance > BigInt(0))
 		  .reduce((acc, info) => {
@@ -432,7 +453,7 @@ export default function Donations() {
 		  }, {} as { [chainId: number]: `0x${string}`[] });
 	  }, []);
 	  
-	  const activePoolIdsByChain = getActivePoolIdsByChain(donorTokenBalances);
+	//   const activePoolIdsByChain = getActivePoolIdsByChain(donorTokenBalances);
 
 	  // Step 3: Query subgraph data
 	// The rest of the code remains the same
@@ -453,10 +474,10 @@ export default function Donations() {
 					chainConfigs[chainId].graphUrl,
 					queryDIVALiquidity(poolIds, activeAddress)
 				);
-				console.log(`Response for chain ${chainId}:`, response);
+				// console.log(`Response for chain ${chainId}:`, response);
 				return response.liquidities || [];
 			},
-			enabled: !!activeAddress && poolIds.length > 0
+			enabled: !!activeAddress && poolIds.length > 0 && Object.keys(activePoolIdsByChain).length > 0
 			})
 		)
   	});
@@ -465,12 +486,17 @@ export default function Donations() {
 	  const isError = subgraphQueries?.some(query => query.isError);
 	  const isSuccess = subgraphQueries?.every(query => query.isSuccess);
 
+	console.log("isSuccess", isSuccess)
+
 	useEffect(() => {
+		console.log("Donations component mounted or updated");
 		// Process the campaign data from the subgraph where the user still owns the corresponding donor tokens ("active campaigns")
 		// const allQueriesSuccessful = subgraphQueries.every(query => query.isSuccess);
 		
 		if (isSuccess) {
-
+			console.log("Entered success block")
+			console.log("activePoolIdsByChain", activePoolIdsByChain)
+			console.log("subgraphQueries", subgraphQueries)
 			// Put the data from the query results into a single array (originally separated by chainId)
 			// Example of an item in flattenedData array:
 			// {
@@ -493,7 +519,7 @@ export default function Donations() {
 			const flattenedData = subgraphQueries
 				.filter(query => query.isSuccess && query.data)
 				.flatMap(query => query.data);
-
+			console.log("flattenedData", flattenedData)
 			// Transform campaign data into a map from poolId to campaignId, beneficiarySide and donationRecipientAddress
 			// to be added to the (flattened) subgraph data. This will be used to filter out all events where shortTokenHolder or longTokenHolder didn't equal
 			// the expected donation recipient.
@@ -548,12 +574,14 @@ export default function Donations() {
 			const filteredData = enrichedData.filter(item => 
 				item.beneficiarySide === 'long' && item.longTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase() ||
 				item.beneficiarySide === 'short' && item.shortTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase()
-			);
+			); 
 
 			// Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
 			// Create a map to store the status of each campaign
 			const campaignStatusMap: { [campaignId: string]: CampaignStatus } = {};
 
+			// Get status for each campaign
+			// @todo Use either forEach or reduce consistently, don't mix
 			filteredData.forEach(item => {
 				const campaign = campaigns.find(c => c.campaignId === item.campaignId);
 				if (!campaign) return; // Shouldn't happen but just in case.
@@ -612,12 +640,12 @@ export default function Donations() {
 				};
 				return acc;
 			}, {} as typeof donationStats);
-			
-			setDonationStats(newDonationStats);
+			console.log("bruhhhh", newDonationStats)
+			setDonationStats(newDonationStats); 
 
 		}
 
-	  }, [isLoading, isError, isSuccess]);
+	  }, [isSuccess, activePoolIdsByChain]);
 
 	  
 	// @todo add countCampaignsParticipated logic -> maybe just see whether length is > 0?

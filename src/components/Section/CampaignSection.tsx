@@ -135,7 +135,6 @@ export const CampaignSection = () => {
 	  return acc
 	}, {} as { [chainId: number]: `0x${string}`[] })
   }, [])
-  console.log("poolIdsByChain", poolIdsByChain)
 
   // Create a query for each chain. Using useQueries hook to perform multiple queries in parallel
   // in case there are multiple chains.
