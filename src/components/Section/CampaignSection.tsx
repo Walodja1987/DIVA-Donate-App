@@ -158,7 +158,7 @@ export const CampaignSection = () => {
           chainConfigs[chainId].graphUrl,
           queryDIVALiquidity(poolIds)
         )
-		console.log(`Response for chain ${chainId}:`, response);
+		// console.log(`Response for chain ${chainId}:`, response);
         return response.liquidities || []
       }
     }))
@@ -204,9 +204,7 @@ export const CampaignSection = () => {
 			// Campaigns that are associated with multiple pools, the statusFinalReferenceValue may be different
 			// for each pool for a short period of time.
 			const poolId = data.pool.id;
-			if (!(poolId in poolStatusMap)) {
-				poolStatusMap[poolId] = data.pool.statusFinalReferenceValue as StatusSubgraph;
-			}
+			poolStatusMap[poolId] = data.pool.statusFinalReferenceValue as StatusSubgraph;
 
           // Only consider 'Added' or 'Issued' events
           if (data.eventType === 'Added' || data.eventType === 'Issued') {
@@ -277,20 +275,26 @@ export const CampaignSection = () => {
 		  const isExpiredCampaign = isExpired(Number(campaign.expiryTimestamp)*1000);
 		  const allPoolsConfirmed = Object.values(poolStatusMap).every(status => status === 'Confirmed');
 
-		  if (isExpiredCampaign) {
-			if (allPoolsConfirmed) {
-			  campaignStatus = 'Completed';
-			} else {
-			  campaignStatus = 'Expired';
-			}
-		  } else {
-			campaignStatus = 'Ongoing';
-		  }
+		  // Similar logic as in Donations.tsx
+		let currentStatus: CampaignStatus;
+		if (!isExpiredCampaign) {
+			currentStatus = 'Ongoing';
+		} else if (allPoolsConfirmed) {
+			currentStatus = 'Completed';
+		} else {
+			currentStatus = 'Expired';
+		}
 
-		  // Percentage progress bar to be displayed in the campaign card.
-		  // If the campaign is completed, then the percentage progress bar is the percentage of the donations.
-		  // If the campaign is ongoing or expired but not yet completed, then the percentage progress bar is the percentage of the raised amount.
-		  const percentageProgressBar = campaignStatus === 'Completed' ? percentageDonatedProgress : percentageRaisedProgress;
+		if (campaignStatus === 'Completed' && currentStatus !== 'Completed') {
+			campaignStatus = currentStatus;
+		} else {
+			campaignStatus = currentStatus;
+		}
+
+		// Percentage progress bar to be displayed in the campaign card.
+		// If the campaign is completed, then the percentage progress bar is the percentage of the donations.
+		// If the campaign is ongoing or expired but not yet completed, then the percentage progress bar is the percentage of the raised amount.
+		const percentageProgressBar = campaignStatus === 'Completed' ? percentageDonatedProgress : percentageRaisedProgress;
 
         newStats[campaign.campaignId] = {
           goal: totalGoal,

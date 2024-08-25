@@ -16,6 +16,7 @@ export const queryDIVALiquidity = (poolIds: `0x${string}`[], msgSender?: string)
         payoutShort
         capacity
         collateralBalanceGross
+        expiryTime
       }
       eventType
       collateralAmount

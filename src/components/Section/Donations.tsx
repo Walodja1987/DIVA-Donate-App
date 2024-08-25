@@ -91,9 +91,9 @@ export default function Donations() {
 
 	const [donationStats, setDonationStats] = useState<{
 		[campaignId: string]: {
-		  committed: number,
-		  donated: number,
 		  campaignBalance: number,
+		  donated: number,
+		//   campaignBalance: number,
 		  percentageDonated: number,
 		  claimEnabled: boolean,
 		  status: CampaignStatus
@@ -529,6 +529,7 @@ export default function Donations() {
 			//     collateralBalanceGross: "1000000000000000000",
 			//     payoutLong: "1000000000000000000",
 			//     payoutShort: "1000000000000000000",
+			//     expiryTime: "10001723986393",
 			//   },
 			//   shortTokenHolder: "0x47566c6c8f70e4f16aa3e7d8eed4a2bdb3f4925b",
 			//   timestamp: "1724276061"
@@ -548,7 +549,35 @@ export default function Donations() {
 				item.beneficiarySide === 'long' && item.longTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase() ||
 				item.beneficiarySide === 'short' && item.shortTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase()
 			);
-			console.log("filteredData:", filteredData);
+
+			// Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
+			// Create a map to store the status of each campaign
+			const campaignStatusMap: { [campaignId: string]: CampaignStatus } = {};
+
+			filteredData.forEach(item => {
+				const campaign = campaigns.find(c => c.campaignId === item.campaignId);
+				if (!campaign) return; // Shouldn't happen but just in case.
+
+				const isExpiredCampaign = isExpired(Number(campaign.expiryTimestamp) * 1000); // Could have pulled it from filtereData directly, but would then need to handle multiple poolIds with potentially different expiry times.
+				const poolStatus = item.pool.statusFinalReferenceValue as StatusSubgraph;
+
+				let campaignStatus: CampaignStatus;
+				if (isExpiredCampaign) {
+					if (poolStatus === 'Confirmed') {
+						campaignStatus = 'Completed';
+					} else {
+						campaignStatus = 'Expired';
+					}
+				} else {
+					campaignStatus = 'Ongoing';
+				}
+
+				// Only update the campaignStatusMap if i) there is no status yet for this campaign, or ii) the current status in campaignStatusMap is 'Completed' but the new status is not 'Completed'.
+				// This ensures that if any pool in a campaign is not 'Completed', the campaign status will reflect that, while still allowing a campaign to be marked as 'Completed' if all of its pools are confirmed.
+				if (!campaignStatusMap[item.campaignId] || (campaignStatusMap[item.campaignId] === 'Completed' && campaignStatus !== 'Completed')) {
+					campaignStatusMap[item.campaignId] = campaignStatus;
+				}
+			});
 
 			// Calculate committed (contributed) for each campaign
 			const committedByCampaign = filteredData.reduce((acc, item) => {
@@ -559,7 +588,6 @@ export default function Donations() {
 				acc[item.campaignId] += Number(formatUnits(BigInt(item.collateralAmount), item.decimals));
 				return acc;
 			}, {} as Record<string, number>);
-			console.log("committedByCampaign:", committedByCampaign);
 
 			// Calculate donated (i.e. actually paid out to beneficiaries) for each campaign
 			const donatedByCampaign = filteredData.reduce((acc, item) => {
@@ -569,20 +597,18 @@ export default function Donations() {
 				acc[item.campaignId] += Number(formatUnits(amount * payout, item.decimals * 2)); // formatUnits is used here to divide the amount by 10^decimals due to integer multiplication and then a second time to convert it into a displayable number
 				return acc;
 			}, {} as Record<string, number>);
-			console.log("donatedByCampaign:", donatedByCampaign);
 
 			// After processing committedByCampaign and donatedByCampaign
 			const newDonationStats = Object.keys(committedByCampaign).reduce((acc, campaignId) => {
 				const committed = committedByCampaign[campaignId];
-				console.log("committed", committed)
 				const donated = Number(donatedByCampaign[campaignId] || 0);
 				acc[campaignId] = {
-					committed,
-					donated,
+					campaignBalance: committed,
+					donated: donated,
 					percentageDonated: committed > 0 ? (donated / committed) * 100 : 0,
-					campaignBalance: 0, // @todo update
-					claimEnabled: false, // @todo update
-					status: "Ongoing" as CampaignStatus // @todo update
+					// campaignBalance: 0, // @todo update
+					claimEnabled: campaignStatusMap[campaignId] === 'Completed' && committed * 0.997 - donated > 0, // Enable Claim button if there is something to claim (i.e. committed * 0.997 - donated > 0 )
+					status: campaignStatusMap[campaignId]
 				};
 				return acc;
 			}, {} as typeof donationStats);
@@ -594,7 +620,7 @@ export default function Donations() {
 	  }, [isLoading, isError, isSuccess]);
 
 	  
-	
+	// @todo add countCampaignsParticipated logic -> maybe just see whether length is > 0?
 
 	  console.log("donationStats", donationStats)
 
