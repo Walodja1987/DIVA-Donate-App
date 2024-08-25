@@ -420,17 +420,19 @@ export default function Donations() {
 		)
   	});
 
-	// Check loading, error and isSuccess states of the subgraph queries
+	// Check loading, error and isSuccess states of the subgraph queries. 
+	// isLoading is true if any query is loading.
 	const isLoading = subgraphQueries?.some(query => query.isLoading);
+	// isError is true if any query has an error.
 	const isError = subgraphQueries?.some(query => query.isError);
+	// isSuccess is true if all queries have succeeded.
 	const isSuccess = subgraphQueries?.every(query => query.isSuccess);
 
+	// Steps 4 & 5: Filter subgraph data and calculate donation stats.
+	// Triggers if isSuccess is true or activePoolIdsByChain is set after fetching donor token balances.
 	useEffect(() => {
-		// Process the campaign data from the subgraph where the user still owns the corresponding donor tokens ("active campaigns")
-		// const allQueriesSuccessful = subgraphQueries.every(query => query.isSuccess);
-		
 		if (isSuccess) {
-			// Put the data from the query results into a single array (originally separated by chainId)
+			// Flatten query results from all chains into a single array
 			// Example of an item in flattenedData array:
 			// {
 			// 	id: "0x123...abc-0",
@@ -453,23 +455,22 @@ export default function Donations() {
 				.filter(query => query.isSuccess && query.data)
 				.flatMap(query => query.data);
 
-				// Transform campaign data into a map from poolId to campaignId, beneficiarySide and donationRecipientAddress
-			// to be added to the (flattened) subgraph data. This will be used to filter out all events where shortTokenHolder or longTokenHolder didn't equal
-			// the expected donation recipient.
+			// Create a map of pool details from campaign.json, keyed by poolId.
+			// This map will be attached to the subgraph data to help filter for events where position token recipients match the expected donation recipients.
 			const poolDetails = campaigns.reduce((acc, campaign) => {
 				campaign.pools.forEach(pool => {
-				acc[pool.poolId] = {
-					campaignId: campaign.campaignId,
-					beneficiarySide: pool.beneficiarySide,
-					donationRecipientAddress: campaign.donationRecipients[0].address,
-					decimals: Number(campaign.decimals),
-					chainId: Number(campaign.chainId) as 137 | 42161
-				};
+					acc[pool.poolId] = {
+						campaignId: campaign.campaignId,
+						beneficiarySide: pool.beneficiarySide,
+						donationRecipientAddress: campaign.donationRecipients[0].address,
+						decimals: Number(campaign.decimals),
+						chainId: Number(campaign.chainId) as 137 | 42161
+					};
 				});
 				return acc;
 			}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipientAddress: string, decimals: number, chainId: 137 | 42161 }>);
 		  
-			// Add campaignId to each element in flattenedData.
+			// Attach poolDetails to the flattened data.
 			// Example of an item in dataWithCampaignId array:
 			// {
 			//   beneficiarySide: "short",
@@ -503,7 +504,7 @@ export default function Donations() {
 				chainId: poolDetails[item.pool.id].chainId
 			}));
 		
-			// Filter out all events where shortTokenHolder or longTokenHolder didn't equal the expected donation recipient.
+			// Filter for events where position token recipients match the expected donation recipients.
 			const filteredData = enrichedData.filter(item => 
 				item.beneficiarySide === 'long' && item.longTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase() ||
 				item.beneficiarySide === 'short' && item.shortTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase()
@@ -511,11 +512,10 @@ export default function Donations() {
 
 			// Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
 			// Create a map to store the status of each campaign
-			const campaignStatusMap: { [campaignId: string]: CampaignStatus } = {};
+			// const campaignStatusMap: { [campaignId: string]: CampaignStatus } = {};
 
 			// Get status for each campaign
-			// @todo Use either forEach or reduce consistently, don't mix
-			filteredData.forEach(item => {
+			const campaignStatusMap = filteredData.reduce((acc, item) => {
 				const campaign = campaigns.find(c => c.campaignId === item.campaignId);
 				if (!campaign) return; // Shouldn't happen but just in case.
 
@@ -524,21 +524,22 @@ export default function Donations() {
 
 				let campaignStatus: CampaignStatus;
 				if (isExpiredCampaign) {
-					if (poolStatus === 'Confirmed') {
-						campaignStatus = 'Completed';
-					} else {
-						campaignStatus = 'Expired';
-					}
+					campaignStatus = poolStatus === 'Confirmed' ? 'Completed' : 'Expired';
 				} else {
 					campaignStatus = 'Ongoing';
 				}
 
-				// Only update the campaignStatusMap if i) there is no status yet for this campaign, or ii) the current status in campaignStatusMap is 'Completed' but the new status is not 'Completed'.
-				// This ensures that if any pool in a campaign is not 'Completed', the campaign status will reflect that, while still allowing a campaign to be marked as 'Completed' if all of its pools are confirmed.
-				if (!campaignStatusMap[item.campaignId] || (campaignStatusMap[item.campaignId] === 'Completed' && campaignStatus !== 'Completed')) {
-					campaignStatusMap[item.campaignId] = campaignStatus;
+				// Update the campaignStatusMap if:
+				// i) No status is set yet for the campaign, or
+				// ii) Current status is 'Completed' but the new status is not.
+				// This can happen if a campaign is associated with multiple pools, and those pools may not have Confirmed status at the same time.
+				// This should only occur briefly as pools typically expire and resolve almost simulatenously.
+				if (!acc[item.campaignId] || (acc[item.campaignId] === 'Completed' && campaignStatus !== 'Completed')) {
+					acc[item.campaignId] = campaignStatus;
 				}
-			});
+
+				return acc;
+			}, {} as Record<string, CampaignStatus>);
 
 			// Calculate committed (contributed) for each campaign
 			const committedByCampaign = filteredData.reduce((acc, item) => {
