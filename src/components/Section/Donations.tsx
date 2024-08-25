@@ -530,8 +530,8 @@ export default function Donations() {
 				}
 
 				// Update the campaignStatusMap if:
-				// i) No status is set yet for the campaign, or
-				// ii) Current status is 'Completed' but the new status is not.
+				//   i) No status is set yet for the campaign, or
+				//   ii) Current status is 'Completed' but the new status is not.
 				// This can happen if a campaign is associated with multiple pools, and those pools may not have Confirmed status at the same time.
 				// This should only occur briefly as pools typically expire and resolve almost simulatenously.
 				if (!acc[item.campaignId] || (acc[item.campaignId] === 'Completed' && campaignStatus !== 'Completed')) {
@@ -541,18 +541,18 @@ export default function Donations() {
 				return acc;
 			}, {} as Record<string, CampaignStatus>);
 
-			// Calculate committed (contributed) for each campaign
+			// Calculate committed/contributed for each campaign.
 			const committedByCampaign = filteredData.reduce((acc, item) => {
-				// This line checks if an entry for the current campaign (identified by item.campaignId) already exists in the
-				// accumulator (acc). If it doesn't exist, it initializes a new object for this campaign with a sumCommitted property set to BigInt(0).
+				// Initialize accumulator entry for the campaign if it doesn't exist
 				if (!acc[item.campaignId]) acc[item.campaignId] = 0;
 				// Add collateralAmount to the sumCommitted property of the current campaign.
 				acc[item.campaignId] += Number(formatUnits(BigInt(item.collateralAmount), item.decimals));
 				return acc;
 			}, {} as Record<string, number>);
 
-			// Calculate donated (i.e. actually paid out to beneficiaries) for each campaign
+			// Calculate donated amount (actual payout to beneficiaries) for each campaign
 			const donatedByCampaign = filteredData.reduce((acc, item) => {
+				// Initialize accumulator entry for the campaign if it doesn't exist
 				if (!acc[item.campaignId]) acc[item.campaignId] = 0;
 				const amount = BigInt(item.collateralAmount)
 				const payout = item.beneficiarySide === 'long' ? BigInt(item.pool.payoutLong) : BigInt(item.pool.payoutShort)
@@ -560,21 +560,20 @@ export default function Donations() {
 				return acc;
 			}, {} as Record<string, number>);
 
-			// After processing committedByCampaign and donatedByCampaign
-			const newDonationStats = Object.keys(committedByCampaign).reduce((acc, campaignId) => {
+			// Set the donation stats for the campaign
+			const campaignDonationStats = Object.keys(committedByCampaign).reduce((acc, campaignId) => {
 				const committed = committedByCampaign[campaignId];
 				const donated = Number(donatedByCampaign[campaignId] || 0);
 				acc[campaignId] = {
 					campaignBalance: committed, // @todo consider renaming campaignBalance to committed
 					donated: donated,
 					percentageDonated: committed > 0 ? (donated / committed) * 100 : 0,
-					// campaignBalance: 0, // @todo update
 					claimEnabled: campaignStatusMap[campaignId] === 'Completed' && committed * 0.997 - donated > 0, // Enable Claim button if there is something to claim (i.e. committed * 0.997 - donated > 0 )
 					status: campaignStatusMap[campaignId]
 				};
 				return acc;
 			}, {} as typeof donationStats);
-			setDonationStats(newDonationStats); 
+			setDonationStats(campaignDonationStats); 
 		}
 
 	  }, [isSuccess, activePoolIdsByChain]);
