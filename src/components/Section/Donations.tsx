@@ -461,12 +461,15 @@ export default function Donations() {
 		)
   	});
 
+	  const isLoading = subgraphQueries?.some(query => query.isLoading);
+	  const isError = subgraphQueries?.some(query => query.isError);
+	  const isSuccess = subgraphQueries?.every(query => query.isSuccess);
 
 	useEffect(() => {
 		// Process the campaign data from the subgraph where the user still owns the corresponding donor tokens ("active campaigns")
-		const allQueriesSuccessful = subgraphQueries.every(query => query.isSuccess);
+		// const allQueriesSuccessful = subgraphQueries.every(query => query.isSuccess);
 		
-		if (allQueriesSuccessful) {
+		if (isSuccess) {
 
 			// Put the data from the query results into a single array (originally separated by chainId)
 			// Example of an item in flattenedData array:
@@ -547,51 +550,50 @@ export default function Donations() {
 			);
 			console.log("filteredData:", filteredData);
 
-			// Calculate committed for each campaign
+			// Calculate committed (contributed) for each campaign
 			const committedByCampaign = filteredData.reduce((acc, item) => {
 				// This line checks if an entry for the current campaign (identified by item.campaignId) already exists in the
 				// accumulator (acc). If it doesn't exist, it initializes a new object for this campaign with a sumCommitted property set to BigInt(0).
-				if (!acc[item.campaignId]) acc[item.campaignId] = { sumCommitted: BigInt(0) };
+				if (!acc[item.campaignId]) acc[item.campaignId] = 0;
 				// Add collateralAmount to the sumCommitted property of the current campaign.
-					acc[item.campaignId].sumCommitted += BigInt(item.collateralAmount);
+				acc[item.campaignId] += Number(formatUnits(BigInt(item.collateralAmount), item.decimals));
 				return acc;
-			}, {} as Record<string, { sumCommitted: bigint }>);
+			}, {} as Record<string, number>);
 			console.log("committedByCampaign:", committedByCampaign);
 
-			// Calculate donated for each campaign
+			// Calculate donated (i.e. actually paid out to beneficiaries) for each campaign
 			const donatedByCampaign = filteredData.reduce((acc, item) => {
-				if (!acc[item.campaignId]) acc[item.campaignId] = { sumDonated: BigInt(0) };
+				if (!acc[item.campaignId]) acc[item.campaignId] = 0;
 				const amount = BigInt(item.collateralAmount)
 				const payout = item.beneficiarySide === 'long' ? BigInt(item.pool.payoutLong) : BigInt(item.pool.payoutShort)
-					acc[item.campaignId].sumDonated += BigInt(formatUnits(amount * payout, item.decimals)); // formatUnits is used here to divide the amount by 10^decimals due to integer multiplication
+				acc[item.campaignId] += Number(formatUnits(amount * payout, item.decimals * 2)); // formatUnits is used here to divide the amount by 10^decimals due to integer multiplication and then a second time to convert it into a displayable number
 				return acc;
-			}, {} as Record<string, { sumDonated: bigint }>);
+			}, {} as Record<string, number>);
 			console.log("donatedByCampaign:", donatedByCampaign);
 
-			// // After processing committedByCampaign and donatedByCampaign
-			// const newDonationStats = Object.keys(committedByCampaign).reduce((acc, campaignId) => {
-			// 	const committed = Number(committedByCampaign[campaignId]);
-			// 	const donated = Number(donatedByCampaign[campaignId] || 0);
-			// 	acc[campaignId] = {
-			// 		committed,
-			// 		donated,
-			// 		percentageDonated: committed > 0 ? (donated / committed) * 100 : 0,
-			// 		campaignBalance: 0, // @todo update
-			// 		claimEnabled: false, // @todo update
-			// 		status: "Ongoing" as CampaignStatus // @todo update
-			// 	};
-			// 	return acc;
-			// }, {} as typeof donationStats);
+			// After processing committedByCampaign and donatedByCampaign
+			const newDonationStats = Object.keys(committedByCampaign).reduce((acc, campaignId) => {
+				const committed = committedByCampaign[campaignId];
+				console.log("committed", committed)
+				const donated = Number(donatedByCampaign[campaignId] || 0);
+				acc[campaignId] = {
+					committed,
+					donated,
+					percentageDonated: committed > 0 ? (donated / committed) * 100 : 0,
+					campaignBalance: 0, // @todo update
+					claimEnabled: false, // @todo update
+					status: "Ongoing" as CampaignStatus // @todo update
+				};
+				return acc;
+			}, {} as typeof donationStats);
 			
-			// setDonationStats(newDonationStats);
+			setDonationStats(newDonationStats);
 
 		}
 
-	  }, [subgraphQueries]);
+	  }, [isLoading, isError, isSuccess]);
 
-	  const isLoading = subgraphQueries?.some(query => query.isLoading);
-	  const isError = subgraphQueries?.some(query => query.isError);
-	  const isSuccess = subgraphQueries?.every(query => query.isSuccess);
+	  
 	
 
 	  console.log("donationStats", donationStats)
