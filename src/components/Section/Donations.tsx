@@ -71,25 +71,11 @@ import {
 // Subgraph queries
 import { queryDIVALiquidity } from '@/queries/divaSubgraph'
 
+// Step 1: Fetch donor token balances and 
+// Step 2: Get activePoolIdsByChain
+// Step 3: Query subgraph data
+// Step 4: Process subgraph data by filtering out relevant events
 export default function Donations() {
-	// const [redeemLoading, setRedeemLoading] = useState<{
-	// 	[campaignId: string]: boolean
-	// }>({})
-	// const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
-	// const [campaignBalance, setCampaignBalance] = useState<{
-	// 	[campaignId: string]: number
-	// }>({})
-	// const [percentageDonated, setPercentageDonated] = useState<{
-	// 	[campaignId: string]: number
-	// }>({})
-	// const [claimEnabled, setClaimEnabled] = useState<{
-	// 	[campaignId: string]: boolean
-	// }>({})
-	// const [campaignsParticipated, setCampaignsParticipated] = useState(0)
-	// const [statusFinalReferenceValue, setStatusFinalReferenceValue] = useState<{
-	// 	[campaignId: string]: Status
-	// }>({})
-
 	const [donationStats, setDonationStats] = useState<{
 		[campaignId: string]: {
 		  campaignBalance: number,
@@ -112,14 +98,11 @@ export default function Donations() {
 	  }>({})
 
 	// Privy hooks
-	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
-	const {wallets, ready: walletsReady} = useWallets();
+	const { connectWallet } = usePrivy();
+	const { wallets} = useWallets();
 	const wallet = wallets[0] // active/connected wallet
 
 	const { address: activeAddress, isConnected, chain, chainId } = useAccount()
-
-	// const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
-
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
 	// // Get the name of the campaign chain to display in the switch wallet message inside the DonationCard component
@@ -386,72 +369,41 @@ export default function Donations() {
 			}));
 		  }			
 	  };
-
-	// useEffect(() => {
-	// 	if (activeAddress) {
-	// 	  const fetchBalances = async () => {
-	// 		try {
-	// 		  const balances = await fetchDonorTokenBalances(activeAddress);
-	// 		  console.log('Donor token balances:', balances);
-	// 		} catch (error) {
-	// 		  console.error('Error fetching donor token balances:', error);
-	// 		}
-	// 	  };
-	  
-	// 	  fetchBalances();
-	// 	}
-	//   }, [activeAddress]);
+	
 
 
-	// useEffect(() => {
-	// 	const fetchBalances = async () => {
-	// 	  if (activeAddress) {
-	// 		const balances = await fetchDonorTokenBalances(activeAddress);
-	// 		console.log("balances", balances)
-	// 		setDonorTokenBalances(balances);
-	// 	  }
-	// 	};
-	  
-	// 	fetchBalances();
-	//   }, [activeAddress]);
 
+	// Update the filter condition in the useMemo hook.
+	// Active means that the user's donor token balance is greater than 0.
+	const getActivePoolIdsByChain = useCallback((balances: TokenInfoWithBalance[]) => {
+	return balances
+		.filter(info => info.donorTokenBalance > BigInt(0))
+		.reduce((acc, info) => {
+		if (!acc[info.chainId]) acc[info.chainId] = [];
+		acc[info.chainId].push(info.poolId);
+		return acc;
+		}, {} as { [chainId: number]: `0x${string}`[] });
+	}, []);
+
+	
+
+	// Fetches user's donor token balances and extract the active poolIds by chain.
+	// Active pools are those where the user has a non-zero balance of donor tokens,
+	// indicating an outstanding contribution or unclaimed funds.
+	// Triggers on component mount and when activeAddress changes.
 	useEffect(() => {
-		const fetchBalancesAndComputeActivePools = async () => {
+		(async () => {
 		  if (activeAddress) {
-			console.log("Fetching balances for address:", activeAddress);
-			const balances = await fetchDonorTokenBalances(activeAddress);
-			console.log("Fetched balances:", balances);
-			setDonorTokenBalances(balances);
-	  
+			const balances = await fetchDonorTokenBalances(activeAddress);	  
 			const newActivePoolIdsByChain = getActivePoolIdsByChain(balances);
-			console.log("Computed activePoolIdsByChain:", newActivePoolIdsByChain);
 			setActivePoolIdsByChain(newActivePoolIdsByChain);
 		  } else {
 			console.log("No active address, skipping balance fetch");
 		  }
-		};
-	  
-		fetchBalancesAndComputeActivePools();
+		})();
 	  }, [activeAddress]);
 
-	// // Use useMemo to fetch and memoize the token balances
-	// const donorTokenBalances = useMemo(async () => {
-	// 	if (!activeAddress) return [];
-	// 	return await fetchDonorTokenBalances(activeAddress);
-	//   }, [activeAddress]);
-
-	  // Step 2: Get activePoolIdsByChain
-	  // Update the filter condition in the useMemo hook.
-	  // Active means that the user's donor token balance is greater than 0.
-	  const getActivePoolIdsByChain = useCallback((balances: TokenInfoWithBalance[]) => {
-		return balances
-		  .filter(info => info.donorTokenBalance > BigInt(0))
-		  .reduce((acc, info) => {
-			if (!acc[info.chainId]) acc[info.chainId] = [];
-			acc[info.chainId].push(info.poolId);
-			return acc;
-		  }, {} as { [chainId: number]: `0x${string}`[] });
-	  }, []);
+	  
 	  
 	//   const activePoolIdsByChain = getActivePoolIdsByChain(donorTokenBalances);
 
@@ -482,21 +434,16 @@ export default function Donations() {
 		)
   	});
 
-	  const isLoading = subgraphQueries?.some(query => query.isLoading);
-	  const isError = subgraphQueries?.some(query => query.isError);
-	  const isSuccess = subgraphQueries?.every(query => query.isSuccess);
-
-	console.log("isSuccess", isSuccess)
+	// Check loading, error and isSuccess states of the subgraph queries
+	const isLoading = subgraphQueries?.some(query => query.isLoading);
+	const isError = subgraphQueries?.some(query => query.isError);
+	const isSuccess = subgraphQueries?.every(query => query.isSuccess);
 
 	useEffect(() => {
-		console.log("Donations component mounted or updated");
 		// Process the campaign data from the subgraph where the user still owns the corresponding donor tokens ("active campaigns")
 		// const allQueriesSuccessful = subgraphQueries.every(query => query.isSuccess);
 		
 		if (isSuccess) {
-			console.log("Entered success block")
-			console.log("activePoolIdsByChain", activePoolIdsByChain)
-			console.log("subgraphQueries", subgraphQueries)
 			// Put the data from the query results into a single array (originally separated by chainId)
 			// Example of an item in flattenedData array:
 			// {
@@ -519,8 +466,8 @@ export default function Donations() {
 			const flattenedData = subgraphQueries
 				.filter(query => query.isSuccess && query.data)
 				.flatMap(query => query.data);
-			console.log("flattenedData", flattenedData)
-			// Transform campaign data into a map from poolId to campaignId, beneficiarySide and donationRecipientAddress
+
+				// Transform campaign data into a map from poolId to campaignId, beneficiarySide and donationRecipientAddress
 			// to be added to the (flattened) subgraph data. This will be used to filter out all events where shortTokenHolder or longTokenHolder didn't equal
 			// the expected donation recipient.
 			const poolDetails = campaigns.reduce((acc, campaign) => {
@@ -631,7 +578,7 @@ export default function Donations() {
 				const committed = committedByCampaign[campaignId];
 				const donated = Number(donatedByCampaign[campaignId] || 0);
 				acc[campaignId] = {
-					campaignBalance: committed,
+					campaignBalance: committed, // @todo consider renaming campaignBalance to committed
 					donated: donated,
 					percentageDonated: committed > 0 ? (donated / committed) * 100 : 0,
 					// campaignBalance: 0, // @todo update
@@ -640,18 +587,13 @@ export default function Donations() {
 				};
 				return acc;
 			}, {} as typeof donationStats);
-			console.log("bruhhhh", newDonationStats)
 			setDonationStats(newDonationStats); 
-
 		}
 
 	  }, [isSuccess, activePoolIdsByChain]);
 
 	  
 	// @todo add countCampaignsParticipated logic -> maybe just see whether length is > 0?
-
-	  console.log("donationStats", donationStats)
-
 	  
 
 	// Updates the loading state for a specific campaign's redeem action.
@@ -772,8 +714,6 @@ export default function Donations() {
 				...tokenContract,
 				functionName: 'decimals',
 			}) as bigint
-			console.log('chainId', Number(campaign.chainId))
-			console.log('decimals', decimals)
 			const symbol = await readContract(wagmiConfig, {
 				...tokenContract,
 				functionName: 'symbol',
@@ -798,12 +738,6 @@ export default function Donations() {
 			}
 		}
 	}
-
-
-	type donorTokenBalance = {
-		poolParams: Pool;
-		balance: bigint;
-	};
 
 	if (isLoading) return <div>Loading campaign data...</div>
 	if (isError) return <div>Error loading campaign data</div>
