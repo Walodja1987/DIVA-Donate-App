@@ -473,8 +473,8 @@ export default function Donations() {
 				console.log("Flattened data:", flattenedData);
 
 			// Transform campaign data into a map from poolId to campaignId, beneficiarySide and donationRecipientAddress
-			// for further processing of the subgraph data (e.g., filter out all events where shortTokenHolder or longTokenHolder didn't equal
-			// the expected donation recipient).
+			// to be added to the (flattened) subgraph data. This will be used to filter out all events where shortTokenHolder or longTokenHolder didn't equal
+			// the expected donation recipient.
 			const poolDetails = campaigns.reduce((acc, campaign) => {
 				campaign.pools.forEach(pool => {
 				acc[pool.poolId] = {
@@ -513,6 +513,24 @@ export default function Donations() {
 			}));
 		
 			console.log("enrichedData:", enrichedData);
+
+			// Filter out all events where shortTokenHolder or longTokenHolder didn't equal the expected donation recipient.
+			const filteredData = enrichedData.filter(item => 
+				item.beneficiarySide === 'long' && item.longTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase() ||
+				item.beneficiarySide === 'short' && item.shortTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase()
+			);
+			console.log("filteredData:", filteredData);
+
+			// Calculate statistics on campaign level
+			const campaignStatistics = filteredData.reduce((acc, item) => {
+				// This line checks if an entry for the current campaign (identified by item.campaignId) already exists in the
+				// accumulator (acc). If it doesn't exist, it initializes a new object for this campaign with a sumCommitted property set to BigInt(0).
+				if (!acc[item.campaignId]) acc[item.campaignId] = { sumCommitted: BigInt(0) };
+				// Add collateralAmount to the sumCommitted property of the current campaign.
+					acc[item.campaignId].sumCommitted += BigInt(item.collateralAmount);
+				return acc;
+			}, {} as Record<string, { sumCommitted: bigint }>);
+			console.log("campaignStatistics:", campaignStatistics);
 		}
 
 	  }, [subgraphQueries]);
