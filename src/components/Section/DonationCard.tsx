@@ -73,9 +73,6 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	openConnectModal,
 	handleSwitchNetwork,
 }) => {
-	console.log("insufficientFunds", insufficientFunds)
-	console.log("approveEnabled", approveEnabled)
-	console.log("donateEnabled", donateEnabled)
 	return (
 		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px]">
 			<div className="mb-10">

@@ -27,6 +27,7 @@
     "decimals": "6",
     "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1686463200"
   },
   {
@@ -63,6 +64,7 @@
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1704106740"
   },
   {
@@ -93,6 +95,7 @@
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1718042400"
   },
   {
@@ -123,6 +126,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1823973314"
   },
   {
@@ -153,6 +157,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1723972678"
   },
   {
@@ -183,6 +188,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1723973652"
   },
   {
@@ -213,6 +219,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "42161",
+    "chainName": "Arbitrum One",
     "expiryTimestamp": "10001723986393"
   },
   {
@@ -243,6 +250,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "42161",
+    "chainName": "Arbitrum One",
     "expiryTimestamp": "1723986802"
   },
   {
@@ -273,6 +281,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "42161",
+    "chainName": "Arbitrum One",
     "expiryTimestamp": "1723986861"
   }
 ]

@@ -87,7 +87,7 @@ export default function Donations() {
 		}
 	}>({})
 	  
-	const [campaignsParticipated, setCampaignsParticipated] = useState(0)
+	const [hasActiveCampaigns, setHasActiveCampaigns] = useState(false);
 	const [activePoolIdsByChain, setActivePoolIdsByChain] = useState<{ [chainId: number]: `0x${string}`[] }>({});
 	
 	// RedeemLoading state defined by campaign so that the loading wheel only appears for the campaign that is being redeemed
@@ -510,6 +510,8 @@ export default function Donations() {
 				item.beneficiarySide === 'short' && item.shortTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase()
 			); 
 
+			setHasActiveCampaigns(filteredData.length > 0);
+
 			// Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
 			// Create a map to store the status of each campaign
 			// const campaignStatusMap: { [campaignId: string]: CampaignStatus } = {};
@@ -739,7 +741,7 @@ export default function Donations() {
 				<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
 			</div>
 			{/* @todo improve that part as it will show this message even when wallet is disconnected */}
-			{(campaignsParticipated === 0 && !isOpen) && (
+			{(!hasActiveCampaigns && !isOpen) && (
 				<div className="pb-[23rem] flex flex-col items-center justify-center">
 					<p className="mt-[60px]">{`There are no outstanding donations`}</p>
 					<Link href="/">
@@ -753,6 +755,8 @@ export default function Donations() {
 			)}
 			<div className="flex flex-row flex-wrap gap-10 justify-center">
 				{campaigns.map((campaign: Campaign) => {
+					console.log(campaign)
+					// @todo Consider aligning this part with Campaign section where expiryTimestamp is included in campaignStats
 					const expiryTimestamp = Number(campaign.expiryTimestamp)*1000
 					if (donationStats[campaign.campaignId]?.campaignBalance > 0) {
 						return (
@@ -772,7 +776,7 @@ export default function Donations() {
 										<div
 											className={`
 										${
-											isExpired(expiryTimestamp)
+											donationStats[campaign.campaignId]?.status !== 'Ongoing'
 												? 'bg-[#005C53] text-white'
 												: 'bg-[#DBF227] text-green-[#042940]'
 										}
@@ -781,11 +785,11 @@ export default function Donations() {
 											{expiryTimestamp && (
 												<span className="mt-1 inline-block align-middle">
 													<b>
-														{isExpired(expiryTimestamp)
+														{donationStats[campaign.campaignId]?.status !== 'Ongoing'
 															? 'Completed'
 															: 'Expiry:'}
 													</b>
-													{isExpired(expiryTimestamp)
+													{donationStats[campaign.campaignId]?.status !== 'Ongoing'
 														? null
 														: ` ${formatDate(expiryTimestamp)}`}
 												</span>
@@ -807,7 +811,7 @@ export default function Donations() {
 									</div>
 
 									{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-									{chainId === chainConfig.chainId ? (
+									{chainId === Number(campaign.chainId) ? (
 										<>
 											<Modal isCentered isOpen={isOpen} onClose={onClose}>
 												<ModalOverlay
@@ -866,7 +870,7 @@ export default function Donations() {
 
 									{isConnected ? (
 										<>
-											{chainId === chainConfig.chainId ? (
+											{chainId === Number(campaign.chainId) ? (
 												<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
 													<div className="flex flex-col items-center justify-center">
 														<dt className="mb-2 font-medium text-xl text-[#042940]">
@@ -889,9 +893,7 @@ export default function Donations() {
 														<dd className="font-normal text-base text-[#042940] ">
 															$
 															{donationStats[campaign.campaignId]?.donated && !isNaN(donationStats[campaign.campaignId]?.donated)
-																? Number(donationStats[campaign.campaignId]?.donated).toFixed(
-																		1
-																  )
+																? Number(donationStats[campaign.campaignId]?.donated).toFixed(1)
 																: 0.0}
 														</dd>
 													</div>
@@ -907,7 +909,7 @@ export default function Donations() {
 																connect
 															</button>
 														</span>
-														{` to the ${chainConfig.name} network.`}
+														{` to the ${campaign.chainName} network.`}
 													</div>
 												</div>
 											)}
@@ -923,7 +925,7 @@ export default function Donations() {
 														connect
 													</button>
 												</span>
-												{` to the ${chainConfig.name} network.`}
+												{` to the ${campaign.chainName} network.`}
 											</div>
 										</div>
 									)}
@@ -951,8 +953,7 @@ export default function Donations() {
 											onClick={() => handleRedeemPositionToken(campaign)}
 											type="button"
 											className="disabled:hover:bg-[#042940] disabled:opacity-25 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
-											{isExpired(expiryTimestamp) &&
-											donationStats[campaign.campaignId]?.statusFinalReferenceValue !== 3
+											{donationStats[campaign.campaignId]?.status === 'Expired'
 												? 'In Settlement'
 												: 'Claim Unfunded Amount'}
 										</button>
