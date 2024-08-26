@@ -44,7 +44,7 @@ interface DonationCardProps {
 	handleDonation: () => void
 	donateEnabled: boolean
 	openConnectModal: (() => void) | undefined
-	handleSwitchNetwork: () => void
+	handleSwitchNetwork: (campaignChainId: number) => void
 }
 
 export const DonationCard: React.FC<DonationCardProps> = ({
@@ -214,8 +214,9 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 						</>
 					) : (
 						<UnsupportedNetworkModal
-							handleSwitchNetwork={handleSwitchNetwork}
+							handleSwitchNetwork={() => handleSwitchNetwork(Number(campaignChainId))}
 							campaignChainName={campaignChainName}
+							campaignChainId={campaignChainId}
 						/>
 					)}
 				</>
@@ -302,18 +303,19 @@ const CustomButton: React.FC<any> = ({
 const UnsupportedNetworkModal: React.FC<any> = ({
 	handleSwitchNetwork,
 	campaignChainName,
+	campaignChainId,
 }) => (
 	<div className="mb-10 flex flex-col items-center justify-center gap-6">
 		<div>
 			<img src="/Images/error-icon.svg" alt="error" />
 		</div>
-		<div className="text-xl font-lora text-[#042940]">This campaign is run on the {campaignChainName} network</div>
+		<div className="text-xl font-lora text-[#042940] text-center">This campaign is run on the {campaignChainName} network</div>
 		<Button
 			className="bg-blue-600 text-white rounded-xl"
 			bg="blue.600"
 			color="white"
 			_hover={{ bg: 'blue.700' }}
-			onClick={handleSwitchNetwork}>
+			onClick={() => handleSwitchNetwork(Number(campaignChainId))}>
 			Switch to {campaignChainName}
 		</Button>
 	</div>

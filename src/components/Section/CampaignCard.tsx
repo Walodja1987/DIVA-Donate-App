@@ -161,9 +161,29 @@ export const CampaignCard: React.FC<{
 	// 	// router.push('/login');
 	// }
 
-	const handleSwitchNetwork = async () => {
-		await wallet.switchChain(campaignChainId);
-	}
+	const handleSwitchNetwork = async (campaignChainId: number) => {
+		try {
+		  await wallet.switchChain(campaignChainId);
+		  // Optionally, you can add a success message or trigger a state update here
+		  console.log(`Successfully switched to chain ${campaignChainId}`);
+		} catch (error) {
+		  if (error instanceof Error) {
+			// Check if the error is due to the user rejecting the request
+			if (error.message.includes('User rejected the request')) {
+			  console.log('User rejected the network switch');
+			  // You can show a user-friendly message here, e.g., using a toast notification
+			  // toast.error('Network switch was cancelled. Please try again to interact with this campaign.');
+			} else {
+			  console.error('Error switching network:', error.message);
+			  // Handle other types of errors
+			  // toast.error('Failed to switch network. Please try again.');
+			}
+		  } else {
+			console.error('An unknown error occurred while switching network');
+			// toast.error('An unexpected error occurred. Please try again.');
+		  }
+		}
+	  };
 	
 	const checkAllowanceAndBalance = async () => {
 		// Replace commas in the `amount` string with dots to match desired format (e.g., 7.31 instead of 7,31)

@@ -263,9 +263,33 @@ export default function Donations() {
 	// 	}
 	//   }, [isLoading, isError, activeAddress]);
 
+	// const handleSwitchNetwork = async (campaignChainId: number) => {
+	// 	await wallet.switchChain(campaignChainId);
+	// }
+
 	const handleSwitchNetwork = async (campaignChainId: number) => {
-		await wallet.switchChain(campaignChainId);
-	}
+		try {
+		  await wallet.switchChain(campaignChainId);
+		  // Optionally, you can add a success message or trigger a state update here
+		  console.log(`Successfully switched to chain ${campaignChainId}`);
+		} catch (error) {
+		  if (error instanceof Error) {
+			// Check if the error is due to the user rejecting the request
+			if (error.message.includes('User rejected the request')) {
+			  console.log('User rejected the network switch');
+			  // You can show a user-friendly message here, e.g., using a toast notification
+			  // toast.error('Network switch was cancelled. Please try again to interact with this campaign.');
+			} else {
+			  console.error('Error switching network:', error.message);
+			  // Handle other types of errors
+			  // toast.error('Failed to switch network. Please try again.');
+			}
+		  } else {
+			console.error('An unknown error occurred while switching network');
+			// toast.error('An unexpected error occurred. Please try again.');
+		  }
+		}
+	  };
 
 	
 
@@ -564,13 +588,16 @@ export default function Donations() {
 
 			// Set the donation stats for the campaign
 			const campaignDonationStats = Object.keys(committedByCampaign).reduce((acc, campaignId) => {
+				const campaign = campaigns.find(c => c.campaignId === campaignId);
+				if (!campaign) return; // Shouldn't happen but just in case.
+
 				const committed = committedByCampaign[campaignId];
 				const donated = Number(donatedByCampaign[campaignId] || 0);
 				acc[campaignId] = {
 					campaignBalance: committed, // @todo consider renaming campaignBalance to committed
 					donated: donated,
 					percentageDonated: committed > 0 ? (donated / committed) * 100 : 0,
-					claimEnabled: campaignStatusMap[campaignId] === 'Completed' && committed * 0.997 - donated > 0, // Enable Claim button if there is something to claim (i.e. committed * 0.997 - donated > 0 )
+					claimEnabled: chainId === Number(campaign.chainId) && campaignStatusMap[campaignId] === 'Completed' && committed * 0.997 - donated > 0, // Enable Claim button if there is something to claim (i.e. committed * 0.997 - donated > 0 )
 					status: campaignStatusMap[campaignId]
 				};
 				return acc;
@@ -578,7 +605,7 @@ export default function Donations() {
 			setDonationStats(campaignDonationStats); 
 		}
 
-	  }, [isSuccess, activePoolIdsByChain]);
+	  }, [isSuccess, activePoolIdsByChain, chainId]);
 
 	  
 	// @todo add countCampaignsParticipated logic -> maybe just see whether length is > 0?
@@ -755,7 +782,6 @@ export default function Donations() {
 			)}
 			<div className="flex flex-row flex-wrap gap-10 justify-center">
 				{campaigns.map((campaign: Campaign) => {
-					console.log(campaign)
 					// @todo Consider aligning this part with Campaign section where expiryTimestamp is included in campaignStats
 					const expiryTimestamp = Number(campaign.expiryTimestamp)*1000
 					if (donationStats[campaign.campaignId]?.campaignBalance > 0) {
@@ -905,7 +931,7 @@ export default function Donations() {
 														<span>
 															<button
 																className="p-2 text-blue-600"
-																onClick={() => handleSwitchNetwork(chainConfig.chainId)}>
+																onClick={() => handleSwitchNetwork(Number(campaign.chainId))}>
 																connect
 															</button>
 														</span>
