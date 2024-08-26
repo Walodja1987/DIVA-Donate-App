@@ -105,6 +105,8 @@ export default function Donations() {
 	// Wagmi hooks
 	const { address: activeAddress, isConnected, chain, chainId } = useAccount()
 
+	console.log("isConnected", isConnected)
+
 	// Chakra hooks
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
@@ -601,7 +603,21 @@ export default function Donations() {
 				<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
 			</div>
 			{/* @todo improve that part as it will show this message even when wallet is disconnected */}
-			{(!hasActiveCampaigns && !isOpen) && (
+			{!isConnected && (
+				<div className="pb-[23rem] flex flex-col items-center justify-center">
+				<p className="mt-[60px]">
+				  Please
+				  <button
+					className="p-2 text-blue-600 underline"
+					onClick={connectWallet}
+				  >
+					connect your wallet
+				  </button>
+				  to view your donations
+				</p>
+			  </div>
+			)}
+			{(!hasActiveCampaigns && !isOpen && isConnected) && (
 				<div className="pb-[23rem] flex flex-col items-center justify-center">
 					<p className="mt-[60px]">{`There are no outstanding donations`}</p>
 					<Link href="/">
