@@ -27,6 +27,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1823973314"
   },
   {
@@ -57,6 +58,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1723972678"
   },
   {
@@ -87,6 +89,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1723973652"
   },
   {
@@ -117,6 +120,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "42161",
+    "chainName": "Arbitrum One",
     "expiryTimestamp": "10001723986393"
   },
   {
@@ -147,6 +151,7 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "42161",
+    "chainName": "Arbitrum One",
     "expiryTimestamp": "1723986802"
   },
   {
@@ -177,6 +182,38 @@
     "decimals": "18",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "42161",
+    "chainName": "Arbitrum One",
     "expiryTimestamp": "1723986861"
+  },
+  {
+    "campaignId": "test_claim_dUSD_arbitrum",
+    "pools": [
+      {
+        "poolId": "0x754528b01c35bb5ca69f5d6418f194acd2d53a536e132f729515555dba945424",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59",
+        "donorToken": "0x664E9390DB669f67DC76d2D38b43CbA51a25Abb3"
+      }
+    ],
+    "img": "/Images/pastoralists_mar_may_2024.jpg",
+    "path": "/campaign/test_claim_dUSD_arbitrum",
+    "title": "test_claim_dUSD_arbitrum",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x47566C6c8f70E4F16Aa3E7D8eED4a2bDb3f4925b",
+        "url": "https://arbiscan.io/address/0x2e33876d29bac51e1ffd128659bf9d36ba13259d"
+      }
+    ],
+    "goal": "300",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xFA158C9B780A4213f3201Ae74Cca013712c8538d",
+    "decimals": "18",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "42161",
+    "chainName": "Arbitrum One",
+    "expiryTimestamp": "1724709407"
   }
 ]

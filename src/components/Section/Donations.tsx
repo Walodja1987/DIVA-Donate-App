@@ -18,7 +18,7 @@ import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 
 // viem
-import { formatUnits } from 'viem'
+import { formatUnits, parseUnits } from 'viem'
 
 // Assets
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
@@ -95,6 +95,8 @@ export default function Donations() {
 	[campaignId: string]: boolean
 	}>({})
 
+	const [balanceUpdateTrigger, setBalanceUpdateTrigger] = useState(0);
+
 	// Privy hooks
 	const { connectWallet } = usePrivy();
 	const { wallets} = useWallets();
@@ -105,167 +107,6 @@ export default function Donations() {
 
 	// Chakra hooks
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
-
-	// // Get the name of the campaign chain to display in the switch wallet message inside the DonationCard component
-	// const chains = getChains(wagmiConfig)
-	// const campaignChainId = Number(campaign.chainId)
-	// const campaignChainName = chains.find((chain) => chain.id === campaignChainId)?.name
-	
-	// // Group pool IDs by chain ID. Using the `reduce` method on the campaigns array to iterate
-	// // over all campaigns and accumulate a result.
-	// // Example output:
-	// // {
-	// // 	"137": ["0x12...9ab", "0x45...567"],
-	// // 	"42161": ["0xde...234"]
-	// // }
-
-	// 	// Create a query for each chain. Using useQueries hook to perform multiple queries in parallel
-	// 	// in case there are multiple chains.
-	// 	// The result, chainQueries, is an array of query results, one for each chain.
-	// 	// Each query result object contains properties like data, isLoading, isError, etc., which we can use to handle the state of each query.
-	//   const chainQueries = useQueries({
-	// 	// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
-	// 	// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
-	// 	// Example:
-	// 	// [
-	// 	// 	[137, ["0x12...9ab", "0x45...567"]],
-	// 	// 	[42161, ["0xde...234"]]
-	// 	// ]
-	// 	queries: Object.entries(poolIdsByChain).map(([chainId, poolIds]) => ({
-	// 	  		// Set unique identifier for the query.
-	// 		queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
-	// 	  	  // Define the query function that fetches the data for the given chain and pool IDs.
-	// 		queryFn: async () => {
-	// 		const response = await request<DIVALiquidityResponse>(
-	// 		  chainConfigs[chainId].graphUrl,
-	// 		  queryDIVALiquidity(poolIds, activeAddress)
-	// 		)
-	// 		return response.liquidities || []
-	// 	  },
-	// 	  enabled: !!activeAddress
-	// 	}))
-	//   })
-
-	  // Check if any of the queries are still loading or if there was an error.
-	// const isLoading = chainQueries?.some(query => query.isLoading)
-	// const isError = chainQueries?.some(query => query.isError)
-
-	// const fetchDonationStatsFromDIVASubgraph = () => {
-    //     // Combine liquidity event data from all chain queries into a single array
-	// 	const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
-
-	// 	// Check if we have any data to process
-    //     if (allLiquidityEventData.length === 0) {
-    //       console.log("No outstanding donations found for address ", activeAddress);
-    //       return { stats: {}, countCampaignsParticipated: 0 };
-    //     }
-
-	// 	// Initialize a counter for the number of campaigns the user has participated in
-	// 	let countCampaignsParticipated = 0;
-		
-	// 	// Initialize an object to store the stats for each campaign
-    //     const stats = {} as typeof donationStats; 
-
-	// 	// Iterate through each campaign
-    //     campaigns.forEach((campaign: Campaign) => {
-	// 		// Get all pool IDs associated with this campaign
-    //       const campaignPoolIds = campaign.pools.map(pool => pool.poolId);
-
-	// 	  // Initialize an array to store statusFinalReferenceValue for each pool associated with a campaign
-	// 	  const poolStatusMap: { [poolId: `0x${string}`]: StatusSubgraph } = {};
-
-	// 	  // Filter liquidity event data to only include events for this campaign's pools
-    //       const campaignLiquidityEvents = allLiquidityEventData.filter(data => campaignPoolIds.includes(data.pool.id));
-
-	// 	  // Initialize counters for campaign statistics
-    //       let campaignBalance = 0;
-    //       let donated = 0;
-
-	// 	  // Iterate through each liquidity event for the campaign
-    //       campaignLiquidityEvents.forEach((data) => {
-	// 		// Log statusFinalReferenceValue for each pool associated with the campaign.
-	// 		// Campaigns that are associated with multiple pools, the statusFinalReferenceValue may be different
-	// 		// for each pool for a short period of time.
-	// 		const poolId = data.pool.id;
-	// 		if (!(poolId in poolStatusMap)) {
-	// 			poolStatusMap[poolId] = data.pool.statusFinalReferenceValue as StatusSubgraph;
-	// 		}
-
-    //         if (data.eventType === 'Added' || data.eventType === 'Issued') {
-	// 			const decimals = Number(campaign.decimals);
-
-	// 			// Convert collateral amount to a number, considering decimals
-	// 			const amount = Number(formatUnits(BigInt(data.collateralAmount), decimals));
-				
-	// 			// Add the amount to the campaign balance
-	// 			campaignBalance += amount;
-				
-	// 			// Check if the poolId in the liquidity event data matches one of the poolIds associated with the campaign
-    //           const pool = campaign.pools.find(p => p.poolId === data.pool.id);
-              
-	// 		  // Calculate payout based on the beneficiary side.
-    //             // Will be always zero as long as the pool is not confirmed (statusFinalReferenceValue !== 3).
-	// 		  if (pool) {
-    //             const payout = pool.beneficiarySide === 'short'
-    //               ? Number(formatUnits(BigInt(data.pool.payoutShort), decimals))
-    //               : Number(formatUnits(BigInt(data.pool.payoutLong), decimals));
-                
-    //             donated += amount * payout;
-    //           }
-    //         }
-
-	// 		// Store the status for each pool
-	// 		poolStatusMap[data.pool.id] = data.pool.statusFinalReferenceValue as StatusSubgraph;
-    //       });
-
-    //       if (campaignBalance > 0) {
-    //         countCampaignsParticipated++;
-
-	// 		// Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
-	// 		let campaignStatus: CampaignStatus;
-	// 		const isExpiredCampaign = isExpired(Number(campaign.expiryTimestamp)*1000);
-	// 		const allPoolsConfirmed = Object.values(poolStatusMap).every(status => status === 'Confirmed');
-
-	// 		if (isExpiredCampaign) {
-	// 			if (allPoolsConfirmed) {
-	// 			  campaignStatus = 'Completed';
-	// 			} else {
-	// 			  campaignStatus = 'Expired';
-	// 			}
-	// 		  } else {
-	// 			campaignStatus = 'Ongoing';
-	// 		  }
-
-    //         stats[campaign.campaignId] = {
-    //           campaignBalance,
-    //           donated,
-    //           percentageDonated: (donated / campaignBalance) * 100,
-    //           claimEnabled: allPoolsConfirmed && campaignBalance * 0.997 - donated > 0,
-    //           status: campaignStatus
-    //         };
-    //       }
-    //     });
-
-    //     // setDonationStats(stats);
-    //     // setCampaignsParticipated(countCampaignsParticipated);
-	// 	return { stats, countCampaignsParticipated };
-    //   };
-
-	//   useEffect(() => {
-	// 	if (!isLoading && !isError && activeAddress) {
-	// 	  const { stats, countCampaignsParticipated } = fetchDonationStatsFromDIVASubgraph();
-	// 	  setDonationStats(stats);
-	// 	  setCampaignsParticipated(countCampaignsParticipated);
-	// 	} else if (isLoading) {
-	// 	  console.log("Loading donation data...");
-	// 	} else if (isError) {
-	// 	  console.log("Error in fetching donation data");
-	// 	}
-	//   }, [isLoading, isError, activeAddress]);
-
-	// const handleSwitchNetwork = async (campaignChainId: number) => {
-	// 	await wallet.switchChain(campaignChainId);
-	// }
 
 	const handleSwitchNetwork = async (campaignChainId: number) => {
 		try {
@@ -305,7 +146,7 @@ export default function Donations() {
 		donorTokenBalance: bigint;
 	};
 
-	  // Step 1: Fetch donor token balances	  
+	// Step 1: Fetch donor token balances	  
 	// @notice Fetches the balances of the donor tokens for all campaigns for the connected wallet.
 	const fetchDonorTokenBalances = async (userAddress: `0x${string}`) => {
 		// For each campaign in `campaign.json`, extract the donorToken from the `pools` field and other relevant information
@@ -409,7 +250,7 @@ export default function Donations() {
 			console.log("No active address, skipping balance fetch");
 		  }
 		})();
-	  }, [activeAddress]);
+	  }, [activeAddress, balanceUpdateTrigger]);
 
 	// Step 3: Query subgraph data.
 	// Uses useQueries hook to perform parallel queries for each chain with active pools.
@@ -621,6 +462,7 @@ export default function Donations() {
 	}
 
 	// Function to claim back unfunded amount.
+	// @todo Update to use readContracts at a later stage
 	const handleRedeemPositionToken = async (campaign: Campaign) => {
 		const divaContract = {
 			address: campaign.divaContractAddress,
@@ -632,38 +474,23 @@ export default function Donations() {
 	
 		updateRedeemLoading(campaign.campaignId, true)
 	
-		try {
-			// Get pool parameters for each pool in the campaign.
-			const poolData: ReadContractReturnType[] = await Promise.all(
-				campaign.pools.map((pool: CampaignPool) =>
-					readContract(wagmiConfig, {
-						...divaContract,
-						functionName: 'getPoolParameters',
-						args: [pool.poolId],
-					})
-				)
-			)
-	
+		try {	
 			// Get user's donor token balances for the pool associated with the campaign.
 			// Reading from smart contract hear in order to get the exact balance
 			// token balances at the time of redemption.
 			const donorTokenBalance = await Promise.all(
-				poolData.map(async (pool: Pool) => {
-					const donorPositionToken =
-						campaign.pools[0].beneficiarySide === 'short'
-							? pool.longToken
-							: pool.shortToken
+				campaign.pools.map(async (pool: CampaignPool) => {
+					const donorToken = pool.donorToken
 	
 					const balance = await readContract(wagmiConfig, {
-						address: donorPositionToken,
+						address: donorToken,
 						abi: ERC20ABI,
 						functionName: 'balanceOf',
 						args: [activeAddress],
 					})
 	
 					return {
-						poolData: pool,
-						donorPositionToken: donorPositionToken,
+						donorToken: donorToken,
 						balance: balance,
 					}
 				})
@@ -671,8 +498,9 @@ export default function Donations() {
 	
 			// Prepare args for `batchRedeemPositionToken` smart contract call.
 			const batchRedeemPositionTokenArgs = donorTokenBalance.map((pool) => ({
-				positionToken: pool.donorPositionToken,
+				positionToken: pool.donorToken,
 				amount: pool.balance,
+				// amount: parseUnits("1", 18) // Used for testing
 			}))
 	
 			// First, simulate the contract call. That's the recommended practice in the viem docs:
@@ -689,9 +517,14 @@ export default function Donations() {
 	
 			// Wait for the transaction to be mined
 			await waitForTransactionReceipt(wagmiConfig, { hash })
-	
+
+			// @todo Consider adding a small loading delay for fast networks like Arbitrum
+
 			updateRedeemLoading(campaign.campaignId, false)
 			onOpen() // Open Success Modal
+
+			// Trigger balance update after successful redemption
+			setBalanceUpdateTrigger(prev => prev + 1);
 		} catch (err) {
 			console.error('Error in batchRedeemPositionToken transaction:', err)
 			updateRedeemLoading(campaign.campaignId, false)
@@ -865,6 +698,7 @@ export default function Donations() {
 																_hover: {
 																	backgroundColor: '#005C53',
 																},
+																textColor: 'white',
 															}}>
 															<Link
 																href="https://o26wxmqxfy2.typeform.com/to/FwmhnSq7"
