@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 // @todo Merge with LinkSection component
 
 export const LinkSectionPastoralists2 = () => (

@@ -8,7 +8,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // Wagmi uses TanStack Query under the hood to power its data fetching and caching of wallet and blockchain data.
 
 import { PrivyProvider } from '@privy-io/react-auth';
-import { WagmiProvider, createConfig } from '@privy-io/wagmi';
+import { WagmiProvider } from '@privy-io/wagmi';
 
 import { wagmiConfig } from './wagmiConfig';
 import { privyConfig } from './privyConfig';

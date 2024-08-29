@@ -1,4 +1,3 @@
-import { InfoCard } from '../InfoCard'
 import Image from 'next/image'
 
 export const AboutSection = () => (

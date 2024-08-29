@@ -1,14 +1,10 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import {
 	Menu,
 	MenuButton,
 	MenuList,
 	MenuItem,
-	MenuItemOption,
-	MenuGroup,
-	MenuOptionGroup,
-	MenuDivider,
 	Button,
 } from '@chakra-ui/react'
 
@@ -16,30 +12,7 @@ import campaigns from '../../../config/campaigns.json'
 import { links } from './../../constants'
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons'
 
-type NavbarLinksProps = {
-	activePath: string
-}
-
-export const NavbarLinks = ({ activePath }: NavbarLinksProps) => {
-	const [isMenuOpen, setMenuOpen] = useState(false)
-	const [hoveredLink, setHoveredLink] = useState(null)
-
-	const handleMenuToggle = () => {
-		setMenuOpen(!isMenuOpen)
-	}
-
-	const handleMenuClose = () => {
-		setMenuOpen(false)
-	}
-
-	const handleLinkMouseEnter = (link: any) => {
-		setHoveredLink(link)
-	}
-
-	const handleLinkMouseLeave = () => {
-		setHoveredLink(null)
-	}
-
+export const NavbarLinks = () => {
 	return (
 		<ul className="items-center justify-center flex space-x-6 space-y-0">
 			{links.map((link) => (

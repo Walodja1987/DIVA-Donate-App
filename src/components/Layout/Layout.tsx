@@ -4,7 +4,7 @@ import { FooterSection } from '../Section/FooterSection'
 import CookieBanner from '../CookieBanner';
 import Head from 'next/head'
 
-const Layout = ({ children }: React.PropsWithChildren<{}>) => {
+const Layout = ({ children }: React.PropsWithChildren<{ children: React.ReactNode }>) => {
 	return (
 		<>
 			<Head>

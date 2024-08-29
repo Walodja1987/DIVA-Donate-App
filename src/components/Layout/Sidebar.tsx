@@ -11,12 +11,14 @@ import {
 	AccordionItem,
 	AccordionPanel,
 } from '@chakra-ui/react'
-import React, { memo } from 'react'
+import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 
-import { links, NavItemType } from './../../constants'
+import { links } from '@/constants'
+import type { NavItemType } from '@/constants'
 
 const baseButtonClass =
 	'items-start text-left justify-start w-full p-3 bg-[#F3FDF8] rounded-md hover:bg-[#E0F2E4] font-openSans'
@@ -36,7 +38,7 @@ export const Sidebar = ({
 			<DrawerContent>
 				<DrawerCloseButton color={'#015c53'} />
 				<div>
-					<img src="/favicon.svg" alt="diva" className="w-12 mt-4 ml-6" />
+					<Image src="/favicon.svg" alt="diva" width={48} height={48} className="mt-4 ml-6" />
 				</div>
 
 				<DrawerBody className="mt-6">
@@ -101,7 +103,6 @@ function SidebarItem({ link, active }: { link: NavItemType; active: boolean }) {
 	return (
 		<Link href={link.to} key={link.to} className="w-full">
 			<button
-				onClick={() => {}}
 				className={clsx(
 					baseButtonClass,
 					active

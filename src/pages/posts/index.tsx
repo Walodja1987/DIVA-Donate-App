@@ -3,7 +3,7 @@ import { getAllPosts } from '../api/getPosts'
 import Layout from '@/components/Layout/Layout'
 import BlogCard from '@/components/Section/BlogCard'
 import FeaturedBlogPost from '@/components/Section/FeaturedBlogPost'
-import { Post } from '@/pages'
+import type { Post } from '@/pages'
 // import Link from 'next/link'
 import { format } from 'date-fns'
 

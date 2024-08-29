@@ -1,5 +1,8 @@
 'use client';
 
+// Nextjs
+import Image from 'next/image'
+
 // React
 import React, { useEffect, useState } from 'react'
 
@@ -26,8 +29,8 @@ import { divaContractAddressOld } from '../../constants'
 import { formatDate, isExpired, isUnlimited } from '../../utils/general'
 
 // Types
-import { Campaign, CampaignPool } from '../../types/campaignTypes'
-import { PoolExtended } from '../../types/poolTypes'
+import type { Campaign, CampaignPool } from '@/types/campaignTypes'
+import type { PoolExtended } from '@/types/poolTypes'
 
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
@@ -76,7 +79,7 @@ const FortuneDiva: React.FC<{
 							{campaign?.desc}
 						</p>
 						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center z-[9]">
-							<img src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" />
+							<Image src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" width={20} height={20} />
 							<div>
 								<b>Expiry:</b> {expiryTime}
 							</div>
@@ -106,11 +109,10 @@ export const CampaignCard: React.FC<{
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [expiryTime, setExpiryTime] = useState<number>(Number(campaign.expiryTimestamp) * 1000)
-
+	
 	// Privy hooks
-	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
-	const {wallets, ready: walletsReady} = useWallets();
+	const { connectWallet } = usePrivy();
+	const { wallets } = useWallets();
 	const wallet = wallets[0] // active/connected wallet
 	
 	// WAGMI hooks
@@ -123,6 +125,8 @@ export const CampaignCard: React.FC<{
 	const chains = getChains(wagmiConfig)
 	const campaignChainId = Number(campaign.chainId)
 	const campaignChainName = chains.find((chain) => chain.id === campaignChainId)?.name
+
+	const expiryTime = Number(campaign.expiryTimestamp) * 1000;
 
 	// Contracts
 	const collateralTokenContract = {
@@ -438,11 +442,11 @@ export const CampaignCard: React.FC<{
 		}
 	}
 
-	const handleMax = () => {
-		if (balance != null) {
-			setAmount(balance.toString())
-		}
-	}
+	// const handleMax = () => {
+	// 	if (balance != null) {
+	// 		setAmount(balance.toString())
+	// 	}
+	// }
 	const handleAmountChange = (e: any) => {
 		setAmount(e.target.value)
 	}

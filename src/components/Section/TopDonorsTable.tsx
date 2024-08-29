@@ -5,7 +5,7 @@ import request from 'graphql-request'
 import { chainConfig } from '../../constants'
 import { getShortenedAddress } from '../../utils/general'
 import { BigNumber } from 'ethers';
-import { Campaign } from '../../types/campaignTypes'
+import type { Campaign } from '@/types/campaignTypes'
 import { queryDIVALiquidity } from '@/queries/divaSubgraph'
 
 // TopDonorsTable component to display top donors for a campaign

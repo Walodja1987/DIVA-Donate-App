@@ -1,7 +1,5 @@
-import Navbar from '../components/Layout/Navbar'
-import { FooterSection } from '../components/Section/FooterSection'
-import Donations from '../components/Section/Donations'
-import Layout from '../components/Layout/Layout'
+import Donations from '@/components/Section/Donations'
+import Layout from '@/components/Layout/Layout'
 
 export default function DonationsPage() {
 	return (

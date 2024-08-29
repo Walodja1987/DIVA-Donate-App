@@ -18,22 +18,22 @@ import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 
 // viem
-import { formatUnits, parseUnits } from 'viem'
+import { formatUnits } from 'viem'
 
 // Assets
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
 
 // constants
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld, divaContractAddress, chainConfig, chainConfigs } from '@/constants'
+import { divaContractAddressOld, chainConfigs } from '@/constants'
 
 // Utils
 import { formatDate, isExpired } from '@/utils/general'
 
 // Types
-import { CampaignPool, Campaign, CampaignStatus } from '@/types/campaignTypes'
-import { Pool, Status, StatusSubgraph } from '@/types/poolTypes'
-import { DIVALiquidityResponse } from '@/types/subgraphTypes'
+import type { CampaignPool, Campaign, CampaignStatus } from '@/types/campaignTypes'
+import type { Pool, StatusSubgraph } from '@/types/poolTypes'
+import type { DIVALiquidityResponse } from '@/types/subgraphTypes'
 
 // Chakra
 import {
@@ -60,7 +60,6 @@ import {
 	readContracts,
 	writeContract,
 	waitForTransactionReceipt,
-	type ReadContractReturnType,
 } from '@wagmi/core'
 
 // Subgraph queries
@@ -103,7 +102,7 @@ export default function Donations() {
 	const wallet = wallets[0] // active/connected wallet
 
 	// Wagmi hooks
-	const { address: activeAddress, isConnected, chain, chainId } = useAccount()
+	const { address: activeAddress, isConnected, chainId } = useAccount()
 
 	console.log("isConnected", isConnected)
 
@@ -202,6 +201,7 @@ export default function Donations() {
 		  args: [userAddress],
 		  chainId: tokenInfo.chainId
 		} as const));
+
 
 		try {
 			const results = await readContracts(wagmiConfig, {

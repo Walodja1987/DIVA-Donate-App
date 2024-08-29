@@ -39,28 +39,28 @@ const CookieBanner = () => {
     return null; // Don't show the banner if cookies are accepted.
   }
 
-  const CookiePolicyModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
-    return (
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Cookie Policy</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <p>
-              Some text
-            </p>
-            {/* Add your detailed cookie policy text here */}
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme="blue" onClick={onClose}>
-              Accept
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-    );
-  };
+  // const CookiePolicyModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  //   return (
+  //     <Modal isOpen={isOpen} onClose={onClose} size="lg">
+  //       <ModalOverlay />
+  //       <ModalContent>
+  //         <ModalHeader>Cookie Policy</ModalHeader>
+  //         <ModalCloseButton />
+  //         <ModalBody>
+  //           <p>
+  //             Some text
+  //           </p>
+  //           {/* Add your detailed cookie policy text here */}
+  //         </ModalBody>
+  //         <ModalFooter>
+  //           <Button colorScheme="blue" onClick={onClose}>
+  //             Accept
+  //           </Button>
+  //         </ModalFooter>
+  //       </ModalContent>
+  //     </Modal>
+  //   );
+  // };
 
   return (
     <>

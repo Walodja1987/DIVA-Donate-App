@@ -18,7 +18,6 @@ import {
 	getShortenedAddress,
 	formatNumberWithCommas,
 } from '../../utils/general'
-import { chainConfig } from '../../constants'
 
 interface DonationCardProps {
 	thankYouMessage: string

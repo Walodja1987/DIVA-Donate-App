@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 export const LinkSection = () => (
 	<div className="container justify-center mx-auto mt-10">
 		<div className="mx-auto max-w-7xl py-4 px-4 sm:px-6 text-center lg:items-center lg:justify-between">

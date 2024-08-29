@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React from 'react'
 import Button from '@/components/Button'
 import { RxHamburgerMenu } from 'react-icons/rx'
 
@@ -9,27 +8,21 @@ import { Logo } from '../Logo'
 import { Sidebar } from './Sidebar'
 import { useDisclosure } from '@chakra-ui/react'
 
-import { useAccount, useDisconnect } from 'wagmi'; // @todo: Question why it's imported directly and not via privy-io/wagmi
+import { useAccount } from 'wagmi'; // @todo: Question why it's imported directly and not via privy-io/wagmi
 
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { useSetActiveWallet } from '@privy-io/wagmi';
+import { usePrivy } from '@privy-io/react-auth';
 
 import { getShortenedAddress } from '@/utils/general'
 
 
 export default function NavBar() {
-	const [navbar, setNavbar] = useState(false)
-	const { pathname } = useRouter()
 	const { isOpen, onOpen, onClose } = useDisclosure()
 
 	// Privy hooks
-	const {ready, user, authenticated, login, connectWallet, logout, linkWallet} = usePrivy();
-	const {wallets, ready: walletsReady} = useWallets();
+	const {ready, connectWallet} = usePrivy();
   
 	// WAGMI hooks
-	const {address: activeAddress, isConnected, isConnecting, isDisconnected} = useAccount();
-	const {disconnect} = useDisconnect();
-	const {setActiveWallet} = useSetActiveWallet();
+	const {address: activeAddress, isConnected} = useAccount();
   
 	if (!ready) {
 	  return null;
@@ -54,7 +47,7 @@ export default function NavBar() {
 
 					<div
 						className={`flex-1 justify-self-center pb-3 mt-8 md:pb-0 md:mt-0 hidden xl:block`}>
-						<NavbarLinks activePath={pathname} />
+						<NavbarLinks/>
 					</div>
 
 					{isConnected && activeAddress ? (

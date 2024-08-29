@@ -4,7 +4,6 @@ import {
     VStack,
     Heading,
     Text,
-    Image,
     AvatarGroup,
     Avatar,
   } from "@chakra-ui/react";

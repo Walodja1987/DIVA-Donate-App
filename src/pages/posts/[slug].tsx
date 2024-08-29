@@ -1,13 +1,13 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { Post } from '@/pages'
+import type { Post } from '@/pages'
 import { format, parseISO } from 'date-fns'
 import Tweet from 'react-tweet-embed'
 import { HOME, IMAGE_PATH } from '../../constants'
-// @ts-ignore
 import { getAllPosts, getPostBySlug } from '../api/getPosts'
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { GetStaticProps } from 'next'
+import { MDXRemote } from 'next-mdx-remote'
+import type { MDXRemoteSerializeResult } from 'next-mdx-remote'
+import type { GetStaticProps } from 'next'
 import { serialize } from 'next-mdx-remote/serialize'
 import Layout from '@/components/Layout/Layout'
 

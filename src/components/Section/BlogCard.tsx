@@ -3,10 +3,7 @@ import {
 	Wrap,
 	VStack,
 	Heading,
-	Text,
 	Image,
-	Box,
-	WrapItem,
 } from '@chakra-ui/react'
 import BlogMeta from './BlogMeta'
 

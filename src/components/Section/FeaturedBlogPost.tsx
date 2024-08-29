@@ -1,6 +1,6 @@
-import { Stack, Flex, Box, Heading, Button, Image } from '@chakra-ui/react'
+import { Stack, Flex, Box, Heading, Image } from '@chakra-ui/react'
 import Link from 'next/link'
-import { Post } from '@/pages'
+import type { Post } from '@/pages'
 import BlogMeta from './BlogMeta'
 
 const FeaturedBlogPost = ({ post }: { post: Post }) => {

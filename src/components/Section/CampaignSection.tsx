@@ -31,9 +31,9 @@ import { divaContractAddressOld, chainConfigs } from '@/constants'
 import { formatDate, isExpired, isUnlimited } from '@/utils/general'
 
 // Types
-import { Pool, StatusSubgraph } from '@/types/poolTypes'
-import { Campaign, CampaignStatus } from '@/types/campaignTypes'
-import { DIVALiquidityResponse } from '@/types/subgraphTypes'
+import type { Pool, StatusSubgraph } from '@/types/poolTypes'
+import type { Campaign, CampaignStatus } from '@/types/campaignTypes'
+import type { DIVALiquidityResponse } from '@/types/subgraphTypes'
 
 // Wagmi
 import { wagmiConfig } from '@/components/wagmiConfig'
