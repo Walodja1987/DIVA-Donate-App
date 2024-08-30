@@ -31,7 +31,7 @@ const BlogCard = ({
 				src={`Images/posts/${coverImage}`}
 				width="full"
 				alt={coverImageAlt}
-				className="rounded-2xl"
+				className="rounded-lg"
 			/>
 			<Wrap spacing="16px" direction="column" px={0}>
 				<Heading

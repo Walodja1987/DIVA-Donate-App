@@ -67,7 +67,8 @@ export const CampaignSection = () => {
 				address: campaign.divaContractAddress,
 				abi: campaign.divaContractAddress === divaContractAddressOld
 					? DivaABIold
-					: DivaABI
+					: DivaABI,
+				chainId: Number(campaign.chainId) as 137 | 42161
 			} as const
 
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -86,6 +87,7 @@ export const CampaignSection = () => {
 			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
+				chainId: Number(campaign.chainId) as 137 | 42161
 			} as const
 
 			const decimals = await readContract(wagmiConfig, {
@@ -487,7 +489,7 @@ export const CampaignSection = () => {
 							<p className="mb-3 font-normal text-[#000000]">
 								Get in touch with us to list your campaign
 							</p>
-							<Link href="mailto: wladimir.weinbender@divadonate.xyz">
+							<Link href="mailto: wladimir.weinbender@divatech.ch">
 								<button className="inline-block font-openSans rounded-lg px-4 py-1.5 text-base font-semibold text-[#042940] ring-1 ring-[#042940]">
 									Contact Us
 								</button>

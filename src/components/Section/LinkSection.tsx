@@ -10,7 +10,7 @@ export const LinkSection = () => (
 		<div className="grid grid-rows-2 gap-6 pb-16 lg:grid-cols-2">
 			<div>
 				<a
-					href="https://www.divaprotocol.io/posts/diva-donate-launch"
+					href="https://www.divadonate.xyz/posts/diva-donate-launch"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3"
 					target={'_blank'}
 					rel="noreferrer">
@@ -54,7 +54,7 @@ export const LinkSection = () => (
 
 			<div>
 				<a
-					href="https://www.divaprotocol.io/posts/diva-conditional-donations"
+					href="https://www.divadonate.xyz/posts/diva-conditional-donations"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3"
 					target={'_blank'}
 					rel="noreferrer">
@@ -98,7 +98,7 @@ export const LinkSection = () => (
 
 			<div>
 				<a
-					href="https://www.divaprotocol.io/posts/diva-how-diva-protocol-can-help-unlock-affordable-insurance-for-farmers"
+					href="https://www.divadonate.xyz/posts/diva-how-diva-protocol-can-help-unlock-affordable-insurance-for-farmers"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3 "
 					target={'_blank'}
 					rel="noreferrer">

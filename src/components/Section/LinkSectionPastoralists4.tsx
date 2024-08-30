@@ -12,7 +12,7 @@ export const LinkSectionPastoralists4 = () => (
 		<div className="grid grid-rows-2 gap-6 pb-16 lg:grid-cols-2">
 			<div>
 				<a
-					href="https://www.divaprotocol.io/posts/diva-conditional-donations-pastoralists-4"
+					href="https://www.divadonate.xyz/posts/diva-conditional-donations-pastoralists-4"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3"
 					target={'_blank'}
 					rel="noreferrer">
