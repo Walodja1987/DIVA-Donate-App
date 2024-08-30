@@ -154,7 +154,7 @@ export const CampaignSection = () => {
 	  // Define the query function that fetches the data for the given chain and pool IDs.
       queryFn: async () => {
         const response = await request<DIVALiquidityResponse>(
-          chainConfigs[chainId].graphUrl,
+          chainConfigs[Number(chainId)].graphUrl,
           queryDIVALiquidity(poolIds)
         )
 		// console.log(`Response for chain ${chainId}:`, response);

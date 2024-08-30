@@ -284,8 +284,8 @@ export const CampaignCard: React.FC<{
 				})
 
 				// Use Promise.all to fetch the beneficiary token balances for all pools
-				return Promise.all(balancePromises).then(
-					(beneficiaryTokenBalances: string[]) => {
+				return Promise.all(balancePromises as Promise<bigint>[]).then(
+					(beneficiaryTokenBalances: bigint[]) => {
 						// Aggregate the raised amount across the pools linked to the campaign. Note that using
 						// `collateralBalance` may not equal to raised amount if users choose a different recipient
 						// address during add liquidity.
@@ -489,9 +489,9 @@ export const CampaignCard: React.FC<{
 							<DonationCard
 								thankYouMessage={thankYouMessage}
 								isConnected={isConnected}
-								connectedChainId={chainId}
-								campaignChainId={campaignChainId}
-								campaignChainName={campaignChainName}
+								connectedChainId={Number(chainId)}
+								campaignChainId={Number(campaignChainId)}
+								campaignChainName={campaignChainName ?? "Unknown Chain"}
 								isOpen={isOpen}
 								onClose={onClose}
 								percentage={percentage}
