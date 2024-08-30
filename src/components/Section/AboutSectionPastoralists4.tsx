@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 export const AboutSectionPastoralists4 = () => (
 	<section>
 		<div className="flex flex-col justify-center px-8 lg:px-0 py-6 lg:p-6 mx-auto lg:py-24 lg:flex-row lg:justify-between max-w-screen-2xl">
@@ -55,12 +53,12 @@ export const AboutSectionPastoralists4 = () => (
 					<ul
 						className="list-none font-openSans text-base font-normal mb-8">
 						<li>
-							Special thanks goes to our sponsors who seeded this campaign with a total of $11'133:
+							Special thanks goes to our sponsors who seeded this campaign with a total of $11’133:
 							<ul
 								role="list"
 								className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 mb-8 mt-4">
-								<li><strong>Arbitrum:</strong> ~$2'500 provided as part of the Arbitrum ReFi grant</li>
-								<li><strong>Mercy Corps Ventures:</strong> $8'633 of unreleased funds rolled from the previous campaign</li>
+								<li><strong>Arbitrum:</strong> ~$2’500 provided as part of the Arbitrum ReFi grant</li>
+								<li><strong>Mercy Corps Ventures:</strong> $8’633 of unreleased funds rolled from the previous campaign</li>
 							</ul>							{/* {' '}
 							<a
 								href="https://agfundernews.com/mercy-corps-ventures-pilots-the-blockchain-to-get-cash-transfers-to-communities-ahead-of-climate-shock"

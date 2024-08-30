@@ -1,11 +1,11 @@
 import React from 'react'
-import Layout from '../../components/Layout/Layout'
-import { CampaignCard } from '../../components/Section/CampaignCard'
-import { AboutSectionPastoralists3 } from '../../components/Section/AboutSectionPastoralists3'
-import { DonationSection3 } from '../../components/Section/DonationSection3'
-import { LinkSectionPastoralists3 } from '../../components/Section/LinkSectionPastoralists3'
-import { TopDonorsTable } from '../../components/Section/TopDonorsTable'
-import campaigns from '../../../config/campaigns.json'
+import Layout from '../components/Layout/Layout'
+import { CampaignCard } from '../components/Section/CampaignCard'
+import { AboutSectionPastoralists3 } from '../components/Section/AboutSectionPastoralists3'
+import { DonationSection3 } from '../components/Section/DonationSection3'
+import { LinkSectionPastoralists3 } from '../components/Section/LinkSectionPastoralists3'
+import { TopDonorsTable } from '../components/Section/TopDonorsTable'
+import campaigns from '../../config/campaigns.json'
 
 export default function Pastoralists() {
 	// Specify the campaignId from `campaign.json` file that you want to display on the page
