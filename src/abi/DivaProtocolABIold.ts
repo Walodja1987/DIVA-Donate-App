@@ -1,4 +1,4 @@
-[
+export const DivaABIold = [
   { "inputs": [], "name": "AmountExceedsClaimableFee", "type": "error" },
   { "inputs": [], "name": "RecipientIsZeroAddress", "type": "error" },
   {
@@ -2657,4 +2657,4 @@
     "stateMutability": "pure",
     "type": "function"
   }
-]
+] as const
