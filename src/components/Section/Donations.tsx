@@ -1,29 +1,41 @@
 'use client'
-import { ethers } from 'ethers'
-import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
-import React, { useEffect, useState } from 'react'
+
+// Nextjs
 import Image from 'next/image'
 import Link from 'next/link'
-import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
-import { useERC20Contract } from '../../utils/hooks/useContract'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import { getTokenBalance } from '../../utils/general'
-import { Progress, ProgressLabel, Text } from '@chakra-ui/react'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
+
+// React
+import React, { useEffect, useState, useCallback } from 'react'
+
+// Query
+import { useQueries } from '@tanstack/react-query';
+import request from 'graphql-request'
+
+// ABIs
+import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
+
+// Privy
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+
+// viem
+import { formatUnits } from 'viem'
+
+// Assets
 import AddToMetamaskIcon from '../AddToMetamaskIcon'
-import pools from '../../../config/pools.json' // @todo remove
+
+// constants
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld, divaContractAddress } from '../../constants'
-import { formatDate, isExpired } from '../../utils/general'
-import { chainConfig } from '../../constants'
-import { getContract } from '@wagmi/core'
-import { CampaignPool, Campaign } from '../../types/campaignTypes'
-import { Pool, Status } from '../../types/poolTypes'
-import {
-	Multicall,
-	ContractCallResults,
-	ContractCallContext,
-} from 'ethereum-multicall'
+import { divaContractAddressOld, chainConfigs } from '@/constants'
+
+// Utils
+import { formatDate, isExpired } from '@/utils/general'
+
+// Types
+import type { CampaignPool, Campaign, CampaignStatus } from '@/types/campaignTypes'
+import type { Pool, StatusSubgraph } from '@/types/poolTypes'
+import type { DIVALiquidityResponse } from '@/types/subgraphTypes'
+
+// Chakra
 import {
 	Modal,
 	ModalOverlay,
@@ -34,210 +46,418 @@ import {
 	ModalCloseButton,
 	Button,
 	useDisclosure,
+	Progress,
+	ProgressLabel,
+	Text,
 } from '@chakra-ui/react'
 
+// Wagmi
+import { wagmiConfig } from '@/components/wagmiConfig'
+import { useAccount } from 'wagmi'
+import { 
+	simulateContract,
+	readContract,
+	readContracts,
+	writeContract,
+	waitForTransactionReceipt,
+} from '@wagmi/core'
+
+// Subgraph queries
+import { queryDIVALiquidity } from '@/queries/divaSubgraph'
+
+// The Donations component renders the My Donations section of the app.
+// It displays and manages user's active donations across various campaigns and chains.
+//
+// Data fetching and processing:
+// Step 1: Fetch donor token balances defined in `campaigns.json`
+// Step 2: Extract poolIds where donor token balance is greater than 0 (active pools)
+// Step 3: Query liquidity event data from the DIVA subgraph for active pools
+// Step 4: Process subgraph data by filtering all events where the donation recipient address is the expected one
+// Step 5: Calculate donation stats
+// Step 6: Update UI with the relevant campaigns and stats
 export default function Donations() {
+	const [donationStats, setDonationStats] = useState<{
+		[campaignId: string]: {
+		  campaignBalance: number,
+		  donated: number,
+		  percentageDonated: number,
+		  claimEnabled: boolean,
+		  status: CampaignStatus
+		}
+	}>({})
+	  
+	const [hasActiveCampaigns, setHasActiveCampaigns] = useState(false);
+	const [activePoolIdsByChain, setActivePoolIdsByChain] = useState<{ [chainId: number]: `0x${string}`[] }>({});
+	
+	// RedeemLoading state defined by campaign so that the loading wheel only appears for the campaign that is being redeemed
 	const [redeemLoading, setRedeemLoading] = useState<{
-		[campaignId: string]: boolean
+	[campaignId: string]: boolean
 	}>({})
-	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
-	const [campaignBalance, setCampaignBalance] = useState<{
-		[campaignId: string]: number
-	}>({})
-	const [percentageDonated, setPercentageDonated] = useState<{
-		[campaignId: string]: number
-	}>({})
-	const [claimEnabled, setClaimEnabled] = useState<{
-		[campaignId: string]: boolean
-	}>({})
-	const [campaignsParticipated, setCampaignsParticipated] = useState(0)
-	const [statusFinalReferenceValue, setStatusFinalReferenceValue] = useState<{
-		[campaignId: string]: Status
-	}>({})
-	const { address: activeAddress, isConnected } = useAccount()
-	const { chain } = useNetwork()
-	const wagmiProvider = useProvider()
-	const { openConnectModal } = useConnectModal()
-	const { switchNetwork } = useSwitchNetwork()
 
-	const [chainId, setChainId] = React.useState<number>(0) // @todo Question: Needed if wagmi's useNetwork() hook is used?
+	const [balanceUpdateTrigger, setBalanceUpdateTrigger] = useState(0);
 
+	// Privy hooks
+	const { connectWallet } = usePrivy();
+	const { wallets} = useWallets();
+	const wallet = wallets[0] // active/connected wallet
+
+	// Wagmi hooks
+	const { address: activeAddress, isConnected, chainId } = useAccount()
+
+	console.log("isConnected", isConnected)
+
+	// Chakra hooks
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
-	// ----------------------------
-	// Event handlers
-	// ----------------------------
-	// const handleOpen = () => {
-	// 	;(window as any as any).ethereum.request({
-	// 		method: 'wallet_switchEthereumChain',
-	// 		params: [{ chainId: chainConfig.chainId }],
-	// 	})
-	// }
-
-	const handleOpen = () => {
-		switchNetwork?.(chainConfig.chainId)
-	}
-
-	// @todo Function kept to replace Promise.all blocks with multicall at a later stage
-	/**
-	 * @notice Function to fetch the pool parameters from the pools linked to the given array of campaigns
-	 * using ethereum-multicall lib.
-	 * @dev Accounts for the first pilot campaign `pastoralists_1` which was executed on Polygon using
-	 * a pre-audited version of DIVA Protocol.
-	 * @param chainId Chain id. Only used to identify the `pastoralists_1` campaign on Polygon.
-	 * @param provider Web3 provider.
-	 * @param campaigns Array of campaign objects (including `pools` field).
-	 * @return Multicall results object.
-	 */
-	const fetchPoolParams = async (
-		chainId: number,
-		provider: any,
-		campaigns: Campaign[]
-	) => {
-		const multicall = new Multicall({
-			ethersProvider: provider,
-			tryAggregate: true,
-		})
-
-		let multicallArgs: any[] = []
-		campaigns.forEach((campaign, indexCampaign) => {
-			campaign.pools.forEach((pool, indexPool) => {
-				multicallArgs.push({
-					reference: 'pool-' + indexCampaign + '-' + indexPool,
-					contractAddress: campaign.divaContractAddress,
-					abi:
-						campaign.divaContractAddress === divaContractAddressOld &&
-						chainId === 137
-							? DivaABIold
-							: DivaABI, // only campaignId = "pastoralists_1" on Polygon has the old DIVA Protocol address linked to it
-					calls: [
-						{
-							reference:
-								'getPoolParametersPool-' + indexCampaign + '-' + indexPool,
-							methodName: 'getPoolParameters',
-							methodParameters: [pool.poolId],
-						},
-					],
-				})
-			})
-		})
-
-		const contractCallContext: ContractCallContext[] = multicallArgs
-
-		const results: ContractCallResults = await multicall.call(
-			contractCallContext
-		)
-		console.log('results poolParams', results)
-		return results
-	}
-
-	// @todo Function kept to replace Promise.all blocks with multicall at a later stage
-	/**
-	 * @notice Function to fetch the balances of the provided tokens for the provided users
-	 * @param provider Web3 provider.
-	 * @param tokens Array of token addresses.
-	 * @param users Array of user addresses.
-	 * @returns Multicall results object.
-	 */
-	const fetchPositionTokenBalances = async (
-		provider: any,
-		tokens: string[],
-		users: string[]
-	) => {
-		const multicall = new Multicall({
-			ethersProvider: provider,
-			tryAggregate: true,
-		})
-
-		let multicallArgs: any[] = []
-		tokens.forEach((token, indexToken) => {
-			multicallArgs.push({
-				reference: 'token-' + indexToken,
-				contractAddress: token,
-				abi: ERC20ABI,
-				calls: [
-					{
-						reference: 'balanceToken-' + indexToken,
-						methodName: 'balanceOf',
-						methodParameters: [users[indexToken]],
-					},
-				],
-			})
-		})
-
-		const contractCallContext: ContractCallContext[] = multicallArgs
-
-		const results: ContractCallResults = await multicall.call(
-			contractCallContext
-		)
-		console.log('results token balances', results)
-		return results
-	}
-
-	// @todo Function kept to replace Promise.all blocks with multicall at a later stage
-	const processMulticallResult = (data: ContractCallResults): any[] => {
-		const res = []
-
-		for (const item in data.results) {
-			const itemData = data.results[item]
-
-			const returnValues = itemData.callsReturnContext[0].returnValues
-
-			// Convert the array of values into an array of objects
-			const valueObjects = returnValues.map((value) => ({ value }))
-
-			res.push(valueObjects)
+	const handleSwitchNetwork = async (campaignChainId: number) => {
+		try {
+		  await wallet.switchChain(campaignChainId);
+		  // Optionally, you can add a success message or trigger a state update here
+		  console.log(`Successfully switched to chain ${campaignChainId}`);
+		} catch (error) {
+		  if (error instanceof Error) {
+			// Check if the error is due to the user rejecting the request
+			if (error.message.includes('User rejected the request')) {
+			  console.log('User rejected the network switch');
+			  // You can show a user-friendly message here, e.g., using a toast notification
+			  // toast.error('Network switch was cancelled. Please try again to interact with this campaign.');
+			} else {
+			  console.error('Error switching network:', error.message);
+			  // Handle other types of errors
+			  // toast.error('Failed to switch network. Please try again.');
+			}
+		  } else {
+			console.error('An unknown error occurred while switching network');
+			// toast.error('An unexpected error occurred. Please try again.');
+		  }
 		}
-		// console.log('data', data)
-		// console.log('res', res)
-		return res
-	}
+	  };
 
+	
+
+	type TokenInfo = {
+		donorToken: `0x${string}`;
+		chainId: 137 | 42161;
+		campaignId: string;
+		poolId: `0x${string}`;
+	  };
+
+	// Return type from fetchDonorTokenBalances
+	type TokenInfoWithBalance = TokenInfo & {
+		donorTokenBalance: bigint;
+	};
+
+	// Step 1: Fetch donor token balances	  
+	// @notice Fetches the balances of the donor tokens for all campaigns for the connected wallet.
+	const fetchDonorTokenBalances = async (userAddress: `0x${string}`) => {
+		// For each campaign in `campaign.json`, extract the donorToken from the `pools` field and other relevant information
+		// including chainId, campaignId, and poolId needed for further processing.
+		// Example:
+		// [
+		//   {
+		//     donorToken: "0xabc...",
+		//     chainId: 137,
+		//     campaignId: "pastoralists_1",
+		//     poolId: "0x123..."
+		//   },
+		//   {
+		//     donorToken: "0xdef...",
+		//     chainId: 137,
+		//     campaignId: "pastoralists_2",
+		//     poolId: "0x456..."
+		//   }
+		// ]
+		const tokenInfos: TokenInfo[] = campaigns.flatMap(campaign => 
+		  campaign.pools.map(pool => ({
+			donorToken: pool.donorToken as `0x${string}`,
+			chainId: Number(campaign.chainId) as 137 | 42161,
+			campaignId: campaign.campaignId,
+			poolId: pool.poolId as `0x${string}`
+		  }))
+		);
+		
+		// Create an array of contract calls for all chains
+		// Example:
+		// [
+		//   {
+		//     address: "0xabc...",
+		//     abi: ERC20ABI,
+		//     functionName: 'balanceOf',
+		//     args: ["0x1234..."],
+		//     chainId: 137
+		//   },
+		//   {
+		//     address: "0xdef...",
+		//     abi: ERC20ABI,
+		//     functionName: 'balanceOf',
+		//     args: ["0x1234..."],
+		//     chainId: 42161
+		//   }
+		// ]
+		const allContracts = tokenInfos.map(tokenInfo => ({
+		  address: tokenInfo.donorToken,
+		  abi: ERC20ABI,
+		  functionName: 'balanceOf',
+		  args: [userAddress],
+		  chainId: tokenInfo.chainId
+		} as const));
+
+
+		try {
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore: Temporarily ignore type error, fix later
+			const results = await readContracts(wagmiConfig, {
+			  contracts: allContracts,
+			  allowFailure: false,
+			});
+			
+			// Return tokenInfos with the balance added
+			return tokenInfos.map((info, index) => ({
+			  ...info,
+			  donorTokenBalance: results[index] as bigint
+			}));
+		
+		  } catch (error) {
+			console.error("Error fetching balances:", error);
+			// Set balances to 0 for all tokens if there was an error
+			return tokenInfos.map(info => ({
+			  ...info,
+			  donorTokenBalance: BigInt(0)
+			}));
+		  }			
+	  };
+	
+	// Update the filter condition in the useMemo hook.
+	// Active means that the user's donor token balance is greater than 0.
+	const getActivePoolIdsByChain = useCallback((balances: TokenInfoWithBalance[]) => {
+	return balances
+		.filter(info => info.donorTokenBalance > BigInt(0))
+		.reduce((acc, info) => {
+		if (!acc[info.chainId]) acc[info.chainId] = [];
+		acc[info.chainId].push(info.poolId);
+		return acc;
+		}, {} as { [chainId: number]: `0x${string}`[] });
+	}, []);
+
+	
+	// Steps 1 & 2: Fetch user's donor token balances and extract the active poolIds by chain.
+	// Active pools are those where the user has a non-zero balance of donor tokens,
+	// indicating an outstanding contribution or unclaimed funds.
+	// Triggers on component mount and when activeAddress changes.
 	useEffect(() => {
-		if (chain) {
-			setChainId(chain.id)
+		(async () => {
+		  if (activeAddress) {
+			const balances = await fetchDonorTokenBalances(activeAddress);	  
+			const newActivePoolIdsByChain = getActivePoolIdsByChain(balances);
+			setActivePoolIdsByChain(newActivePoolIdsByChain);
+		  } else {
+			console.log("No active address, skipping balance fetch");
+		  }
+		})();
+	  }, [activeAddress, balanceUpdateTrigger]);
+
+	// Step 3: Query subgraph data.
+	// Uses useQueries hook to perform parallel queries for each chain with active pools.
+	// Each query runs only if activeAddress exists and there are active pool IDs for that chain.
+	// Each item in the query results array contains data, isLoading, isError, and isSuccess properties.
+	// If activePoolIdsByChain is empty or undefined, Object.entries(activePoolIdsByChain) will produce an empty array, so no queries will be created.
+	// Queries are enabled only when an active address exists and the chain has active pool IDs.
+	const subgraphQueries = useQueries({
+		// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
+		// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
+		// Example:
+		// [
+		// 	[137, ["0x12...9ab", "0x45...567"]],
+		// 	[42161, ["0xde...234"]]
+		// ]
+		queries: Object.entries(activePoolIdsByChain).map(([chainId, poolIds]) => ({
+			// Query key is an array containing the query name, chainId, poolIds, and activeAddress.
+			// This is used to identify the query and to invalidate it when any of the array variables change.
+			queryKey: ['divaLiquidityData', chainId, poolIds, activeAddress],
+			// Query function to fetch data from the subgraph.
+			queryFn: async () => {
+				const response = await request<DIVALiquidityResponse>(
+					chainConfigs[chainId].graphUrl,
+					queryDIVALiquidity(poolIds, activeAddress)
+				);
+				// console.log(`Response for chain ${chainId}:`, response);
+				return response.liquidities || [];
+			},
+			// Query is enabled only when an active address exists and the chain has active pool IDs.
+			enabled: !!activeAddress && poolIds.length > 0
+			})
+		)
+  	});
+
+	// Check loading, error and isSuccess states of the subgraph queries. 
+	// isLoading is true if any query is loading.
+	const isLoading = subgraphQueries?.some(query => query.isLoading);
+	// isError is true if any query has an error.
+	const isError = subgraphQueries?.some(query => query.isError);
+	// isSuccess is true if all queries have succeeded.
+	const isSuccess = subgraphQueries?.every(query => query.isSuccess);
+
+	// Steps 4 & 5: Filter subgraph data and calculate donation stats.
+	// Triggers if isSuccess is true or activePoolIdsByChain is set after fetching donor token balances.
+	useEffect(() => {
+		if (isSuccess) {
+			// Flatten query results from all chains into a single array
+			// Example of an item in flattenedData array:
+			// {
+			// 	id: "0x123...abc-0",
+			// 	eventType: "Added",
+			// 	collateralAmount: "1000000000000000000",
+			// 	msgSender: "0xuser1...",
+			// 	shortTokenHolder: "0xuser2...",
+			// 	longTokenHolder: "0xuser3...",
+			// 	timestamp: "1678901234",
+			// 	pool: {
+			// 	  id: "0x123...abc",
+			// 	  statusFinalReferenceValue: "Open",
+			// 	  capacity: "10000000000000000000",
+			// 	  collateralBalanceGross: "5000000000000000000",
+			// 	  payoutLong: "1500000000000000000",
+			// 	  payoutShort: "500000000000000000",
+			// 	}
+			// }
+			const flattenedData = subgraphQueries
+				.filter(query => query.isSuccess && query.data)
+				.flatMap(query => query.data);
+
+			// Create a map of pool details from campaign.json, keyed by poolId.
+			// This map will be attached to the subgraph data to help filter for events where position token recipients match the expected donation recipients.
+			const poolDetails = campaigns.reduce((acc, campaign) => {
+				campaign.pools.forEach(pool => {
+					acc[pool.poolId] = {
+						campaignId: campaign.campaignId,
+						beneficiarySide: pool.beneficiarySide,
+						donationRecipientAddress: campaign.donationRecipients[0].address,
+						decimals: Number(campaign.decimals),
+						chainId: Number(campaign.chainId) as 137 | 42161
+					};
+				});
+				return acc;
+			}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipientAddress: string, decimals: number, chainId: 137 | 42161 }>);
+		  
+			// Attach poolDetails to the flattened data.
+			// Example of an item in dataWithCampaignId array:
+			// {
+			//   beneficiarySide: "short",
+			//   campaignId: "test_ongoing_dUSD_polygon",
+			//   collateralAmount: "1000000000000000000",
+			//   donationRecipientAddress: "0x9adefeb576dcf52f5220709c1b267d89d5208d78",
+			//   decimals: 18,
+			//   eventType: "Added",
+			//   id: "0x3ed05b4c5a4509b15bf6ea9e529fce74d5d6bd5ecbaa839ef83a1a30e2edcdb0-0x4452a2a37d4dbe1227aecce97b93d6b4",
+			//   longTokenHolder: "0x9adefeb576dcf52f5220709c1b267d89d5208d78",
+			//   msgSender: "0x9adefeb576dcf52f5220709c1b267d89d5208d78",
+			//   pool: {
+			//     id: "0x3ed05b4c5a4509b15bf6ea9e529fce74d5d6bd5ecbaa839ef83a1a30e2edcdb0",
+			//     statusFinalReferenceValue: "Open",
+			//     capacity: "1000000000000000000",
+			//     collateralBalanceGross: "1000000000000000000",
+			//     payoutLong: "1000000000000000000",
+			//     payoutShort: "1000000000000000000",
+			//     expiryTime: "10001723986393",
+			//   },
+			//   shortTokenHolder: "0x47566c6c8f70e4f16aa3e7d8eed4a2bdb3f4925b",
+			//   timestamp: "1724276061"
+			// }
+			// @todo: poolId is currently stored twice in id and pool.id. Check whether it's needed
+			const enrichedData = flattenedData.map(item => ({
+				...item,
+				campaignId: poolDetails[item.pool.id].campaignId,
+				beneficiarySide: poolDetails[item.pool.id].beneficiarySide,
+				donationRecipientAddress: poolDetails[item.pool.id].donationRecipientAddress,
+				decimals: poolDetails[item.pool.id].decimals,
+				chainId: poolDetails[item.pool.id].chainId
+			}));
+		
+			// Filter for events where position token recipients match the expected donation recipients.
+			const filteredData = enrichedData.filter(item => 
+				item.beneficiarySide === 'long' && item.longTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase() ||
+				item.beneficiarySide === 'short' && item.shortTokenHolder.toLowerCase() === item.donationRecipientAddress.toLowerCase()
+			); 
+
+			setHasActiveCampaigns(filteredData.length > 0);
+
+			// Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
+			// Create a map to store the status of each campaign
+			// const campaignStatusMap: { [campaignId: string]: CampaignStatus } = {};
+
+			// Get status for each campaign
+			const campaignStatusMap = filteredData.reduce((acc, item) => {
+				const campaign = campaigns.find(c => c.campaignId === item.campaignId);
+				if (!campaign) return; // Shouldn't happen but just in case.
+
+				const isExpiredCampaign = isExpired(Number(campaign.expiryTimestamp) * 1000); // Could have pulled it from filtereData directly, but would then need to handle multiple poolIds with potentially different expiry times.
+				const poolStatus = item.pool.statusFinalReferenceValue as StatusSubgraph;
+
+				let campaignStatus: CampaignStatus;
+				if (isExpiredCampaign) {
+					campaignStatus = poolStatus === 'Confirmed' ? 'Completed' : 'Expired';
+				} else {
+					campaignStatus = 'Ongoing';
+				}
+
+				// Update the campaignStatusMap if:
+				//   i) No status is set yet for the campaign, or
+				//   ii) Current status is 'Completed' but the new status is not.
+				// This can happen if a campaign is associated with multiple pools, and those pools may not have Confirmed status at the same time.
+				// This should only occur briefly as pools typically expire and resolve almost simulatenously.
+				if (!acc[item.campaignId] || (acc[item.campaignId] === 'Completed' && campaignStatus !== 'Completed')) {
+					acc[item.campaignId] = campaignStatus;
+				}
+
+				return acc;
+			}, {} as Record<string, CampaignStatus>);
+
+			// Calculate committed/contributed for each campaign.
+			const committedByCampaign = filteredData.reduce((acc, item) => {
+				// Initialize accumulator entry for the campaign if it doesn't exist
+				if (!acc[item.campaignId]) acc[item.campaignId] = 0;
+				// Add collateralAmount to the sumCommitted property of the current campaign.
+				acc[item.campaignId] += Number(formatUnits(BigInt(item.collateralAmount), item.decimals));
+				return acc;
+			}, {} as Record<string, number>);
+
+			// Calculate donated amount (actual payout to beneficiaries) for each campaign
+			const donatedByCampaign = filteredData.reduce((acc, item) => {
+				// Initialize accumulator entry for the campaign if it doesn't exist
+				if (!acc[item.campaignId]) acc[item.campaignId] = 0;
+				const amount = BigInt(item.collateralAmount)
+				const payout = item.beneficiarySide === 'long' ? BigInt(item.pool.payoutLong) : BigInt(item.pool.payoutShort)
+				acc[item.campaignId] += Number(formatUnits(amount * payout, item.decimals * 2)); // formatUnits is used here to divide the amount by 10^decimals due to integer multiplication and then a second time to convert it into a displayable number
+				return acc;
+			}, {} as Record<string, number>);
+
+			// Set the donation stats for the campaign
+			const campaignDonationStats = Object.keys(committedByCampaign).reduce((acc, campaignId) => {
+				const campaign = campaigns.find(c => c.campaignId === campaignId);
+				if (!campaign) return; // Shouldn't happen but just in case.
+
+				const committed = committedByCampaign[campaignId];
+				const donated = Number(donatedByCampaign[campaignId] || 0);
+				acc[campaignId] = {
+					campaignBalance: committed, // @todo consider renaming campaignBalance to committed
+					donated: donated,
+					percentageDonated: committed > 0 ? (donated / committed) * 100 : 0,
+					claimEnabled: chainId === Number(campaign.chainId) && campaignStatusMap[campaignId] === 'Completed' && committed * 0.997 - donated > 0, // Enable Claim button if there is something to claim (i.e. committed * 0.997 - donated > 0 )
+					status: campaignStatusMap[campaignId]
+				};
+				return acc;
+			}, {} as typeof donationStats);
+			setDonationStats(campaignDonationStats); 
 		}
 
-		// Keep for later to better understanding the output of multicall
-		// const test = async () => {
-		// 	// Some multicall testing
-		// 	const provider = new ethers.providers.Web3Provider(
-		// 		(window as any).ethereum
-		// 	)
+	  }, [isSuccess, activePoolIdsByChain, chainId]);
 
-		// 	const res = await fetchPoolParams(chainId, provider, [campaigns[1]])
-		// 	const poolParams = processMulticallResult(res)
-		// 	console.log('poolParams', poolParams)
+	  
+	// @todo add countCampaignsParticipated logic -> maybe just see whether length is > 0?
+	  
 
-		// }
-
-		// test()
-	}, [chain])
-
-	const updateCampaignBalance = (campaignId: string, tokenAmount: number) => {
-		setCampaignBalance((prev) => ({
-			...prev,
-			[campaignId]: tokenAmount,
-		}))
-	}
-
-	const updateClaimEnabled = (campaignId: string, enabled: boolean) => {
-		setClaimEnabled((prev) => ({
-			...prev,
-			[campaignId]: enabled,
-		}))
-	}
-
-	const updateStatusFinalReferenceValue = (
-		campaignId: string,
-		status: Status
-	) => {
-		setStatusFinalReferenceValue((prev) => ({
-			...prev,
-			[campaignId]: status,
-		}))
-	}
-
+	// Updates the loading state for a specific campaign's redeem action.
+	// It preserves the loading states of other campaigns while updating the specified one.
 	const updateRedeemLoading = (campaignId: string, loading: boolean) => {
 		setRedeemLoading((prev) => ({
 			...prev,
@@ -245,123 +465,118 @@ export default function Donations() {
 		}))
 	}
 
-	const updateDonated = (campaignId: string, value: number) => {
-		setDonated((prev) => ({
-			...prev,
-			[campaignId]: value,
-		}))
-	}
-
-	const updatePercentageDonated = (campaignId: string, percentage: number) => {
-		setPercentageDonated((prev) => ({
-			...prev,
-			[campaignId]: percentage,
-		}))
-	}
-
+	// Function to claim back unfunded amount.
+	// @todo Update to use readContracts at a later stage
 	const handleRedeemPositionToken = async (campaign: Campaign) => {
-		const provider = new ethers.providers.Web3Provider((window as any).ethereum)
-
-		const divaContract = new ethers.Contract(
-			campaign.divaContractAddress,
-			campaign.divaContractAddress === divaContractAddressOld
+		const divaContract = {
+			address: campaign.divaContractAddress,
+			abi: campaign.divaContractAddress === divaContractAddressOld
 				? DivaABIold
 				: DivaABI,
-			provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
-		)
-
+			chainId: Number(campaign.chainId) as 137 | 42161
+		} as const
+	
 		updateRedeemLoading(campaign.campaignId, true)
-
-		// @todo Potentially easier to hard-code the donor position tokens in campaign.json as well rather
-		// than querying them
-		Promise.all(
-			campaign.pools.map((pool) => {
-				// @todo Replace with multicall at a later stage
-				return divaContract.getPoolParameters(pool.poolId).then((res: Pool) => {
-					return res
-				})
-			})
-		).then((poolData: Pool[]) => {
-			Promise.all(
-				poolData.map((pool: Pool) => {
-					// Assumes that beneficiarySide is the same for all pools linked to a campaign
-					const donorPositionToken =
-						campaign.pools[0].beneficiarySide === 'short'
-							? pool.longToken
-							: pool.shortToken
-
-					const positionTokenContract = getContract({
-						address: donorPositionToken,
+	
+		try {	
+			// Get user's donor token balances for the pool associated with the campaign.
+			// Reading from smart contract hear in order to get the exact balance
+			// token balances at the time of redemption.
+			const donorTokenBalance = await Promise.all(
+				campaign.pools.map(async (pool: CampaignPool) => {
+					const donorToken = pool.donorToken
+	
+					const balance = await readContract(wagmiConfig, {
+						address: donorToken,
 						abi: ERC20ABI,
-						signerOrProvider: wagmiProvider,
+						functionName: 'balanceOf',
+						args: [activeAddress],
 					})
-
-					return getTokenBalance(
-						positionTokenContract,
-						activeAddress as `0x${string}`
-					).then((res) => {
-						return {
-							poolData: pool,
-							donorPositionToken: donorPositionToken,
-							balance: res?.balance, // User's position token balance in the pool. Unformatted balance for easier handling when multiplying with payout amount
-						}
-					})
-				})
-			).then((data) => {
-				// Prepare args for `batchRedeemPositionToken` smart contract call
-				const batchRedeemPositionTokenArgs = data.map((pool) => {
+	
 					return {
-						positionToken: pool.donorPositionToken,
-						amount: pool.balance,
+						donorToken: donorToken,
+						balance: balance,
 					}
 				})
-
-				divaContract
-					.batchRedeemPositionToken(batchRedeemPositionTokenArgs)
-					.then((tx: any) => {
-						tx.wait()
-							.then(() => {
-								updateRedeemLoading(campaign.campaignId, false)
-								onOpen() // Open Success Modal
-							})
-							.catch((err: any) => {
-								updateRedeemLoading(campaign.campaignId, false)
-								console.log(err)
-							})
-					})
-					.catch((err: any) => {
-						updateRedeemLoading(campaign.campaignId, false)
-						console.log(err)
-					})
+			)
+	
+			// Prepare args for `batchRedeemPositionToken` smart contract call.
+			const batchRedeemPositionTokenArgs = donorTokenBalance.map((pool) => ({
+				positionToken: pool.donorToken,
+				amount: pool.balance,
+				// amount: parseUnits("1", 18) // Used for testing
+			}))
+	
+			// First, simulate the contract call. That's the recommended practice in the viem docs:
+			// https://viem.sh/docs/contract/writeContract.html#usage
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore: Temporarily ignore type error, fix later
+			const { request } = await simulateContract(wagmiConfig, {
+				...divaContract,
+				functionName: 'batchRedeemPositionToken',
+				args: [batchRedeemPositionTokenArgs],
+				account: activeAddress,
 			})
-		})
+	
+			// If simulation is successful, proceed with the actual transaction
+			const hash = await writeContract(wagmiConfig, request)
+	
+			// Wait for the transaction to be mined
+			await waitForTransactionReceipt(wagmiConfig, { hash })
+
+			// @todo Consider adding a small loading delay for fast networks like Arbitrum
+
+			updateRedeemLoading(campaign.campaignId, false)
+			onOpen() // Open Success Modal
+
+			// Trigger balance update after successful redemption
+			setBalanceUpdateTrigger(prev => prev + 1);
+		} catch (err) {
+			console.error('Error in batchRedeemPositionToken transaction:', err)
+			updateRedeemLoading(campaign.campaignId, false)
+		}
 	}
 
 	// @todo Duplicated in CampaignSection component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {
 		for (const pool of campaign.pools) {
-			const divaContract = getContract({
+			const divaContract = {
 				address: campaign.divaContractAddress,
-				abi:
-					campaign.divaContractAddress === divaContractAddressOld
-						? DivaABIold
-						: DivaABI,
-				signerOrProvider: wagmiProvider,
-			})
+				abi: campaign.divaContractAddress === divaContractAddressOld
+					? DivaABIold
+					: DivaABI,
+				chainId: Number(campaign.chainId) as 137 | 42161
+			} as const
 
-			const poolParams = await divaContract.getPoolParameters(pool.poolId)
-			const donorPositionToken =
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore: Temporarily ignore type error, fix later
+			const poolParams = await readContract(wagmiConfig, {
+				...divaContract,
+				functionName: 'getPoolParameters',
+				args: [pool.poolId],
+			}) as Pool // @todo is the poolType here correct? Not ReadContractReturnType?
+
+			const donorPositionToken: `0x${string}` =
 				pool.beneficiarySide === 'short'
 					? poolParams.longToken
 					: poolParams.shortToken
 
-			const token = getContract({
+			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				signerOrProvider: wagmiProvider,
-			})
-			const decimals = await token.decimals()
-			const symbol = await token.symbol()
+				chainId: Number(campaign.chainId) as 137 | 42161
+			} as const
+
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore: Temporarily ignore type error, fix later
+			const decimals = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'decimals',
+			}) as bigint
+			const symbol = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'symbol',
+			}) as string
 
 			try {
 				await (window as any).ethereum.request({
@@ -383,145 +598,9 @@ export default function Donations() {
 		}
 	}
 
-	// Update state variables for all campaigns in `campaigns.json`
-	useEffect(() => {
-		if (
-			chainId === chainConfig.chainId &&
-			activeAddress != null &&
-			typeof window !== 'undefined' &&
-			typeof window.ethereum !== 'undefined' &&
-			isOpen === false
-		) {
-			// Variable used as a flag to display "Explore campaigns" message if user didn't make any donations
-			// yet or has already re-claimed the funds from previous campaigns.
-			let countCampaignsParticipated = 0
-
-			// Loop through each campaign in `campaign.json` and update the state variables
-			campaigns.forEach((campaign) => {
-				// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
-				const decimals = campaign.decimals
-
-				// Connect to corresponding contract. Note that the first campaign was using a pre-audited
-				// version of the DIVA Protocol contract. All subsequent campaigns are using the audited final version.
-				const divaContract = getContract({
-					address: campaign.divaContractAddress,
-					abi:
-						campaign.divaContractAddress === divaContractAddressOld
-							? DivaABIold
-							: DivaABI,
-					signerOrProvider: wagmiProvider,
-				})
-
-				// Get pool parameters for the underlying campaign, check user's position token balance and
-				// calculate donated amount.
-				// @todo Replace with multicall at a later stage
-				Promise.all(
-					campaign.pools.map((pool) => {
-						return divaContract
-							.getPoolParameters(pool.poolId)
-							.then((res: any) => {
-								return res
-							})
-					})
-				).then((poolData) => {
-					// Get user's position token balance
-					Promise.all(
-						poolData.map((pool) => {
-							// Assumes that beneficiarySide is the same for all pools linked to a campaign
-							const donorPositionToken =
-								campaign.pools[0].beneficiarySide === 'short'
-									? pool.longToken
-									: pool.shortToken
-
-							const positionTokenContract = getContract({
-								address: donorPositionToken,
-								abi: ERC20ABI,
-								signerOrProvider: wagmiProvider,
-							})
-
-							return getTokenBalance(positionTokenContract, activeAddress).then(
-								(res) => {
-									return {
-										poolParams: pool,
-										balance: res?.balance, // User's position token balance in the pool. Unformatted balance for easier handling when multiplying with payout amount
-									}
-								}
-							)
-						})
-					)
-						.then((poolResults) => {
-							const sumTokenBalanceFormatted = Number(
-								formatUnits(
-									poolResults.reduce(
-										(acc, data) => acc.add(data.balance),
-										ethers.BigNumber.from(0)
-									),
-									decimals
-								)
-							)
-							updateCampaignBalance(
-								campaign.campaignId,
-								sumTokenBalanceFormatted
-							)
-
-							if (sumTokenBalanceFormatted > 0) {
-								countCampaignsParticipated += 1
-							}
-
-							// @todo Assumes that the beneficiary side for all the pools linked to a campaign are the same
-							let sumDonated
-							if (campaign.pools[0].beneficiarySide === 'short') {
-								sumDonated = poolResults.reduce(
-									(acc, data) =>
-										acc.add(data.poolParams.payoutShort.mul(data.balance)),
-									ethers.BigNumber.from(0)
-								)
-							} else {
-								sumDonated = poolResults.reduce(
-									(acc, data) =>
-										acc.add(data.poolParams.payoutLong.mul(data.balance)),
-									ethers.BigNumber.from(0)
-								)
-							}
-
-							const sumDonatedFormatted = Number(
-								formatUnits(sumDonated.div(parseUnits('1', decimals)), decimals)
-							)
-							updateDonated(campaign.campaignId, sumDonatedFormatted)
-
-							updatePercentageDonated(
-								campaign.campaignId,
-								(sumDonatedFormatted / sumTokenBalanceFormatted) * 100
-							) // @todo Update with actual value
-
-							// Enable claim button only if the final value has been confirmed and there is something to claim.
-							// Accounts for 0.3% fee that is withheld by DIVA Protocol at claim time.
-							const currentStatusFinalReferenceValue =
-								poolResults[0].poolParams.statusFinalReferenceValue
-							
-							currentStatusFinalReferenceValue === 3 && sumTokenBalanceFormatted * 0.997 - sumDonatedFormatted > 0
-								? updateClaimEnabled(campaign.campaignId, true)
-								: updateClaimEnabled(campaign.campaignId, false)
-							updateStatusFinalReferenceValue(
-								campaign.campaignId,
-								currentStatusFinalReferenceValue
-							)
-						})
-						.then(() => {
-							setCampaignsParticipated(countCampaignsParticipated)
-						})
-				})
-			})
-		}
-	}, [
-		chainId,
-		activeAddress,
-		pools,
-		!campaignBalance,
-		claimEnabled == null,
-		isOpen
-	])
-
+	if (isLoading) return <div>Loading campaign data...</div>
+	if (isError) return <div>Error loading campaign data</div>
+  
 	// @todo Navigating from Donations to Home breaks the app
 	return (
 		<div className="pt-[5rem] lg:pb-[200px] sm:pt-[8rem] md:pt-[8rem] my-auto mx-auto px-4">
@@ -532,9 +611,23 @@ export default function Donations() {
 				<hr className="w-48 h-[8px] mx-auto bg-[#9FC131] border-0 rounded-[20px] mt-5" />
 			</div>
 			{/* @todo improve that part as it will show this message even when wallet is disconnected */}
-			{(campaignsParticipated === 0 && !isOpen) && (
+			{!isConnected && (
 				<div className="pb-[23rem] flex flex-col items-center justify-center">
-					<p className="mt-[60px]">{`You have already claimed your donations or you haven't made any donations yet`}</p>
+				<p className="mt-[60px]">
+				  Please
+				  <button
+					className="p-2 text-blue-600 underline"
+					onClick={connectWallet}
+				  >
+					connect your wallet
+				  </button>
+				  to view your donations
+				</p>
+			  </div>
+			)}
+			{(!hasActiveCampaigns && !isOpen && isConnected) && (
+				<div className="pb-[23rem] flex flex-col items-center justify-center">
+					<p className="mt-[60px]">{`There are no outstanding donations`}</p>
 					<Link href="/">
 						<button
 							type="button"
@@ -545,9 +638,10 @@ export default function Donations() {
 				</div>
 			)}
 			<div className="flex flex-row flex-wrap gap-10 justify-center">
-				{campaigns.map((campaign) => {
+				{campaigns.map((campaign: Campaign) => {
+					// @todo Consider aligning this part with Campaign section where expiryTimestamp is included in campaignStats
 					const expiryTimestamp = Number(campaign.expiryTimestamp)*1000
-					if (campaignBalance[campaign.campaignId] > 0) {
+					if (donationStats[campaign.campaignId]?.campaignBalance > 0) {
 						return (
 							// eslint-disable-next-line react/jsx-key
 							<div
@@ -565,7 +659,7 @@ export default function Donations() {
 										<div
 											className={`
 										${
-											isExpired(expiryTimestamp)
+											donationStats[campaign.campaignId]?.status !== 'Ongoing'
 												? 'bg-[#005C53] text-white'
 												: 'bg-[#DBF227] text-green-[#042940]'
 										}
@@ -574,11 +668,11 @@ export default function Donations() {
 											{expiryTimestamp && (
 												<span className="mt-1 inline-block align-middle">
 													<b>
-														{isExpired(expiryTimestamp)
+														{donationStats[campaign.campaignId]?.status !== 'Ongoing'
 															? 'Completed'
 															: 'Expiry:'}
 													</b>
-													{isExpired(expiryTimestamp)
+													{donationStats[campaign.campaignId]?.status !== 'Ongoing'
 														? null
 														: ` ${formatDate(expiryTimestamp)}`}
 												</span>
@@ -600,7 +694,7 @@ export default function Donations() {
 									</div>
 
 									{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-									{chainId === chainConfig.chainId ? (
+									{chainId === Number(campaign.chainId) ? (
 										<>
 											<Modal isCentered isOpen={isOpen} onClose={onClose}>
 												<ModalOverlay
@@ -628,6 +722,7 @@ export default function Donations() {
 																_hover: {
 																	backgroundColor: '#005C53',
 																},
+																textColor: 'white',
 															}}>
 															<Link
 																href="https://o26wxmqxfy2.typeform.com/to/FwmhnSq7"
@@ -644,10 +739,10 @@ export default function Donations() {
 												style={{ background: '#D6D58E' }}
 												colorScheme="green"
 												height="22px"
-												value={percentageDonated[campaign.campaignId]}>
+												value={donationStats[campaign.campaignId]?.percentageDonated}>
 												<ProgressLabel className="text-2xl flex flex-start">
 													<Text fontSize="xs" marginLeft="0.5rem">
-														{percentageDonated[campaign.campaignId]?.toFixed(1)}
+														{donationStats[campaign.campaignId]?.percentageDonated?.toFixed(1)}
 														%
 													</Text>
 												</ProgressLabel>
@@ -659,7 +754,7 @@ export default function Donations() {
 
 									{isConnected ? (
 										<>
-											{chainId === chainConfig.chainId ? (
+											{chainId === Number(campaign.chainId) ? (
 												<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
 													<div className="flex flex-col items-center justify-center">
 														<dt className="mb-2 font-medium text-xl text-[#042940]">
@@ -667,10 +762,10 @@ export default function Donations() {
 														</dt>
 														<dd className="font-normal text-base text-[#042940] ">
 															$
-															{campaignBalance &&
-															!isNaN(campaignBalance[campaign.campaignId])
+															{donationStats[campaign.campaignId]?.campaignBalance &&
+															!isNaN(donationStats[campaign.campaignId]?.campaignBalance)
 																? Number(
-																		campaignBalance[campaign.campaignId]
+																		donationStats[campaign.campaignId]?.campaignBalance
 																  ).toFixed(1)
 																: 0.0}
 														</dd>
@@ -681,10 +776,8 @@ export default function Donations() {
 														</dt>
 														<dd className="font-normal text-base text-[#042940] ">
 															$
-															{donated && !isNaN(donated[campaign.campaignId])
-																? Number(donated[campaign.campaignId]).toFixed(
-																		1
-																  )
+															{donationStats[campaign.campaignId]?.donated && !isNaN(donationStats[campaign.campaignId]?.donated)
+																? Number(donationStats[campaign.campaignId]?.donated).toFixed(1)
 																: 0.0}
 														</dd>
 													</div>
@@ -696,11 +789,11 @@ export default function Donations() {
 														<span>
 															<button
 																className="p-2 text-blue-600"
-																onClick={handleOpen}>
+																onClick={() => handleSwitchNetwork(Number(campaign.chainId))}>
 																connect
 															</button>
 														</span>
-														{` to the ${chainConfig.name} network.`}
+														{` to the ${campaign.chainName} network.`}
 													</div>
 												</div>
 											)}
@@ -711,12 +804,12 @@ export default function Donations() {
 												Please
 												<span>
 													<button
-														className="p-2 text-blue-600"
-														onClick={openConnectModal}>
+														className="p-2 text-blue-6000"
+														onClick={connectWallet}>
 														connect
 													</button>
 												</span>
-												{` to the ${chainConfig.name} network.`}
+												{` to the ${campaign.chainName} network.`}
 											</div>
 										</div>
 									)}
@@ -740,12 +833,11 @@ export default function Donations() {
 										</div>
 									) : (
 										<button
-											disabled={!claimEnabled[campaign.campaignId]}
+											disabled={!donationStats[campaign.campaignId]?.claimEnabled}
 											onClick={() => handleRedeemPositionToken(campaign)}
 											type="button"
 											className="disabled:hover:bg-[#042940] disabled:opacity-25 text-white bg-[#042940] hover:bg-blue-700 focus:ring-4 focus:outline-none  font-medium rounded-lg text-sm px-5 py-2.5 inline-flex justify-center w-full text-center">
-											{isExpired(expiryTimestamp) &&
-											statusFinalReferenceValue[campaign.campaignId] !== 3
+											{donationStats[campaign.campaignId]?.status === 'Expired'
 												? 'In Settlement'
 												: 'Claim Unfunded Amount'}
 										</button>

@@ -17,6 +17,29 @@ export const chainConfig = {
       blockExplorer: 'https://polygonscan.com/'
 }
 
+type ChainConfig = {
+    name: string;
+    graphUrl: string;
+    blockExplorer: string;
+    divaContractAddress: string;
+}
+
+export const chainConfigs: { [chainId: number]: ChainConfig } = {
+    137: {
+      name: 'Polygon',
+      graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-polygon/version/latest',
+      blockExplorer: 'https://polygonscan.com/',
+      divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
+    },
+    42161: {
+      name: 'Arbitrum One',
+      graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-arbitrum-one/version/latest',
+      blockExplorer: 'https://arbiscan.io/',
+      divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
+    },
+    // Add more chains as needed
+  }
+
 // export const chainConfig = {
 //     name: 'Mumbai',
 //     chainId: 80001,

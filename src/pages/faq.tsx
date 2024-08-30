@@ -1,7 +1,5 @@
-import Navbar from '../components/Layout/Navbar'
-import { FooterSection } from '../components/Section/FooterSection'
-import FAQContent from '../components/Section/FAQContent'
-import Layout from '../components/Layout/Layout'
+import FAQContent from '@/components/Section/FAQContent'
+import Layout from '@/components/Layout/Layout'
 
 export default function Faq() {
 	return (

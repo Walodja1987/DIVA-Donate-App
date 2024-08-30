@@ -5,12 +5,13 @@
       {
         "poolId": "8",
         "beneficiarySide": "short",
-        "positionToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1"
+        "beneficiaryToken": "0xBd3F0b44f4273a55C7b60241b51ADD4E4f75B79B",
+        "donorToken": "0x58560cC90f681db813930909dd9eA0D5dAC885c1"
       }
     ],
     "img": "/Images/pastrolists400pxVertical.png",
     "path": "/campaign/pastoralists-1",
-    "title": "Pastoralists",
+    "title": "Pastoralists Mar-May 2023",
     "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya (Marsabit region) to financially assist them in case of drought.",
     "donationRecipients" : [
       {
@@ -26,6 +27,7 @@
     "decimals": "6",
     "divaContractAddress": "0xFf7d52432B19521276962B67FFB432eCcA609148",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1686463200"
   },
   {
@@ -34,17 +36,19 @@
       {
         "poolId": "0xcd3a8a1679580797dd0288ed0a5cf4b7cbc832392355365234eae85897411df0",
         "beneficiarySide": "short",
-        "positionToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59"
+        "beneficiaryToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59",
+        "donorToken": "0x664E9390DB669f67DC76d2D38b43CbA51a25Abb3"
       },
       {
         "poolId": "0x8456bb83c6fb307cdbeb79a1308e6a4fefd5f2a706a755302850fcf3607acbf4",
         "beneficiarySide": "short",
-        "positionToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB"
+        "beneficiaryToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB",
+        "donorToken": "0xA0AaaA8C64761Cb24FE80bbEd3b07cD423aab4a5"
       }
     ],
     "img": "/Images/pastoralists_mcv_pilot.png",
     "path": "/campaign/pastoralists-mcv",
-    "title": "Pastoralists (MCV Pilot)",
+    "title": "Pastoralists Oct-Dec 2023",
     "desc": "A pilot with Mercy Corps Ventures (MCV) to provide anticipatory cash transfers to pastoralist communities in two Kenyan counties: Kajiado and Laikipia.",
     "donationRecipients" : [
       {
@@ -60,6 +64,7 @@
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1704106740"
   },
   {
@@ -68,7 +73,8 @@
       {
         "poolId": "0x8c85108a28a163d1722c2140eea57f9d1cb7f83f69dfc04eb0d9e51298dea2b6",
         "beneficiarySide": "short",
-        "positionToken": "0xC6426753264774EAB988d91DD29CfE6a626b14a0"
+        "beneficiaryToken": "0xC6426753264774EAB988d91DD29CfE6a626b14a0",
+        "donorToken": "0xF253278A45fD1EB0F2B16260C9314b8740Fa94cf"
       }
     ],
     "img": "/Images/pastoralists_mar_may_2024.jpg",
@@ -89,6 +95,38 @@
     "decimals": "6",
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "137",
+    "chainName": "Polygon",
     "expiryTimestamp": "1718042400"
+  },
+  {
+    "campaignId": "pastoralists_4",
+    "pools": [
+      {
+        "poolId": "0xe09fb4e7bf14d9cbd7834ab77e06837deae28a5b5a4629a7ba96b42156089eea",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB",
+        "donorToken": "0xA0AaaA8C64761Cb24FE80bbEd3b07cD423aab4a5"
+      }
+    ],
+    "img": "/Images/pastoralists-4.jpeg",
+    "path": "/campaign/pastoralists-4",
+    "title": "Pastoralists Oct-Dec 2024",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x33d47Ea607Fc12f9c84463A1e5A641A898aBB889",
+        "url": "https://arbiscan.io/address/0x33d47Ea607Fc12f9c84463A1e5A641A898aBB889"
+      }
+    ],
+    "goal": "15000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+    "decimals": "6",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "42161",
+    "chainName": "Arbitrum One",
+    "expiryTimestamp": "1736488800"
   }
 ]

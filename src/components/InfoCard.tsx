@@ -1,10 +1,3 @@
-import Image from 'next/image'
-import { useState } from 'react'
-//import { Dialog } from '@headlessui/react'
-//import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
-import { FaBars, FaTimes } from 'react-icons/fa'
-import { Logo } from './Logo'
-
 interface InfoCardProps {
 	cardWidth: string
 	title: string

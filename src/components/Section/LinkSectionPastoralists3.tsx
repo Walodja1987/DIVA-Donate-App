@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 // @todo Merge with LinkSection component
 
 export const LinkSectionPastoralists3 = () => (
@@ -14,7 +12,7 @@ export const LinkSectionPastoralists3 = () => (
 		<div className="grid grid-rows-2 gap-6 pb-16 lg:grid-cols-2">
 			<div>
 				<a
-					href="https://www.divaprotocol.io/posts/diva-conditional-donations-pastoralists-3"
+					href="https://www.divadonate.xyz/posts/diva-conditional-donations-pastoralists-3"
 					className="group block max-w-2xl mx-auto rounded-lg p-6 bg-white space-y-3"
 					target={'_blank'}
 					rel="noreferrer">

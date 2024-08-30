@@ -1,29 +1,12 @@
 import React, { useState } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { formatUnits } from 'ethers/lib/utils';
-import request, { gql } from 'graphql-request'
-import { chainConfig } from '../../constants'
+import request from 'graphql-request'
+import { chainConfigs } from '../../constants'
 import { getShortenedAddress } from '../../utils/general'
 import { BigNumber } from 'ethers';
-import { Campaign } from '../../types/campaignTypes'
-
-// GraphQL query to fetch liquidity events for multiple pool IDs
-export const queryDIVALiquidity = (poolIds: string[]) => gql`
-  {
-    liquidities(where: {pool_in: [${poolIds.map(id => `"${id}"`).join(', ')}]}) {
-      pool {
-        id
-      }
-      eventType
-      collateralAmount
-      id
-      longTokenHolder
-      shortTokenHolder
-      msgSender
-      timestamp
-    }
-  }
-`
+import type { Campaign } from '@/types/campaignTypes'
+import { queryDIVALiquidity } from '@/queries/divaSubgraph'
 
 // TopDonorsTable component to display top donors for a campaign
 export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
@@ -34,24 +17,19 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
   const decimals = campaign.decimals; // Get the decimals for formatting amounts
 
   // Fetch liquidity data using react-query
-  const {
-      data,
-      isLoading,
-      isError
-  } = useQuery<any[]>(['liquidity', poolIds], async () => {
-      const response = request(
-          chainConfig.graphUrl,
-          queryDIVALiquidity(poolIds)
-      ).then((data: any) => {
-          if (data.liquidities != null) {
-              return data.liquidities;
-          } else {
-              console.log('No liquidity events found');
-              return [];
-          }
-      });
-      return response;
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['liquidity', poolIds],
+    queryFn: async () => {
+      const response = await request(
+        chainConfigs[Number(campaign.chainId)].graphUrl,
+        queryDIVALiquidity(poolIds as any)
+      );
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore: Temporarily ignore type error, fix later
+      return response.liquidities || [];
+    }
   });
+  console.log("data", data)
 
   // Display loading or error messages
   if (isLoading) return <div>Loading...</div>;
@@ -74,7 +52,12 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
       msgSender,
       collateralAmount: BigNumber.from(collateralAmount), // Cast to BigNumber
     }))
-    .sort((a, b) => b.collateralAmount.sub(a.collateralAmount).toNumber()); // Sort by amount
+    .sort((a, b) => {
+      // Sorting logic modified to work with BigNumber
+      const diff = b.collateralAmount.sub(a.collateralAmount);
+      if (diff.isZero()) return 0;
+      return diff.isNegative() ? -1 : 1;
+    }); // Sort by amount
 
   // Calculate total amount contributed
   const totalAmount = summedData.reduce((total, donor) => total + Number(formatUnits(donor.collateralAmount, decimals)), 0).toFixed(0);
@@ -109,13 +92,20 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
                   </span>
                 </td> {/* Row number */}
                 <td className="text-left w-52 text-[#005C53]">
-                  <a href={`${chainConfig.blockExplorer}/address/${donor.msgSender}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`${chainConfigs[Number(campaign.chainId)].blockExplorer}/address/${donor.msgSender}`} target="_blank" rel="noopener noreferrer">
                     {getShortenedAddress(donor.msgSender)}
                   </a>  
                 </td>
                 {/* <td>{new Date(parseInt(donor.timestamp) * 1000).toLocaleDateString()}</td> */}
-                <td className="text-left font-bold text-lg w-36 rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(formatUnits(donor.collateralAmount, decimals)))}</td>
-              </tr>
+                <td className="text-left font-bold text-lg w-36 rounded-r-lg text-[#005C53]">
+                  {(() => {
+                    const amount = Number(formatUnits(donor.collateralAmount, decimals));
+                    return amount < 1 
+                      ? '<$1' 
+                      : '$' + new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+                  })()}
+                </td>              
+                </tr>
             ))}
             <tr className="h-2"></tr> {/* Empty row for spacing as margin attribute doesn't seem to work */}
           </tbody>
@@ -123,7 +113,14 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
             <tr className="text-xl bg-[#DEEFE7] h-14">
               <td className="rounded-l-lg"></td>
               <td colSpan={1} className="text-left font-bold text-[#005C53]">Total:</td>
-              <td className="font-bold text-left rounded-r-lg text-[#005C53]">${new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(totalAmount))}</td>
+              <td className="font-bold text-left rounded-r-lg text-[#005C53]">
+                {(() => {
+                  const amount = Number(totalAmount);
+                  return amount < 1 
+                    ? '<$1' 
+                    : '$' + new Intl.NumberFormat('de-CH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+                })()}
+              </td>
             </tr>
           </tfoot>
         </table>

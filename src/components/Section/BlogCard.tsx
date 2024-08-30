@@ -3,10 +3,7 @@ import {
 	Wrap,
 	VStack,
 	Heading,
-	Text,
 	Image,
-	Box,
-	WrapItem,
 } from '@chakra-ui/react'
 import BlogMeta from './BlogMeta'
 
@@ -34,7 +31,7 @@ const BlogCard = ({
 				src={`Images/posts/${coverImage}`}
 				width="full"
 				alt={coverImageAlt}
-				className="rounded-2xl"
+				className="rounded-lg"
 			/>
 			<Wrap spacing="16px" direction="column" px={0}>
 				<Heading

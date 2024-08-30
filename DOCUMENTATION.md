@@ -37,3 +37,10 @@ The overwrite is entered in decimal format. Example: `"donated": "5374"`. If it'
 ### Caveats
 
 Although you could theoretically add multiple `donationRecipient`s, the app can currently only handle one `donationRecipient` per campaign.
+
+
+### Other comments
+* If a user contributes to a campaign pool but sets the `donationRecipient` to a different address than specified in the `campaign.json` file, it will not be considered in the Raised statistics but the funds will be shown as "Donated" in "My Donations" and claimable after settlement. As we don't expect users to add liquidity to campaign pools outside of the DIVA Donate app, this is not considered an issue and does not require an update to the app at this stage.
+
+## Raised
+* Liquidity added to a campaign pool is considered as "Raised" if the recipient of the insurance side is the same as specified in the `campaign.json` file. This is the case if users contributed via the DIVA Donate app. If users contribute via other means such as etherscan and choose a different address as recipient, this will not be counted as Raised.

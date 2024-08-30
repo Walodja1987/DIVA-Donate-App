@@ -18,18 +18,21 @@ import {
 	getShortenedAddress,
 	formatNumberWithCommas,
 } from '../../utils/general'
-import { chainConfig } from '../../constants'
+import { chainConfigs } from '@/constants'
 
 interface DonationCardProps {
 	thankYouMessage: string
 	isConnected: boolean
-	chainId: number
+	connectedChainId: number
+	campaignChainId: number
+	campaignChainName: string
 	isOpen: boolean
 	onClose: () => void
 	percentage: number
 	goal: number | 'Unlimited'
 	raised: number
 	amount: string
+	insufficientFunds: boolean
 	handleAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 	balance: number
 	campaign: any
@@ -41,19 +44,22 @@ interface DonationCardProps {
 	handleDonation: () => void
 	donateEnabled: boolean
 	openConnectModal: (() => void) | undefined
-	handleOpen: () => void
+	handleSwitchNetwork: (campaignChainId: number) => void
 }
 
 export const DonationCard: React.FC<DonationCardProps> = ({
 	thankYouMessage,
 	isConnected,
-	chainId,
+	connectedChainId,
+	campaignChainId,
+	campaignChainName,
 	isOpen,
 	onClose,
 	percentage,
 	goal,
 	raised,
 	amount,
+	insufficientFunds,
 	handleAmountChange,
 	balance,
 	campaign,
@@ -65,18 +71,18 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	handleDonation,
 	donateEnabled,
 	openConnectModal,
-	handleOpen,
+	handleSwitchNetwork,
 }) => {
 	return (
-		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px] xl:w-[777px]">
+		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px]">
 			<div className="mb-10">
 				<p className="mb-3 font-normal font-['Open_Sans'] text-base text-center text-[#042940]">
 					{thankYouMessage}
 				</p>
 			</div>
-			{isConnected ? (
+			{isConnected && connectedChainId ? (
 				<>
-					{chainId === chainConfig.chainId ? (
+					{connectedChainId === campaignChainId ? (
 						<>
 							{/* {percentage !== 0 && (
 							<div className="mb-10 w-full bg-[#D6D58E] rounded-[10px]">
@@ -132,15 +138,15 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 												className="h-[46px] w-full p-4 text-lg border border-[#042940]/24 focus:outline-none text-gray-900 rounded-[10px] bg-[rgba(4, 41, 64, 0.24)]"
 											/>
 
-											<button
-												id="dropdownDefaultButton"
-												data-dropdown-toggle="dropdown"
-												className="disabled absolute right-0 top-0 bottom-0 text-white bg-[#005C53] focus:ring-green-300 font-medium rounded-lg text-sm px-6 py-2.5 text-center flex gap-2 items-center font-openSans"
-												type="button">
+											<a
+												href={`${chainConfigs[campaignChainId].blockExplorer}address/${campaign.collateralToken}`}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="absolute right-0 top-0 bottom-0 text-white bg-[#005C53] focus:ring-green-300 font-medium rounded-lg text-sm px-6 py-2.5 text-center flex gap-2 items-center font-openSans"
+											>
 												<img src="/Images/usdt-logo.svg" alt="USDT" />
-
 												<div className="text-base">USDT</div>
-											</button>
+											</a>
 											<div
 												id="dropdown"
 												className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
@@ -194,32 +200,32 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 							</div>
 
 							<div className="flex flex-row justify-between border-spacing-x-8 gap-4">
-								<CustomButton
-									isLoading={approveLoading}
-									onClick={handleApprove}
-									isEnabled={approveEnabled}
-									label={'Approve'}
-								/>
-								<CustomButton
-									isLoading={donateLoading}
-									onClick={handleDonation}
-									isEnabled={donateEnabled}
-									label={'Deposit'}
-								/>
+							<CustomButton
+								isLoading={approveLoading || donateLoading}
+								onClick={approveEnabled ? handleApprove : handleDonation}
+								isEnabled={!insufficientFunds && (approveEnabled || donateEnabled)}
+								label={
+									insufficientFunds 
+									? 'Insufficient Funds' 
+									: (approveEnabled ? 'Approve' : (donateEnabled ? 'Deposit' : 'Enter amount'))
+								}
+							/>
 							</div>
 						</>
 					) : (
 						<UnsupportedNetworkModal
-							openConnectModal={openConnectModal}
-							chainConfig={chainConfig}
+							handleSwitchNetwork={() => handleSwitchNetwork(Number(campaignChainId))}
+							campaignChainName={campaignChainName}
+							campaignChainId={campaignChainId}
 						/>
 					)}
 				</>
 			) : (
-				<UnsupportedNetworkModal
-					openConnectModal={openConnectModal}
-					chainConfig={chainConfig}
-				/>
+				// <UnsupportedNetworkModal
+				// 	openConnectModal={openConnectModal}
+				// 	chainConfig={chainConfig}
+				// />
+				<ConnectWalletModal openConnectModal={openConnectModal} />
 			)}
 		</div>
 	)
@@ -245,13 +251,14 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 					sx={{
 						backgroundColor: '#005C53',
 						_hover: {
-							backgroundColor: '#005C53',
+							backgroundColor: '#042940',
 						},
 					}}>
 					<Link
 						href="https://o26wxmqxfy2.typeform.com/to/LnNYG7Wy"
 						target="_blank"
-						rel="noopener noreferrer">
+						rel="noopener noreferrer"
+						className="text-white">
 						Take Survey
 					</Link>
 				</Button>
@@ -279,36 +286,62 @@ const CustomButton: React.FC<any> = ({
 	onClick,
 	isEnabled,
 	label,
-}) => {
+  }) => {
 	return (
-		<button
-			onClick={onClick}
-			className={`w-full disabled:opacity-25 flex justify-center items-center mt-10 py-3 text-lg text-white bg-[#042940] rounded-[10px] hover:bg-[#042940] focus:outline-none focus:ring-2 focus:ring-[#005C53] focus:ring-opacity-50 ${
-				isLoading ? 'relative' : ''
-			}`}
-			type="button"
-			style={{ width: '50%' }}
-			disabled={!isEnabled || isLoading}>
-			{isLoading ? <Spinner /> : label}
-		</button>
+	  <button
+		onClick={onClick}
+		className={`w-full disabled:opacity-25 flex justify-center items-center mt-10 py-3 text-lg text-white bg-[#042940] rounded-[10px] hover:bg-[#042940] focus:outline-none focus:ring-2 focus:ring-[#005C53] focus:ring-opacity-50 ${
+		  isLoading ? 'relative' : ''
+		}`}
+		type="button"
+		disabled={!isEnabled || isLoading}>
+		{isLoading ? <Spinner /> : label}
+	  </button>
 	)
-}
+  }
 
 const UnsupportedNetworkModal: React.FC<any> = ({
-	openConnectModal,
-	chainConfig,
+	handleSwitchNetwork,
+	campaignChainName,
+	campaignChainId,
 }) => (
 	<div className="mb-10 flex flex-col items-center justify-center gap-6">
 		<div>
 			<img src="/Images/error-icon.svg" alt="error" />
 		</div>
-		<div className="text-xl font-lora text-[#042940]">Unsupported Network</div>
+		<div className="text-xl font-lora text-[#042940] text-center">This campaign is run on the {campaignChainName} network</div>
 		<Button
 			className="bg-blue-600 text-white rounded-xl"
 			bg="blue.600"
+			color="white"
 			_hover={{ bg: 'blue.700' }}
-			onClick={openConnectModal}>
-			Switch to {chainConfig.name}
+			onClick={() => handleSwitchNetwork(Number(campaignChainId))}>
+			Switch to {campaignChainName}
 		</Button>
+	</div>
+)
+
+interface ConnectWalletModalProps {
+	openConnectModal: (() => void) | undefined
+  }
+  
+const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({ openConnectModal }) => (
+	<div className="mb-10 flex flex-col items-center justify-center gap-6">
+	  <div>
+		<img src="/Images/error-icon.svg" alt="wallet" />
+	  </div>
+	  <div className="text-xl font-lora text-[#042940]">Connect Your Wallet</div>
+	  <p className="text-center text-[#042940]">
+		Please connect your wallet to interact with this campaign.
+	  </p>
+	  <Button
+		className="bg-blue-600 text-white rounded-xl"
+		bg="blue.600"
+		color="white"
+		_hover={{ bg: 'blue.700' }}
+		onClick={openConnectModal}
+	  >
+		Connect Wallet
+	  </Button>
 	</div>
 )

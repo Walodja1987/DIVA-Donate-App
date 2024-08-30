@@ -1,13 +1,13 @@
 import Head from 'next/head'
 import Image from 'next/image'
-import { Post } from '@/pages'
+import type { Post } from '@/pages'
 import { format, parseISO } from 'date-fns'
 import Tweet from 'react-tweet-embed'
 import { HOME, IMAGE_PATH } from '../../constants'
-// @ts-ignore
 import { getAllPosts, getPostBySlug } from '../api/getPosts'
-import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote'
-import { GetStaticProps } from 'next'
+import { MDXRemote } from 'next-mdx-remote'
+import type { MDXRemoteSerializeResult } from 'next-mdx-remote'
+import type { GetStaticProps } from 'next'
 import { serialize } from 'next-mdx-remote/serialize'
 import Layout from '@/components/Layout/Layout'
 
@@ -113,13 +113,13 @@ const PostPage = ({ source, post }: PostPageProps) => {
 					content="DIVA Donate - Parametric conditional donations"
 				/>
 			</Head>
-			<article className="pb-12 relative mt-40 flex flex-col text-left items-center">
+			<article className="pb-12 relative mt-40 mx-5 flex flex-col text-left items-center">
 				<Image
 					src={`${IMAGE_PATH}${post.coverImage}`}
 					alt={post.coverImageDescription}
 					width={post.coverImageWidth}
 					height={post.coverImageHeight}
-					className="rounded-2xl"
+					className="rounded-lg"
 				/>
 				<div className="pt-12 prose w-[100%] md:max-w-2xl m-auto text-black md:px-10">
 					<h1 className="text-black">{post.title}</h1>

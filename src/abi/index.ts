@@ -1,6 +1,6 @@
-import DivaABIold from "./DivaProtocolABIold.json";
-import ERC20ABI from "./ERC20ABI.json";
-import DivaABI from "./DivaProtocolABI.json";
+import { DivaABIold } from "./DivaProtocolABIold";
+import { ERC20ABI } from "./ERC20ABI";
+import { DivaABI } from "./DivaProtocolABI";
 
 
 export { DivaABI, ERC20ABI, DivaABIold };

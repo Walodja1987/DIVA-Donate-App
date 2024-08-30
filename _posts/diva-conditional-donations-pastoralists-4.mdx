@@ -1,0 +1,164 @@
+---
+title: Empowering pastoralists in Kenya - The 4th DIVA Donate campaign
+description: Empowering pastoralists in Kenya - The 4th DIVA Donate campaign
+date: 2024-08-30T23:37:00.284Z
+coverImage: pastoralists-4.jpeg
+coverImageDescription: Pastoralists
+coverImageWidth: 900
+coverImageHeight: 628
+featured: true
+author: Walodja1987
+---
+
+We are excited to announce the launch of the 4th iteration of the DIVA Donate campaign, focused on providing 
+anticipatory cash transfers to pastoralist communities in Kenya ahead of drought.
+
+We are particularly thrilled to share that DIVA Donate has been selected as one of the recipients of the 
+[Arbitrum ReFi grant](https://app.charmverse.io/refi-in-arbitrum-grants/refi-in-arbitrum-grants-program-overview-03828600111718794). This grant has allowed us to further enhance the DIVA Donate platform and to seed 
+this new campaign. The grant is a testament to the value of our work and the community’s trust 
+in our mission to become the most effective and efficient platform for disaster relief, powered 
+by blockchain technology. We are deeply honored and incredibly grateful for this support! 🙏
+
+In this blog post, we will explore the details of the new campaign and discuss the updates made to the 
+DIVA Donate app, all made possible by the generous Arbitrum grant.
+
+## ✨ About the campaign
+
+In our 4th campaign, we remain dedicated to providing anticipatory cash transfers to pastoralist communities in Kenya, specifically in Kajiado county, which are disproportionately affected by climate-change-induced drought.
+
+The campaign’s objective is to assess vegetation health using the [Normalized Difference Vegetation Index](https://de.wikipedia.org/wiki/Normalized_Difference_Vegetation_Index) (NDVI) following 
+the October-November-December 2024 rainy season and disburse funds to participating pastoralists if the NDVI at 
+the end of this period suggests insufficient vegetation, due to lack of rainfall, to support livestock during 
+the subsequent dry season.
+
+With a fundraising target of $15’000, our goal is to distribute drought relief of $75 each to 200 pastoralists 
+in the event of drought, sufficient to sustain one livestock for six months.
+
+From the previous campaign, $8’632.60 of the Mercy Corps Funds remained unreleased and will be rolled in this new campaign, highlighting the amplified impact of every dollar contributed. 
+Additionally, an approximate $2’500 will be contributed from the Arbitrum grant.
+
+## 🧑‍🎓 Calibrating the donation release profile
+
+We continue to rely on [FEWS NDVI data](https://earlywarning.usgs.gov/fews/product/902#documentation) as our trigger metric due 
+to its resilience against cloud coverage and atmospheric contamination. Its public availability also allows for transparent 
+verification by all stakeholders. 
+
+We employed the same methodology as in our previous campaign to determine NDVI thresholds that indicate drought conditions. 
+Specifically, we analyzed historical NDVI values at the end of December, coinciding with the end of the rainy season, 
+and correlated these with on-the-ground assessments from the [National Drought Management Authority](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=3e0a4f40-b6a7-4393-9296-be1b2a972e73) (NDMA) reports 
+during the first two months of the subsequent dry season. More details are provided in the following sections.
+
+
+### Historical NDVI
+
+Looking at the historical NDVI data covering the last 12 years, a recurring pattern emerges: an increase in NDVI during 
+the October-November-December rainy season, indicating improved vegetation, followed by a decline until the end of February / 
+beginning of March as the dry season progresses.
+
+<p align="center">
+  <img src="/Images/posts/Historical NDVI Kajiado Oct-Dec v2.png" />
+</p>
+_Source: [FEWS](https://earlywarning.usgs.gov/fews/ewx/index.html)_
+
+The chart highlights the NDVI values on 31 December for each of the last 12 years, ranging between 0.40 in 2017, and 
+0.75 in 2019, with an average NDVI value of 0.58. Low NDVI values imply reduced fodder and tougher survival conditions 
+for pastoralists' livestock during the subsequent dry period.
+
+### On-ground reports
+
+To assess which NDVI levels led to drought stress in the subsequent dry period, we examined the NDMA reports for January 
+and February following the years with the five lowest recorded NDVI values: 2014, 2016, 2017, 2021, and 2022. 
+
+Here is a summary of the drought status assessments, listed in ascending order of NDVI:
+* **2017 (NDVI: 0.40)**: The [January 2018](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=f9a0c0f0-bfd3-4fd2-a9ad-b2c510772d4d) report indicated a drought status of Alarm. The report for February was not available.
+* **2022 (NDVI: 0.45)**: Reports from [January](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=9d41dd3b-5fd3-4f26-9672-11ab929911e5) and [February 2023](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=0af05e9a-1803-42f4-923f-7f4749c62b18) indicated a drought status of Alarm.
+* **2016 (NDVI: 0.50)**: Reports from [January](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=ad94c43f-51a4-4de3-ab46-6c1fa11beadb) and [February 2017](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=66602939-9071-4374-80f4-6c63ccdd8643) indicated a drought status ranging from Alert to Alarm.
+* **2014 (NDVI: 0.52)**: Reports from [January](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=f22a606f-0a0d-4ed2-91f1-af116f9ae3c6) and [February 2015](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=f22a606f-0a0d-4ed2-91f1-af116f9ae3c6) indicated a drought status of Alert.
+* **2021 (NDVI: 0.53)**: Reports from [January](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=4fd1bea0-2171-4cfc-83ac-2144b4c7c215) and [February 2022](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=a96eecba-dc6c-457d-a224-5ae3a6db0c67) indicated a drought status of Alert, but some parts of the region showing normal conditions.
+
+Based on these observations, implementing a donation profile that pays out 100% of the contributed funds for NDVI values of 0.45 
+and below (2017 and 2022), 50% for values at 0.50 (2016), and no payout for values at or above 0.52, seems to be a prudent 
+approach. The payout profile is depicted below (note that the NDVI value was shifted by +1 for technical reasons):
+
+<p align="center">
+  <img src="/Images/posts/pastoralists_4_payoff_profile_kajiado.png" />
+</p>
+
+Any funds that remain unreleased can be reclaimed by the original contributor and redeployed into future campaigns.
+
+
+## 💡 How to participate
+
+Participating in the campaign is simple if you have a browser wallet funded with [USDT](https://arbiscan.io/token/0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9) on Arbitrum. Just visit [divadonate.xyz](https://www.divadonate.xyz/campaign/pastoralists-4), 
+connect your wallet, enter the amount you wish to contribute, click "Deposit" and confirm the transaction in your wallet.
+
+Note that you may be asked to "Approve" the transfer first in order to grant DIVA Protocol, the smart contract powering DIVA 
+Donate, the permission to move USDT on your behalf. For a step-by-step guide, you can check out the 
+[video tutorial](https://www.loom.com/share/76fd76726d314cacb018600b444e0723?t=9) produced for a previous campaign 
+(make sure to use the Arbitrum One network and select the new campaign).
+
+For those new to crypto, there is a one-time setup process to go through to set up a wallet and convert your local fiat currency 
+into cryptocurrency. Refer to our [FAQs](https://docs.divadonate.xyz/overview/faq#how-can-i-participate-in-a-campaign) for more guidance. If you need support, head over to the diva-donate channel in our 
+[Discord](https://discord.gg/8fAvUspmv3) and ask your questions. This process will be further simplified in the coming weeks thanks to the [Privy](https://www.privy.io/) integration 
+that was implemented thanks to the Arbitrum grant.
+
+## 🏆 Rewards
+
+Consistent with previous campaigns, participants will receive a digital certificate (POAP) to commemorate their contribution. Donations of $75 or more will receive the golden-ring POAP. Smaller contributions will be rewarded with the silver POAP.
+
+<p align="center">
+  <img src="/Images/posts/2Front - Gold.png" style={{ width: '45%', height: 'auto', display: 'inline-block', padding: '20px' }}/>
+  <img src="/Images/posts/2Front - Silver.png" style={{ width: '45%', height: 'auto', display: 'inline-block', padding: '20px' }}/>
+</p>
+
+## 👷 Platform enhancements
+
+Thanks to the Arbitrum ReFi grant, we implemented several enhancements to the existing DIVA Donate platform, improving both user experience and performance. These include:
+
+* **Documentation**: We've added [documentation](https://docs.divadonate.xyz/) that explains what DIVA Donate is, how it works, and includes impact statistics from past campaigns.
+* **Blog**: We’ve migrated our blog from the DIVA Protocol website to the DIVA Donate domain, creating a more centralized and focused hub for all updates and insights related to our campaigns. You can find it [here](https://www.divadonate.xyz/blog).
+* **User-friendly onboarding**: We've integrated [Privy](https://www.privy.io/), the leading onboarding solution in Web3, which features embedded wallets, social logins and fiat-to-crypto on-ramp. This update will make the platform more accessible to a wider audience.
+* **Performance enhancements**: Leveraging cutting-edge libraries such as [Wagmi](https://wagmi.sh/react/why) and [Viem](https://viem.sh/), we've optimized platform performance, ensuring more efficient data querying and an overall faster experience for users.
+* **Top donors leaderboard**: We've introduced a new Top Donors table on the campaign page, highlighting the most generous contributors and fostering a sense of community engagement and competition.
+
+## 🔢 DIVA Donate Statistics
+
+Below provides the since inception statistics of the DIVA Donate initiative (excluding the new campaign):
+* Number campaigns: 3
+* Contributed: $34’325
+* Donated: $11’744 (34.3%)
+
+Now also available in our [docs](https://docs.divadonate.xyz/).
+
+## 💎 Join the cause
+
+The DIVA Donate team is actively seeking partners who share our vision of harnessing blockchain technology to provide effective 
+support to vulnerable communities affected by climate change. Given the versatile nature of DIVA Protocol, the smart contract-based 
+infrastructure powering DIVA Donate, the donation payout can be linked to virtually any metric and adapted to many different use 
+cases. If you represent a charity or NGO passionate about this concept, [reach out](mailto:wladimir.weinbender@divatech.ch) and join forces to provide more efficient and 
+effective support to those in need.
+
+## 🌔 Conclusion
+
+The 4th campaign emphasizes our commitment to mitigate the impact of climate change on pastoralist communities in Kenya. 
+We are grateful for the continued support of our donors and partners and look forward to making a meaningful difference 
+in the lives of those we serve. We are also grateful for Arbitrum’s support in our mission! Together, we can continue 
+to empower communities and foster resilience against the challenges posed by climate change.
+
+
+## 🍀 About DIVA Donate
+
+DIVA Donate is an innovative platform that leverages blockchain technology to enable parametric conditional donations 
+for disaster relief. It is a joint initiative between two entities united around the mission of empowering vulnerable 
+communities affected by climate change:
+1. [**Fortune Credit**](https://fortunecredit.co.ke/): a microfinance institution in Kenya which provides credit, insurance & other financial services to 50k+ customers including small-holder farmers & pastoralists, and
+2. [**DIVA Technologies AG**](https://www.divaprotocol.io/): developer of DIVA Protocol, a smart contract-based system for creating and managing custom derivative contracts peer-to-peer.
+
+## 🔗 Links
+
+* DIVA Donate: [Website](https://www.divadonate.xyz/) | [Twitter](https://twitter.com/DIVADonate_xyz)
+* DIVA Protocol: [Website](https://www.divaprotocol.io/) | [Github](https://github.com/divaprotocol/diva-protocol-v1) | [Docs](https://docs.divaprotocol.io/) | [Twitter](https://twitter.com/divaprotocol_io) | [Discord](https://discord.gg/8fAvUspmv3)
+* Fortune Connect: [Website](https://fortunecredit.co.ke/) | [Twitter](https://twitter.com/fortuneconnectk)
+
+
+

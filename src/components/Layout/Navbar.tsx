@@ -1,7 +1,6 @@
 import Link from 'next/link'
-import { useRouter } from 'next/router'
-import React, { useState } from 'react'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
+import React from 'react'
+import Button from '@/components/Button'
 import { RxHamburgerMenu } from 'react-icons/rx'
 
 import { NavbarLinks } from './NavbarLinks'
@@ -9,10 +8,25 @@ import { Logo } from '../Logo'
 import { Sidebar } from './Sidebar'
 import { useDisclosure } from '@chakra-ui/react'
 
+import { useAccount } from 'wagmi'; // @todo: Question why it's imported directly and not via privy-io/wagmi
+
+import { usePrivy } from '@privy-io/react-auth';
+
+import { getShortenedAddress } from '@/utils/general'
+
+
 export default function NavBar() {
-	const [navbar, setNavbar] = useState(false)
-	const { pathname } = useRouter()
 	const { isOpen, onOpen, onClose } = useDisclosure()
+
+	// Privy hooks
+	const {ready, connectWallet} = usePrivy();
+  
+	// WAGMI hooks
+	const {address: activeAddress, isConnected} = useAccount();
+  
+	if (!ready) {
+	  return null;
+	}
 
 	return (
 		<>
@@ -33,10 +47,18 @@ export default function NavBar() {
 
 					<div
 						className={`flex-1 justify-self-center pb-3 mt-8 md:pb-0 md:mt-0 hidden xl:block`}>
-						<NavbarLinks activePath={pathname} />
+						<NavbarLinks/>
 					</div>
 
-					<ConnectButton accountStatus="address" chainStatus="icon" />
+					{isConnected && activeAddress ? (
+						// Note: Injected wallets can't be programmatically disconnected.
+						// Privy doesn't support wagmi's useDisconnect hook.
+						// Use connectWallet to prompt for a different wallet instead.
+						// Read more about it here: https://docs.privy.io/guide/react/wallets/usage/wagmi#using-wagmi-hooks
+						<Button onClick_={connectWallet} cta={getShortenedAddress(activeAddress)} />
+               		) : (
+						<Button onClick_={connectWallet} cta="Connect Wallet" />
+               		)}
 				</div>
 			</nav>
 		</>

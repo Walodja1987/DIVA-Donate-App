@@ -1,13 +1,14 @@
 interface DonationRecipient {
     name: string;
-    address: string;
+    address: `0x${string}`;
     url: string;
   }
   
 export interface CampaignPool {
-  poolId: string;
+  poolId: `0x${string}` | string; // Extend the type to include string to handle the first campaign that was released on a pre-final version with poolId = 8;
   beneficiarySide: string;
-  positionToken: string;
+  beneficiaryToken: `0x${string}`;
+  donorToken: `0x${string}`;
 }
 
 export interface Campaign {
@@ -21,12 +22,15 @@ export interface Campaign {
   goal: string;
   raised: string;
   donated: string;
-  collateralToken: string;
+  collateralToken: `0x${string}`;
   decimals: string;
-  divaContractAddress: string;
+  divaContractAddress: `0x${string}`;
   chainId: string;
+  chainName: string;
   expiryTimestamp: string;
 }
+
+export type CampaignStatus = 'Completed' | 'Expired' | 'Ongoing';
 
 // Tell TypeScript how to type-check the JSON files without needing explicit imports.
 declare module "*.json" {

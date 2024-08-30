@@ -1,4 +1,3 @@
-import { InfoCard } from '../InfoCard'
 import Image from 'next/image'
 
 export const AboutSection = () => (
@@ -21,7 +20,7 @@ export const AboutSection = () => (
 							and extreme weather conditions, resulting in reduced agricultural
 							production, destroyed crops, and significant losses in livestock.{' '}
 							<a
-								href="https://www.divaprotocol.io/posts/diva-conditional-donations"
+								href="https://www.divadonate.xyz/posts/diva-conditional-donations"
 								className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
 								target={'_blank'}
 								rel="noreferrer">

@@ -3,7 +3,7 @@ import { getAllPosts } from '../api/getPosts'
 import Layout from '@/components/Layout/Layout'
 import BlogCard from '@/components/Section/BlogCard'
 import FeaturedBlogPost from '@/components/Section/FeaturedBlogPost'
-import { Post } from '@/pages'
+import type { Post } from '@/pages'
 // import Link from 'next/link'
 import { format } from 'date-fns'
 
@@ -28,7 +28,7 @@ export default function Blog({ posts }: { posts: Post[] }) {
 	const featured = posts.find((v) => v.featured === true)
 	return (
 		<Layout>
-			<div className="relative mt-20 mb-20">
+			<div className="relative mt-20 mb-20 mx-5">
 				<Box
 					px={['0px', '30px', '50px', '65px', '80px']}
 					justifyContent="center"

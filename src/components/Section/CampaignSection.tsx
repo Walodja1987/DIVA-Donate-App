@@ -1,123 +1,103 @@
+'use client';
+
+// Nextjs
 import Image from 'next/image'
 import Link from 'next/link'
-import React, { useEffect, useState } from 'react'
-import { BigNumber, ethers } from 'ethers'
-import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
-import { formatUnits } from 'ethers/lib/utils'
-import { useAccount, useSwitchNetwork, useProvider, useNetwork } from 'wagmi'
-import { useERC20Contract } from '../../utils/hooks/useContract'
+
+// React
+import React, { useEffect, useState, useMemo } from 'react'
+
+// Query
+import { useQueries } from '@tanstack/react-query';
+import request from 'graphql-request'
+
+// viem
+import { formatUnits } from 'viem'
+
+// ABIs
+import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
+
+// Chakra
 import { Text, Progress, ProgressLabel } from '@chakra-ui/react'
-import { fetchToken, getContract } from '@wagmi/core'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
-import AddToMetamaskIcon from '../AddToMetamaskIcon'
+
+// Assets
+import AddToMetamaskIcon from '@/components/AddToMetamaskIcon'
+
+// constants
 import campaigns from '../../../config/campaigns.json'
-import { divaContractAddressOld } from '../../constants'
-import { chainConfig } from '../../constants'
-import { formatDate, isExpired, isUnlimited } from '../../utils/general'
-import { Pool, PoolExtended } from '../../types/poolTypes'
-import { Campaign, CampaignPool } from '../../types/campaignTypes'
+import { divaContractAddressOld, chainConfigs } from '@/constants'
 
-// @todo I think it would be better to use toFixed inside jsx only and not store the values
-// in that format. It's less of a problem if the values are not used for calculations, but if they are
-// used, then it's problematic. Consider adjusting.
+// Utils
+import { formatDate, isExpired, isUnlimited } from '@/utils/general'
 
-// @todo Fix "Donated" in CampaignSection on Home page
+// Types
+import type { Pool, StatusSubgraph } from '@/types/poolTypes'
+import type { Campaign, CampaignStatus } from '@/types/campaignTypes'
+import type { DIVALiquidityResponse } from '@/types/subgraphTypes'
+
+// Wagmi
+import { wagmiConfig } from '@/components/wagmiConfig'
+import { readContract } from '@wagmi/core'
+
+// Subgraph queries
+import { queryDIVALiquidity } from '@/queries/divaSubgraph'
 
 /**
- * @notice Campaign section on the Home page
+ * @notice This component displays the list of ongoing and completed campaigns on the Home page.
  */
 export const CampaignSection = () => {
-	const [goal, setGoal] = useState<{
-		[campaignId: string]: number | 'Unlimited'
-	}>({})
-	const [raised, setRaised] = useState<{ [campaignId: string]: number }>({})
-	const [toGo, setToGo] = useState<{
-		[campaignId: string]: number | 'Unlimited'
-	}>({})
-	const [donated, setDonated] = useState<{ [campaignId: string]: number }>({})
-	const [percentage, setPercentage] = useState<{
-		[campaignId: string]: number
-	}>({})
-
-	const { address: activeAddress, isConnected, connector } = useAccount()
-	const { chain } = useNetwork()
-	const wagmiProvider = useProvider()
-	const { openConnectModal } = useConnectModal()
-	const { switchNetwork } = useSwitchNetwork()
-	const [chainId, setChainId] = React.useState<number>(0)
-
-	// ----------------------------
-	// Event handlers
-	// ----------------------------
-	const handleOpen = () => {
-		switchNetwork?.(chainConfig.chainId)
-	}
-
-	const updateRaised = (campaignId: string, tokenAmount: number) => {
-		setRaised((prev) => ({
-			...prev,
-			[campaignId]: tokenAmount,
-		}))
-	}
-
-	const updateToGo = (
-		campaignId: string,
-		tokenAmount: number | 'Unlimited'
-	) => {
-		setToGo((prev) => ({
-			...prev,
-			[campaignId]: tokenAmount,
-		}))
-	}
-	const updateGoal = (
-		campaignId: string,
-		tokenAmount: number | 'Unlimited'
-	) => {
-		setGoal((prev) => ({
-			...prev,
-			[campaignId]: tokenAmount,
-		}))
-	}
-
-	const updateDonated = (campaignId: string, tokenAmount: number) => {
-		setDonated((prev) => ({
-			...prev,
-			[campaignId]: tokenAmount,
-		}))
-	}
-
-	const updatePercentage = (campaignId: string, percentage: number) => {
-		setPercentage((prev) => ({
-			...prev,
-			[campaignId]: percentage,
-		}))
-	}
+	const [campaignStats, setCampaignStats] = useState<{
+		[campaignId: string]: {
+		  goal: number | 'Unlimited',
+		  raised: number,
+		  toGo: number | 'Unlimited',
+		  donated: number,
+		  percentageRaised: number,
+		  percentageDonated: number,
+		  expiryTimestamp: number,
+		  status: CampaignStatus,
+		  percentageProgressBar: number
+		}
+	  }>({})
 
 	// @todo Duplicated in Donations component. Move into general.tsx
 	const handleAddToMetamask = async (campaign: any) => {
 		for (const pool of campaign.pools) {
-			const divaContract = getContract({
+			const divaContract = {
 				address: campaign.divaContractAddress,
-				abi:
-					campaign.divaContractAddress === divaContractAddressOld
-						? DivaABIold
-						: DivaABI,
-				signerOrProvider: wagmiProvider,
-			})
+				abi: campaign.divaContractAddress === divaContractAddressOld
+					? DivaABIold
+					: DivaABI,
+				chainId: Number(campaign.chainId) as 137 | 42161
+			} as const
 
-			const poolParams = await divaContract.getPoolParameters(pool.poolId)
-			const donorPositionToken =
+			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+			// @ts-ignore: Temporarily ignore type error, fix later
+			const poolParams = await readContract(wagmiConfig, {
+				...divaContract,
+				functionName: 'getPoolParameters',
+				args: [pool.poolId]
+			}) as Pool
+
+			const donorPositionToken: `0x${string}` =
 				pool.beneficiarySide === 'short'
 					? poolParams.longToken
 					: poolParams.shortToken
 
-			const token = getContract({
+			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				signerOrProvider: wagmiProvider,
+				chainId: Number(campaign.chainId) as 137 | 42161
+			} as const
+
+			const decimals = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'decimals',
 			})
-			const decimals = await token.decimals()
-			const symbol = await token.symbol()
+			const symbol = await readContract(wagmiConfig, {
+				...tokenContract,
+				functionName: 'symbol',
+			})
 
 			try {
 				await (window as any).ethereum.request({
@@ -139,141 +119,226 @@ export const CampaignSection = () => {
 		}
 	}
 
-	useEffect(() => {
-		if (chain) {
-			setChainId(chain.id)
+	// Group pool IDs by chain ID. Using the `reduce` method on the campaigns array to iterate
+	// over all campaigns and accumulate a result.
+	// Example output:
+	// {
+	// 	"137": ["0x12...9ab", "0x45...567"],
+	// 	"42161": ["0xde...234"]
+	// }
+	// useMemo hook with an empty dependency array is used to compute poolIdsByChain only once, when the component mounts.
+  const poolIdsByChain = useMemo(() => {
+	return campaigns.reduce((acc, campaign) => {
+	  const chainId = Number(campaign.chainId)
+	  // Check if there's already an entry for this chain ID in our accumulator.
+	  if (!acc[chainId]) {
+		acc[chainId] = []
+	  }
+	  // Add all pool IDs from this campaign to the array for this chain ID.
+	  acc[chainId].push(...campaign.pools.map(pool => pool.poolId as `0x${string}`))
+	  return acc
+	}, {} as { [chainId: number]: `0x${string}`[] })
+  }, [])
+
+  // Create a query for each chain. Using useQueries hook to perform multiple queries in parallel
+  // in case there are multiple chains.
+  // The result, chainQueries, is an array of query results, one for each chain.
+  // Each query result object contains properties like data, isLoading, isError, etc., which we can use to handle the state of each query.
+  const chainQueries = useQueries({
+	// Iterate over each chain and its pool IDs, creating a query configuration for each chain.
+	// Object.entries returns an array of key-value pairs, where each pair is a chain ID and its corresponding pool IDs array.
+	// Example:
+	// [
+	// 	[137, ["0x12...9ab", "0x45...567"]],
+	// 	[42161, ["0xde...234"]]
+	// ]
+    queries: Object.entries(poolIdsByChain).map(([chainId, poolIds]) => ({
+		// Set unique identifier for the query.
+      queryKey: ['divaLiquidityData', chainId, poolIds],
+	  // Define the query function that fetches the data for the given chain and pool IDs.
+      queryFn: async () => {
+        const response = await request<DIVALiquidityResponse>(
+          chainConfigs[Number(chainId)].graphUrl,
+          queryDIVALiquidity(poolIds)
+        )
+		// console.log(`Response for chain ${chainId}:`, response);
+        return response.liquidities || []
+      }
+    }))
+  })
+
+  // Check if any of the queries are still loading or if there was an error.
+  const isLoading = chainQueries?.some(query => query.isLoading)
+  const isError = chainQueries?.some(query => query.isError)
+
+  const fetchCampaignStatsFromDIVASubgraph = () => {
+      // Combine liquidity event data from all chain queries into a single array
+      const allLiquidityEventData = chainQueries.flatMap(query => query.data || []);
+
+      // Check if we have any data to process
+      if (allLiquidityEventData.length === 0) {
+        console.log("No liquidity event data available");
+        return {};
+      }
+    
+      // Initialize an object to store the new stats for each campaign
+      const newStats = {} as typeof campaignStats;
+
+      // Iterate through each campaign
+      campaigns.forEach((campaign: Campaign) => {
+        // Get all pool IDs associated with this campaign
+        const campaignPoolIds = campaign.pools.map(pool => pool.poolId);
+
+		// Initialize an array to store statusFinalReferenceValue for each pool associated with a campaign
+		const poolStatusMap: { [poolId: `0x${string}`]: StatusSubgraph } = {};
+
+        // Filter liquidity event data to only include events for this campaign's pools
+        const campaignLiquidityEvents = allLiquidityEventData.filter(data => campaignPoolIds.includes(data.pool.id));
+
+        // Initialize counters for campaign statistics
+        let totalRaised = 0;
+        let totalDonated = 0;
+        let totalGoal: number | 'Unlimited' = 0;
+        let totalToGo: number | 'Unlimited' = 0;
+
+        // Iterate through each liquidity event for this campaign
+        campaignLiquidityEvents.forEach((data) => { // @todo add type so that we no longer need to cast to BigInt when using formatUnits
+			// Log statusFinalReferenceValue for each pool associated with the campaign.
+			// Campaigns that are associated with multiple pools, the statusFinalReferenceValue may be different
+			// for each pool for a short period of time.
+			const poolId = data.pool.id;
+			poolStatusMap[poolId] = data.pool.statusFinalReferenceValue as StatusSubgraph;
+
+          // Only consider 'Added' or 'Issued' events
+          if (data.eventType === 'Added' || data.eventType === 'Issued') {
+            const decimals = Number(campaign.decimals);
+
+            // Convert collateral amount to a number, considering decimals
+            const amount = Number(formatUnits(BigInt(data.collateralAmount), decimals));
+
+            // Check if the poolId in the liquidity event data matches one of the poolIds associated with the campaign
+            const pool = campaign.pools.find(p => p.poolId === poolId);
+            
+            if (pool) {
+              // Check if the shortTokenHolder or the longTokenHolder inside the liquidity event under consideration
+              // matches the donationtRecipient for the campaing.
+              // Note that for now, we only assume that there is only one donation recipient. Update this part if
+              // it ever changes.
+              const isDonationRecipient = pool.beneficiarySide === 'short'
+                ? campaign.donationRecipients[0].address.toLowerCase() === data.shortTokenHolder.toLowerCase()
+                : campaign.donationRecipients[0].address.toLowerCase() === data.longTokenHolder.toLowerCase();
+
+              if (isDonationRecipient) {
+                // Only add to totalRaised if the short or long token matches the donation recipient
+                totalRaised += amount;
+
+                // Calculate payout based on the beneficiary side.
+                // Will be always zero as long as the pool is not confirmed (statusFinalReferenceValue !== 3).
+                const payout = pool.beneficiarySide === 'short'
+                  ? Number(formatUnits(BigInt(data.pool.payoutShort), decimals))
+                  : Number(formatUnits(BigInt(data.pool.payoutLong), decimals));
+                
+                // Add to total donated amount, considering the payout
+                totalDonated += amount * payout;
+              }
+            }
+
+            // Update goal and to-go amounts, handling 'Unlimited' case
+            if (isUnlimited(data.pool.capacity) || totalGoal === 'Unlimited') {
+              totalGoal = 'Unlimited';
+              totalToGo = 'Unlimited';
+            } else {
+              const poolCapacity = Number(formatUnits(BigInt(data.pool.capacity), decimals));
+              if (typeof totalGoal === 'number') {
+                totalGoal += poolCapacity;
+                totalToGo = totalGoal - totalRaised;
+              }
+            }
+          }
+        });
+
+        // Check for overwrites in `campaign.json`
+        if (campaign.raised !== '') {
+          totalRaised = Number(campaign.raised);
+        }
+        if (campaign.goal !== '') {
+          totalGoal = Number(campaign.goal);
+          totalToGo = totalGoal - totalRaised;
+        }
+        if (campaign.donated !== '') {
+          totalDonated = Number(campaign.donated);
+        }
+    
+        // Calculate progress percentage
+        const percentageRaisedProgress = typeof totalGoal === 'number' && totalGoal > 0 ? (totalRaised / totalGoal) * 100 : 0;
+		const percentageDonatedProgress = typeof totalRaised === 'number' && totalRaised > 0 ? (totalDonated / totalRaised) * 100 : 0;
+
+		  // Determine the campaign status. Note that aLl pools associated with the campaign must be confirmed in order for the campaing to be considered confirmed.
+		  let campaignStatus: CampaignStatus;
+		  const isExpiredCampaign = isExpired(Number(campaign.expiryTimestamp)*1000);
+		  const allPoolsConfirmed = Object.values(poolStatusMap).every(status => status === 'Confirmed');
+
+		  // Similar logic as in Donations.tsx
+		let currentStatus: CampaignStatus;
+		if (!isExpiredCampaign) {
+			currentStatus = 'Ongoing';
+		} else if (allPoolsConfirmed) {
+			currentStatus = 'Completed';
+		} else {
+			currentStatus = 'Expired';
 		}
-	}, [chain])
 
-	// Update state variables for all campaigns in `campaigns.json`
-	useEffect(() => {
-		if (
-			chainId === chainConfig.chainId &&
-			activeAddress != null &&
-			typeof window != 'undefined' &&
-			typeof window?.ethereum != 'undefined'
-		) {
-			// Loop through each campaign in `campaign.json` and update the state variables
-			campaigns.forEach((campaign: Campaign) => {
-				let totalGoal: number | 'Unlimited'
-				let totalToGo: number | 'Unlimited'
-				let totalRaised: number
-				let totalDonated: number
-				let percentageProgress: number
-
-				// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
-				const decimals = campaign.decimals
-
-				// Note that the first campaign was using a pre-audited version of the DIVA Protocol contract.
-				// To display the first campaign, it requires using the old ABI.
-				const divaContract = getContract({
-					address: campaign.divaContractAddress,
-					abi:
-						campaign.divaContractAddress === divaContractAddressOld &&
-						chainId === 137
-							? DivaABIold
-							: DivaABI,
-					signerOrProvider: wagmiProvider,
-				})
-
-				// Create an array to store promises for each `getPoolParameters` call. Promises will be resolved
-				// in the following `Promise.all` block
-				Promise.all(
-					campaign.pools.map((pool: CampaignPool) => {
-						return divaContract
-							.getPoolParameters(pool.poolId)
-							.then((res: Pool) => {
-								return {
-									poolParams: res,
-									beneficiarySide: pool.beneficiarySide,
-								}
-							})
-					})
-				).then((poolResults: PoolExtended[]) => {
-					totalRaised = 0
-					totalDonated = 0
-					totalGoal = 0
-					totalToGo = 0
-					percentageProgress = 0
-
-					// Create an array to store promises for fetching beneficiary token balances
-					const balancePromises = poolResults.map((pool) => {
-						const beneficiaryTokenContract = getContract({
-							address: pool.beneficiarySide === 'short' ? pool.poolParams.shortToken : pool.poolParams.longToken,
-							abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-							signerOrProvider: wagmiProvider,
-						})
-						return beneficiaryTokenContract.balanceOf(campaign.donationRecipients[0].address) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
-					})
-		
-					// Use Promise.all to fetch the beneficiary token balances for all pools
-					return Promise.all(balancePromises)
-						.then((beneficiaryTokenBalances: string[]) => {
-							// Iterate through each pool linked to the campaign, aggregate the statistics and update the
-							// corresponding state variables. As we are using the values for display only, it's fine to convert them
-							// into number format during calculations
-							poolResults.forEach((pool, index) => {
-								// Using the position token balance of the beneficiary instead of the
-								// pool.collateralBalance for raised amount calculation to avoid biases
-								// from non-donating addition of liquidity
-								totalRaised +=
-									Number(formatUnits(beneficiaryTokenBalances[index], decimals))
-								totalDonated +=
-									Number(formatUnits(beneficiaryTokenBalances[index], decimals)) *
-										(pool.beneficiarySide === 'short'
-											? Number(formatUnits(pool.poolParams.payoutShort, decimals))
-											: Number(formatUnits(pool.poolParams.payoutLong, decimals)))
-
-								// Set totalGoal to 'Unlimited' if one of the pools has 'Unlimited capacity'
-								// Pools linked to a campaign should either be unlimited or limited in capacity, but not mixed
-								if (
-									isUnlimited(pool.poolParams.capacity) ||
-									totalGoal === 'Unlimited'
-								) {
-									totalGoal = 'Unlimited'
-									totalToGo = 'Unlimited'
-								} else {
-									totalGoal +=
-										Number(formatUnits(pool.poolParams.capacity, decimals))
-									totalToGo = totalGoal - totalRaised
-								}
-							})
-
-							// Check for overwrites in `campaign.json` and use them if they exist
-							if (campaign.raised !== '') {
-								totalRaised = Number(campaign.raised)
-							}
-							if (campaign.goal !== '') {
-								totalGoal = Number(campaign.goal)
-								totalToGo = totalGoal - totalRaised
-							}							
-							if (campaign.donated !== '') {
-								totalDonated = Number(campaign.donated)
-							}
-
-							// Show progress % depending on whether the final value has been already confirmed or not								
-							if (Number(poolResults[0].poolParams.statusFinalReferenceValue) === 3) {
-								// Scenario: Final value already confirmed
-								percentageProgress = (totalDonated / totalRaised) * 100
-							} else {
-								// Scenario: Final value not yet confirmed
-								percentageProgress = totalGoal === 'Unlimited' ? 0 : (totalRaised / totalGoal) * 100
-							}
-							
-							// Update the state variables with the accumulated values
-							updateRaised(campaign.campaignId, totalRaised)
-							updateGoal(campaign.campaignId, totalGoal)
-							updateToGo(campaign.campaignId, totalToGo)
-							updatePercentage(campaign.campaignId, percentageProgress)
-							updateDonated(campaign.campaignId, totalDonated)
-						})
-					})									
-				.catch((error) => {
-					console.error('An error occurred while fetching pool data:', error)
-				})
-			})
+		if (campaignStatus === 'Completed' && currentStatus !== 'Completed') {
+			campaignStatus = currentStatus;
+		} else {
+			campaignStatus = currentStatus;
 		}
-	}, [chainId, wagmiProvider, campaigns])
+
+		// Percentage progress bar to be displayed in the campaign card.
+		// If the campaign is completed, then the percentage progress bar is the percentage of the donations.
+		// If the campaign is ongoing or expired but not yet completed, then the percentage progress bar is the percentage of the raised amount.
+		const percentageProgressBar = campaignStatus === 'Completed' ? percentageDonatedProgress : percentageRaisedProgress;
+
+        newStats[campaign.campaignId] = {
+          goal: totalGoal,
+          raised: totalRaised,
+          toGo: totalToGo,
+          donated: totalDonated,
+          percentageRaised: percentageRaisedProgress,
+		  percentageDonated: percentageDonatedProgress,
+		  expiryTimestamp: Number(campaign.expiryTimestamp)*1000,
+		  status: campaignStatus,
+		  percentageProgressBar: percentageProgressBar
+        };
+		// console.log("campaign.id", campaign.campaignId)
+		// console.log("goal", totalGoal)
+		// console.log("raised", totalRaised)
+		// console.log("toGo", totalToGo)
+		// console.log("donated", totalDonated)
+		// console.log("percentageRaisedProgress", percentageRaisedProgress)
+		// console.log("percentageDonatedProgress", percentageDonatedProgress)
+		// console.log("status", campaignStatus)
+		// console.log("percentageProgressBar", percentageProgressBar)
+      });
+
+      return newStats;
+
+  }
+
+  useEffect(() => {
+	if (!isLoading && !isError) {
+	  const newStats = fetchCampaignStatsFromDIVASubgraph();
+	  setCampaignStats(newStats);
+	} else if (isLoading) {
+	  console.log("Loading campaign data...");
+	} else if (isError) {
+	  console.log("Error in fetching campaign data");
+	}
+  }, [isLoading, isError]);
+
+
+  if (isLoading) return <div>Loading campaign data...</div>
+  if (isError) return <div>Error loading campaign data</div>
 
 	return (
 		<section className="pt-[5rem]">
@@ -289,7 +354,6 @@ export const CampaignSection = () => {
 				</div>
 				<div className="flex flex-row flex-wrap md:gap-10 justify-center ">
 					{campaigns.map((campaign) => {
-						const expiryTimestamp = Number(campaign.expiryTimestamp)*1000
 						return (
 							// eslint-disable-next-line react/jsx-key
 							<div
@@ -307,22 +371,22 @@ export const CampaignSection = () => {
 										<div
 											className={`
 											${
-												isExpired(expiryTimestamp)
+												campaignStats[campaign.campaignId]?.status !== 'Ongoing'
 													? 'bg-[#005C53] text-white'
 													: 'bg-[#DBF227] text-green-[#042940]'
 											}
 											text-2xs pt-1 pl-2 w-[320px] h-[40px] rounded-tr-[3.75rem] text-left
 										`}>
-											{expiryTimestamp && (
+											{campaignStats[campaign.campaignId]?.expiryTimestamp && (
 												<span className="mt-1 inline-block align-middle">
 													<b>
-														{isExpired(expiryTimestamp)
+														{campaignStats[campaign.campaignId]?.status !== 'Ongoing'
 															? 'Completed'
 															: 'Expiry:'}
 													</b>
-													{isExpired(expiryTimestamp)
+													{campaignStats[campaign.campaignId]?.status !== 'Ongoing'
 														? null
-														: ` ${formatDate(expiryTimestamp)}`}
+														: ` ${formatDate(campaignStats[campaign.campaignId]?.expiryTimestamp)}`}
 												</span>
 											)}
 										</div>
@@ -342,39 +406,31 @@ export const CampaignSection = () => {
 									</div>
 
 									{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
-									{chainId === chainConfig.chainId ? (
 										<Progress
 											className=" mb-3 rounded-[15px]"
 											style={{ background: '#D6D58E' }}
 											colorScheme="green"
 											height="22px"
-											value={percentage[campaign.campaignId]}>
+											value={campaignStats[campaign.campaignId]?.percentageProgressBar}>
 											<ProgressLabel className="text-2xl flex flex-start">
 												<Text fontSize="xs" marginLeft="0.5rem">
-													{percentage[campaign.campaignId]?.toFixed(1)}%
+												{campaignStats[campaign.campaignId]?.percentageProgressBar?.toFixed(1)}%
 												</Text>
 											</ProgressLabel>
 										</Progress>
-									) : (
-										<div className="h-[30px]"></div>
-									)}
-
-									{isConnected ? (
 										<>
-											{chainId === chainConfig.chainId ? (
-												// Conditional rendering based on whether campaign is completed or not. If completed,
-												// only "Goal" and "Raised" will be shown. If on-going, then "To go" will also show.
-												<div className="grid grid-cols-3 text-center divide-x-[1px] divide-[#005C53] mb-3">
+											<div className="grid grid-cols-2 text-center divide-x-[1px] divide-[#005C53] mb-3">
+												{campaignStats[campaign.campaignId]?.status !== 'Completed' ? (
+													// For Ongoing or Expired campaigns
+												<>
 													<div className="flex flex-col items-center justify-center">
 														<dt className="mb-2 font-medium text-xl text-[#042940]">
 															Goal
 														</dt>
 														<dd className="font-normal text-base text-[#042940]">
-															{goal[campaign.campaignId] === 'Unlimited'
-																? goal[campaign.campaignId]
-																: `$${Number(goal[campaign.campaignId]).toFixed(
-																		0
-																  )}`}
+															{campaignStats[campaign.campaignId]?.goal === 'Unlimited'
+																? campaignStats[campaign.campaignId]?.goal
+																: `$${Number(campaignStats[campaign.campaignId]?.goal).toFixed(0)}`}
 														</dd>
 													</div>
 													<div className="flex flex-col items-center justify-center">
@@ -382,68 +438,35 @@ export const CampaignSection = () => {
 															Raised
 														</dt>
 														<dd className="font-normal text-base text-[#042940]">
-															${Number(raised[campaign.campaignId]).toFixed(0)}
+															${Number(campaignStats[campaign.campaignId]?.raised).toFixed(0)}
 														</dd>
 													</div>
-													{/* Add "Donated" box  */}
-													{!isExpired(expiryTimestamp) ? (
-														<div className="flex flex-col items-center justify-center">
-															<dt className="mb-2 font-medium text-xl text-[#042940]">
-																To Go
-															</dt>
-															<dd className="font-normal text-base text-[#042940]">
-																{toGo[campaign.campaignId] === 'Unlimited'
-																	? toGo[campaign.campaignId]
-																	: `$${Number(
-																			toGo[campaign.campaignId]
-																	  ).toFixed(0)}`}
-															</dd>
-														</div>
-													) : (
-														<div className="flex flex-col items-center justify-center">
-															<dt className="mb-2 font-medium text-xl text-[#042940]">
-																Donated
-															</dt>
-															<dd className="font-normal text-base text-[#042940]">
-																$
-																{donated[campaign.campaignId]
-																	? donated[campaign.campaignId].toFixed(0)
-																	: 0}
-															</dd>
-														</div>
-													)}
-												</div>
-											) : (
-												<div className="mb-10 flex flex-col items-center justify-center ">
-													<div className=" flex items-center justify-center">
-														Please
-														<span>
-															<button
-																className="p-2 text-blue-600"
-																onClick={handleOpen}>
-																connect
-															</button>
-														</span>
-														{` to the ${chainConfig.name} network.`}
+												</>
+												) : (
+													// For Completed campaigns
+												<>
+													<div className="flex flex-col items-center justify-center">
+														<dt className="mb-2 font-medium text-xl text-[#042940]">
+															Raised
+														</dt>
+														<dd className="font-normal text-base text-[#042940]">
+															${Number(campaignStats[campaign.campaignId]?.raised).toFixed(0)}
+														</dd>
 													</div>
-												</div>
-											)}
-										</>
-									) : (
-										<div className="mb-10 flex flex-col items-center justify-center ">
-											<div className=" flex items-center justify-center">
-												Please
-												<span>
-													<button
-														className="p-2 text-blue-600"
-														onClick={openConnectModal}>
-														connect
-													</button>
-												</span>
-												{` to the ${chainConfig.name} network.`}
+													<div className="flex flex-col items-center justify-center">
+														<dt className="mb-2 font-medium text-xl text-[#042940]">
+															Donated
+														</dt>
+														<dd className="font-normal text-base text-[#042940]">
+															${campaignStats[campaign.campaignId]?.donated
+															? Number(campaignStats[campaign.campaignId]?.donated).toFixed(0)
+															: '0'}
+														</dd>
+													</div>
+												</>
+												)}
 											</div>
-										</div>
-									)}
+											</>
 
 									<Link href={campaign.path}>
 										<button
@@ -466,7 +489,7 @@ export const CampaignSection = () => {
 							<p className="mb-3 font-normal text-[#000000]">
 								Get in touch with us to list your campaign
 							</p>
-							<Link href="mailto: wladimir.weinbender@divadonate.xyz">
+							<Link href="mailto: wladimir.weinbender@divatech.ch">
 								<button className="inline-block font-openSans rounded-lg px-4 py-1.5 text-base font-semibold text-[#042940] ring-1 ring-[#042940]">
 									Contact Us
 								</button>

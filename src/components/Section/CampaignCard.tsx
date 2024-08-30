@@ -1,26 +1,48 @@
+'use client';
+
+// Nextjs
+import Image from 'next/image'
+
+// React
 import React, { useEffect, useState } from 'react'
-import { useERC20Contract } from '../../utils/hooks/useContract'
-import { getTokenBalance } from '../../utils/general'
-import { ethers } from 'ethers'
-import { formatUnits, parseUnits } from 'ethers/lib/utils'
-import {
-	useAccount,
-	useSwitchNetwork,
-	useFeeData,
-	useProvider,
-	useNetwork,
-} from 'wagmi'
-import { DivaABI, DivaABIold, ERC20ABI } from '../../abi'
-import { useConnectModal } from '@rainbow-me/rainbowkit'
-import { Campaign, CampaignPool } from '../../types/campaignTypes'
-import { formatDate, isExpired, isUnlimited } from '../../utils/general'
-import { chainConfig } from '../../constants'
-import { divaContractAddressOld } from '../../constants'
-import { getContract } from '@wagmi/core'
+
+// Hooks
 import { useDisclosure } from '@chakra-ui/react'
-import { DonationCard } from './DonationCard'
 import { useDebounce } from '../../utils/hooks/useDebounce'
-import { PoolExtended } from '../../types/poolTypes'
+
+// Components
+import { DonationCard } from './DonationCard'
+
+// viem
+import { formatUnits, parseUnits } from 'viem'
+
+// ABIs
+import { DivaABI, DivaABIold, ERC20ABI } from '@/abi'
+
+// Privy
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+
+// constants
+import { divaContractAddressOld } from '../../constants'
+
+// Utils
+import { formatDate, isExpired, isUnlimited } from '../../utils/general'
+
+// Types
+import type { Campaign, CampaignPool } from '@/types/campaignTypes'
+import type { PoolExtended } from '@/types/poolTypes'
+
+// Wagmi
+import { wagmiConfig } from '@/components/wagmiConfig'
+import { useAccount } from 'wagmi'
+import { 
+	simulateContract,
+	readContract,
+	writeContract,
+	waitForTransactionReceipt,
+	getChains,
+} from '@wagmi/core'
+
 
 const DonationExpiredInfo = () => {
 	return (
@@ -57,7 +79,7 @@ const FortuneDiva: React.FC<{
 							{campaign?.desc}
 						</p>
 						<span className="text-sm text-[#DBF227] align-middle font-lora flex gap-2 items-center z-[9]">
-							<img src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" />
+							<Image src="/Images/fi-sr-hourglass-end.svg" alt="hourglass" width={20} height={20} />
 							<div>
 								<b>Expiry:</b> {expiryTime}
 							</div>
@@ -77,8 +99,8 @@ export const CampaignCard: React.FC<{
 	thankYouMessage: string
 }> = ({ campaign, thankYouMessage }) => {
 	const [balance, setBalance] = useState<number>(0)
-	const { data } = useFeeData({ chainId: chainConfig.chainId })
 	const [amount, setAmount] = useState<string>('')
+	const [insufficientFunds, setInsufficientFunds] = useState<boolean>(false)
 	const [goal, setGoal] = useState<number | 'Unlimited'>(0)
 	const [raised, setRaised] = useState<number>(0)
 	const [toGo, setToGo] = useState<number | 'Unlimited'>(0)
@@ -87,105 +109,159 @@ export const CampaignCard: React.FC<{
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
-	const [expiryTime, setExpiryTime] = useState<number>(0)
-
-	const { address: activeAddress, isConnected } = useAccount()
-	const collateralTokenContract = useERC20Contract(campaign.collateralToken)
+	
+	// Privy hooks
+	const { connectWallet } = usePrivy();
+	const { wallets } = useWallets();
+	const wallet = wallets[0] // active/connected wallet
+	
+	// WAGMI hooks
+	const { address: activeAddress, isConnected, chain, chainId } = useAccount()
 
 	// More efficient to simply store the decimals in `campaigns.json` rather than doing an RPC request
-	const decimals = campaign.decimals
+	const decimals = Number(campaign.decimals)
 
-	const [chainId, setChainId] = React.useState<number>(0)
-	const { chain } = useNetwork()
-	const wagmiProvider = useProvider()
-	const { openConnectModal } = useConnectModal()
-	const { switchNetwork } = useSwitchNetwork()
+	// Get the name of the campaign chain to display in the switch wallet message inside the DonationCard component
+	const chains = getChains(wagmiConfig)
+	const campaignChainId = Number(campaign.chainId)
+	const campaignChainName = chains.find((chain) => chain.id === campaignChainId)?.name
+
+	const expiryTime = Number(campaign.expiryTimestamp) * 1000;
+
+	// Contracts
+	const collateralTokenContract = {
+		address: campaign.collateralToken,
+		abi: ERC20ABI,
+		chainId: campaignChainId as 137 | 42161,
+	} as const
+
+	const divaContract = {
+		address: campaign.divaContractAddress,
+		abi: campaign.divaContractAddress === divaContractAddressOld && campaignChainId === 137
+			? DivaABIold
+			: DivaABI,
+		chainId: campaignChainId as 137 | 42161,
+	} as const
+
 	const debouncedAmount = useDebounce(amount, 300)
 
 	const { isOpen, onClose, onOpen } = useDisclosure({ defaultIsOpen: false })
 
-	// @todo needed in the presence of wagmi?
-	// Test the wallet connect feature if wallet is not connected
-	// const handleOpen = () => {
-	// 	;(window as any).ethereum.request({
-	// 		method: 'wallet_switchEthereumChain',
-	// 		params: [{ chainId: chainConfig.chainId }],
-	// 	})
+	// if (!ready) {
+	// 	// Do nothing while the PrivyProvider initializes with updated user state
+	// 	console.log('PrivyProvider not ready')
+	//   return null;
 	// }
-	const handleOpen = () => {
-		switchNetwork?.(chainConfig.chainId)
-	}
 
-	useEffect(() => {
-		setExpiryTime(Number(campaign.expiryTimestamp)*1000)
-	}, [])
+	// if (ready && !authenticated) {
+	// 	// Replace this code with however you'd like to handle an unauthenticated user
+	// 	// As an example, you might redirect them to a login page
+	// 	// router.push('/login');
+	// }
 
-	useEffect(() => {
-		if (chain) {
-			setChainId(chain.id)
+	// if (ready && !authenticated) {
+	// 	// Replace this code with however you'd like to handle an unauthenticated user
+	// 	// As an example, you might redirect them to a login page
+	// 	// router.push('/login');
+	// }
+
+	const handleSwitchNetwork = async (campaignChainId: number) => {
+		try {
+		  await wallet.switchChain(campaignChainId);
+		  // Optionally, you can add a success message or trigger a state update here
+		  console.log(`Successfully switched to chain ${campaignChainId}`);
+		} catch (error) {
+		  if (error instanceof Error) {
+			// Check if the error is due to the user rejecting the request
+			if (error.message.includes('User rejected the request')) {
+			  console.log('User rejected the network switch');
+			  // You can show a user-friendly message here, e.g., using a toast notification
+			  // toast.error('Network switch was cancelled. Please try again to interact with this campaign.');
+			} else {
+			  console.error('Error switching network:', error.message);
+			  // Handle other types of errors
+			  // toast.error('Failed to switch network. Please try again.');
+			}
+		  } else {
+			console.error('An unknown error occurred while switching network');
+			// toast.error('An unexpected error occurred. Please try again.');
+		  }
 		}
-	}, [chain])
+	  };
+	
+	const checkAllowanceAndBalance = async () => {
+		// Replace commas in the `amount` string with dots to match desired format (e.g., 7.31 instead of 7,31)
+		const sanitized = debouncedAmount?.replace(/,/g, '.')
+
+		// Proceed if entered amount is greater than 0 and collateral token contract is defined
+		if (Number(sanitized) > 0 && collateralTokenContract != null) {
+		  const allowance = await readContract(wagmiConfig, {
+			...collateralTokenContract,
+			functionName: 'allowance',
+			args: [activeAddress, campaign.divaContractAddress],
+		  }) as bigint
+	
+		  // Check for insufficient funds
+		  const hasInsufficientFunds = Number(sanitized) > balance
+		  setInsufficientFunds(hasInsufficientFunds)
+	
+		  // Update approve and donate states if funds are sufficient.
+		  // In particular handles the scenario where the entered amount renders funds to be insufficient
+		  // but the user then changes the amount to a value that is sufficient.
+		  if (!hasInsufficientFunds) {
+			  if (allowance >= parseUnits(sanitized, decimals)) {
+				setApproveEnabled(false)
+				setDonateEnabled(true)
+			  } else {
+				setApproveEnabled(true)
+				setDonateEnabled(false)
+			  }
+			} else {
+			  setApproveEnabled(false)
+			  setDonateEnabled(false)
+			}
+		  } else {
+			setInsufficientFunds(false)
+			setApproveEnabled(false)
+			setDonateEnabled(false)
+		  }
+	  }
 
 	// Check user allowance and enable/disable the Approve and Donate buttons accordingly
 	useEffect(() => {
-		// @todo Potential to optimize by using debounce to reduce the number of RPC calls while user is typing.
-		const checkAllowance = async () => {
-			// Replace commas in the `amount` string with dots
-			const sanitized = debouncedAmount?.replace(/,/g, '.')
-			if (Number(sanitized) > 0 && collateralTokenContract != null) {
-				const allowance = await collateralTokenContract.allowance(
-					activeAddress,
-					campaign.divaContractAddress
-				)
-
-				if (allowance.gte(parseUnits(sanitized!.toString(), decimals))) {
-					setApproveEnabled(false)
-					setDonateEnabled(true)
-				} else {
-					setApproveEnabled(true)
-					setDonateEnabled(false)
-				}
-			} else {
-				setApproveEnabled(false)
-				setDonateEnabled(false)
-			}
+		if (chain) {
+		  if (chainId === campaignChainId && activeAddress != null) {
+			checkAllowanceAndBalance()
+		  }
 		}
-		if (chainId === chainConfig.chainId && activeAddress != null) {
-			checkAllowance()
-		}
-	}, [
+	  }, [
 		activeAddress,
-		amount,
-		chainId,
-		collateralTokenContract,
-		campaign.divaContractAddress,
-		decimals,
-	])
+		debouncedAmount,
+		chain,
+		balance
+	  ])
 
 	// Update state variables for all campaigns in `campaigns.json`
 	useEffect(() => {
 		if (
-			chainId === chainConfig.chainId &&
-			activeAddress != null &&
-			typeof window != 'undefined' &&
-			typeof window?.ethereum != 'undefined'
+			isConnected &&
+			chainId === campaignChainId &&
+			activeAddress != null
 		) {
 			let sumCapacityPools: number | 'Unlimited'
 			let sumToGoPools: number | 'Unlimited'
 			let sumRaisedPools: number
-			const divaContract = getContract({
-				address: campaign.divaContractAddress,
-				abi:
-					campaign.divaContractAddress === divaContractAddressOld &&
-					chainId === 137
-						? DivaABIold
-						: DivaABI,
-				signerOrProvider: wagmiProvider,
-			})
 
 			Promise.all(
+				// @todo consider using multicall here, similar to CampaignSection
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore: Temporarily ignore type error, fix later
 				campaign.pools.map((pool: CampaignPool) =>
-					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
+					readContract(wagmiConfig, {
+						...divaContract,
+						functionName: 'getPoolParameters',
+						args: [pool.poolId as any],
+					}).then((res: any) => {
 						return {
 							poolParams: res,
 							beneficiarySide: pool.beneficiarySide,
@@ -195,30 +271,31 @@ export const CampaignCard: React.FC<{
 			).then((poolData: PoolExtended[]) => {
 				// Create an array to store promises for fetching beneficiary token balances
 				const balancePromises = poolData.map((pool) => {
-					const beneficiaryTokenContract = getContract({
+					const beneficiaryTokenContract = {
 						address:
 							pool.beneficiarySide === 'short'
 								? pool.poolParams.shortToken
 								: pool.poolParams.longToken,
 						abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-						signerOrProvider: wagmiProvider,
-					})
-					return beneficiaryTokenContract.balanceOf(
-						campaign.donationRecipients[0].address
-					) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
+					} as const
+					return readContract(wagmiConfig, {
+						...beneficiaryTokenContract,
+						functionName: 'balanceOf',
+						args: [campaign.donationRecipients[0].address],
+					}) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
 				})
 
 				// Use Promise.all to fetch the beneficiary token balances for all pools
-				return Promise.all(balancePromises).then(
-					(beneficiaryTokenBalances: string[]) => {
+				return Promise.all(balancePromises as Promise<bigint>[]).then(
+					(beneficiaryTokenBalances: bigint[]) => {
 						// Aggregate the raised amount across the pools linked to the campaign. Note that using
 						// `collateralBalance` may not equal to raised amount if users choose a different recipient
 						// address during add liquidity.
 						sumRaisedPools = Number(
 							formatUnits(
 								beneficiaryTokenBalances.reduce(
-									(acc, data) => acc.add(data),
-									ethers.BigNumber.from(0)
+									(acc, data) => acc + BigInt(data),
+									BigInt(0)
 								),
 								decimals
 							)
@@ -235,8 +312,8 @@ export const CampaignCard: React.FC<{
 							sumCapacityPools = Number(
 								formatUnits(
 									poolData.reduce(
-										(acc, data) => acc.add(data.poolParams.capacity),
-										ethers.BigNumber.from(0)
+										(acc, data) => acc + BigInt(data.poolParams.capacity),
+										BigInt(0)
 									),
 									decimals
 								)
@@ -254,85 +331,80 @@ export const CampaignCard: React.FC<{
 							sumToGoPools = sumCapacityPools - sumRaisedPools
 						}
 						setToGo(sumToGoPools)
+
+						setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100) // @todo test whehter it's working here. Moved it from a former useEffect block
 					}
 				)
 			})
 		}
-	}, [chainId, donateLoading, activeAddress, collateralTokenContract])
+	}, [
+		chain,
+		donateLoading,
+		activeAddress,
+	])
 
 	useEffect(() => {
 		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
-	}, [goal, raised, donateLoading])
+	}, [
+		goal,
+		raised,
+		donateLoading
+	])
 
 	const handleApprove = async () => {
 		setApproveLoading(true)
-		collateralTokenContract
-			.approve(
-				campaign.divaContractAddress,
-				parseUnits(amount, decimals).add(10),
-				{
-					// small buffer added to ensure sufficient allowance
-					gasPrice: data?.gasPrice,
-				}
-			)
-			.then((tx: any) => {
-				tx.wait()
-					.then(() => {
-						setApproveEnabled(false)
-						setDonateEnabled(true)
-						setApproveLoading(false)
-					})
-					.catch((err: any) => {
-						setApproveLoading(false)
-						console.log(err)
-					})
+		try {
+			// First, simulate the contract call. That's the recommended practice in the viem docs:
+			// https://viem.sh/docs/contract/writeContract.html#usage
+			const { request } = await simulateContract(wagmiConfig, {
+				...collateralTokenContract,
+				functionName: 'approve',
+				args: [campaign.divaContractAddress, parseUnits(amount, decimals) + BigInt(10)],
+				account: activeAddress,
 			})
-			.catch((err: any) => {
-				setApproveLoading(false)
-				console.log(err)
-			})
+	
+			// If simulation is successful, proceed with the actual transaction
+			const hash = await writeContract(wagmiConfig, request as any)
+	
+			// Wait for the transaction to be mined
+			await waitForTransactionReceipt(wagmiConfig, { hash })
+	
+			setApproveEnabled(false)
+			setDonateEnabled(true)
+			setApproveLoading(false)
+		} catch (err) {
+			console.error('Error in approve transaction:', err)
+			setApproveLoading(false)
+		}
 	}
+
 	const handleDonation = async () => {
 		if (amount != null) {
-			// const divaContract = getContract({
-			// 	address: campaign.divaContractAddress,
-			// 	abi: campaign.divaContractAddress === divaContractAddressOld ? DivaABIold : DivaABI,
-			// 	signerOrProvider: wagmiProvider,
-			// })
-
-			// @todo somehow the above doesn't work... Check why that's the case
-			const provider = new ethers.providers.Web3Provider(
-				(window as any).ethereum
-			)
-			const divaContract = new ethers.Contract(
-				campaign.divaContractAddress,
-				campaign.divaContractAddress === divaContractAddressOld
-					? DivaABIold
-					: DivaABI,
-				provider.getSigner() // @todo Why not wagmiProvider like in CampaignSection?
-			)
-
 			setDonateLoading(true)
-
-			// @todo test this
-			Promise.all(
-				campaign.pools.map((pool) =>
-					divaContract.getPoolParameters(pool.poolId).then((res: any) => {
-						return res.capacity
-					})
+	
+			try {
+				// Fetch capacities
+				const capacities = await Promise.all(
+					campaign.pools.map((pool) =>
+						readContract(wagmiConfig, {
+							...divaContract,
+							functionName: 'getPoolParameters',
+							args: [pool.poolId as any],
+						}).then((res: any) => res.capacity)
+					)
 				)
-			).then((capacities) => {
+	
 				const sumCapacity = capacities.reduce(
-					(acc, capacity) => acc.add(capacity),
-					ethers.BigNumber.from(0)
+					(acc, capacity) => acc + BigInt(capacity),
+					BigInt(0)
 				)
-
+	
 				// Prepare args for `batchAddLiquidity` smart contract call
 				const batchAddLiquidityArgs = campaign.pools.map((pool, index) => {
 					const collateralAmountIncr = parseUnits(amount.toString(), decimals)
-						.mul(capacities[index])
-						.div(sumCapacity)
-
+						* BigInt(capacities[index])
+						/ BigInt(sumCapacity)
+	
 					return {
 						poolId: pool.poolId,
 						collateralAmountIncr: collateralAmountIncr,
@@ -346,30 +418,39 @@ export const CampaignCard: React.FC<{
 								: activeAddress,
 					}
 				})
-
-				divaContract
-					.batchAddLiquidity(batchAddLiquidityArgs, {
-						gasPrice: data?.maxFeePerGas,
-					})
-					.then((tx: any) => {
-						tx.wait().then(() => {
-							setDonateLoading(false)
-							onOpen() // Open Success Modal
-						})
-					})
-					.catch((err: any) => {
-						setDonateLoading(false)
-						console.log(err)
-					})
-			})
+	
+				// First, simulate the contract call. That's the recommended practice in the viem docs:
+				// https://viem.sh/docs/contract/writeContract.html#usage
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-ignore: Temporarily ignore type error, fix later
+				const { request } = await simulateContract(wagmiConfig, {
+					...divaContract,
+					functionName: 'batchAddLiquidity',
+					args: [batchAddLiquidityArgs],
+					account: activeAddress,
+				})
+	
+				// If simulation is successful, proceed with the actual transaction
+				const hash = await writeContract(wagmiConfig, request)
+	
+				// Wait for the transaction to be mined
+				await waitForTransactionReceipt(wagmiConfig, { hash })
+	
+				setDonateLoading(false)
+				checkAllowanceAndBalance()
+				onOpen() // Open Success Modal
+			} catch (err) {
+				console.error('Error in batchAddLiquidity transaction:', err)
+				setDonateLoading(false)
+			}
 		}
 	}
 
-	const handleMax = () => {
-		if (balance != null) {
-			setAmount(balance.toString())
-		}
-	}
+	// const handleMax = () => {
+	// 	if (balance != null) {
+	// 		setAmount(balance.toString())
+	// 	}
+	// }
 	const handleAmountChange = (e: any) => {
 		setAmount(e.target.value)
 	}
@@ -377,20 +458,25 @@ export const CampaignCard: React.FC<{
 	useEffect(() => {
 		const getBalance = async () => {
 			if (activeAddress) {
-				const result = await getTokenBalance(
-					collateralTokenContract,
-					activeAddress
-				)
-				const tokenAmount = Number(
-					formatUnits(result?.balance, result?.decimals)
-				)
+				const result = await readContract(wagmiConfig, {
+					...collateralTokenContract,
+					functionName: 'balanceOf',
+					args: [activeAddress],
+				}) as bigint
+				const tokenAmount = Number(formatUnits(result, decimals))
+				console.log("tokenAmount", tokenAmount)
 				setBalance(tokenAmount)
 			}
 		}
-		if (chainId === chainConfig.chainId && activeAddress != null) {
+
+	// @todo check this part as the useEffect block was dissolved and I think it's causing some issues
+		if (chain && chainId === campaignChainId && activeAddress != null) {
 			getBalance()
 		}
-	}, [chainId, activeAddress, donateLoading, collateralTokenContract])
+	}, [
+		chain,
+		activeAddress,
+	])
 
 	return (
 		<div className="bg-[#F3FDF8] w-full pb-12 flex justify-center pt-32 lg:pt-16">
@@ -407,7 +493,9 @@ export const CampaignCard: React.FC<{
 							<DonationCard
 								thankYouMessage={thankYouMessage}
 								isConnected={isConnected}
-								chainId={chainId}
+								connectedChainId={Number(chainId)}
+								campaignChainId={Number(campaignChainId)}
+								campaignChainName={campaignChainName ?? "Unknown Chain"}
 								isOpen={isOpen}
 								onClose={onClose}
 								percentage={percentage}
@@ -416,6 +504,7 @@ export const CampaignCard: React.FC<{
 								amount={amount}
 								handleAmountChange={handleAmountChange}
 								balance={balance}
+								insufficientFunds={insufficientFunds}
 								campaign={campaign}
 								approveLoading={approveLoading}
 								handleApprove={handleApprove}
@@ -424,8 +513,8 @@ export const CampaignCard: React.FC<{
 								donateLoading={donateLoading}
 								handleDonation={handleDonation}
 								donateEnabled={donateEnabled}
-								openConnectModal={openConnectModal}
-								handleOpen={handleOpen}
+								openConnectModal={connectWallet}
+								handleSwitchNetwork={handleSwitchNetwork}
 							/>
 						)}
 					</div>
