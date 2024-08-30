@@ -57,7 +57,7 @@ export default function NavBar() {
 						// Read more about it here: https://docs.privy.io/guide/react/wallets/usage/wagmi#using-wagmi-hooks
 						<Button onClick_={connectWallet} cta={getShortenedAddress(activeAddress)} />
                		) : (
-						<Button onClick_={connectWallet} cta="Connect Wallet" />
+						<Button onClick_={connectWallet} cta="Connect" />
                		)}
 				</div>
 			</nav>
