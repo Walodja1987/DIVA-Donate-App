@@ -11,7 +11,7 @@
     ],
     "img": "/Images/pastrolists400pxVertical.png",
     "path": "/campaign/pastoralists-1",
-    "title": "Pastoralists",
+    "title": "Pastoralists Mar-May 2023",
     "desc": "A conditional donation campaign to provide livestock insurance to 100 pastoralists in Kenya (Marsabit region) to financially assist them in case of drought.",
     "donationRecipients" : [
       {
@@ -48,7 +48,7 @@
     ],
     "img": "/Images/pastoralists_mcv_pilot.png",
     "path": "/campaign/pastoralists-mcv",
-    "title": "Pastoralists (MCV Pilot)",
+    "title": "Pastoralists Oct-Dec 2023",
     "desc": "A pilot with Mercy Corps Ventures (MCV) to provide anticipatory cash transfers to pastoralist communities in two Kenyan counties: Kajiado and Laikipia.",
     "donationRecipients" : [
       {
@@ -314,5 +314,36 @@
     "chainId": "42161",
     "chainName": "Arbitrum One",
     "expiryTimestamp": "1724709407"
+  },
+  {
+    "campaignId": "pastoralists_4",
+    "pools": [
+      {
+        "poolId": "0xe09fb4e7bf14d9cbd7834ab77e06837deae28a5b5a4629a7ba96b42156089eea",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB",
+        "donorToken": "0xA0AaaA8C64761Cb24FE80bbEd3b07cD423aab4a5"
+      }
+    ],
+    "img": "/Images/pastoralists-4.jpeg",
+    "path": "/campaign/pastoralists-4",
+    "title": "Pastoralists Oct-Dec 2024",
+    "desc": "A conditional donation campaign to provide anticipatory cash transfers to pastoralist communities in the Kenyan county Kajiado.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x33d47Ea607Fc12f9c84463A1e5A641A898aBB889",
+        "url": "https://arbiscan.io/address/0x33d47Ea607Fc12f9c84463A1e5A641A898aBB889"
+      }
+    ],
+    "goal": "15000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+    "decimals": "6",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "42161",
+    "chainName": "Arbitrum One",
+    "expiryTimestamp": "1736488800"
   }
 ]

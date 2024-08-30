@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatUnits } from 'ethers/lib/utils';
 import request from 'graphql-request'
-import { chainConfig } from '../../constants'
+import { chainConfigs } from '../../constants'
 import { getShortenedAddress } from '../../utils/general'
 import { BigNumber } from 'ethers';
 import type { Campaign } from '@/types/campaignTypes'
@@ -21,7 +21,7 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
     queryKey: ['liquidity', poolIds],
     queryFn: async () => {
       const response = await request(
-        chainConfig.graphUrl,
+        chainConfigs[Number(campaign.chainId)].graphUrl,
         queryDIVALiquidity(poolIds as any)
       );
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -29,6 +29,7 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
       return response.liquidities || [];
     }
   });
+  console.log("data", data)
 
   // Display loading or error messages
   if (isLoading) return <div>Loading...</div>;
@@ -91,7 +92,7 @@ export const TopDonorsTable: React.FC<{campaign: Campaign}> = ({campaign}) => {
                   </span>
                 </td> {/* Row number */}
                 <td className="text-left w-52 text-[#005C53]">
-                  <a href={`${chainConfig.blockExplorer}/address/${donor.msgSender}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`${chainConfigs[Number(campaign.chainId)].blockExplorer}/address/${donor.msgSender}`} target="_blank" rel="noopener noreferrer">
                     {getShortenedAddress(donor.msgSender)}
                   </a>  
                 </td>
