@@ -37,6 +37,12 @@ export const chainConfigs: { [chainId: number]: ChainConfig } = {
       blockExplorer: 'https://arbiscan.io/',
       divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
     },
+    1: {
+        name: 'Ethereum',
+        graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-ethereum/version/latest',
+        blockExplorer: 'https://etherscan.io/',
+        divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
+      },
     // Add more chains as needed
   }
 
