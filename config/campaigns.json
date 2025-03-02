@@ -128,5 +128,42 @@
     "chainId": "42161",
     "chainName": "Arbitrum One",
     "expiryTimestamp": "1736488800"
+  },
+  {
+    "campaignId": "pastoralists_5",
+    "pools": [
+      {
+        "poolId": "0xf6fa3418aafff35b34cd2643ea8c84d7f0a11084849624fe0049cccadaa76a34",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x4e8B33D870674ec8Eba121bDA68276175388f1ba",
+        "donorToken": "0xFD357c259C55fF5a6ed753b5F7e4f8fE7cd46d63"
+      },
+      {
+        "poolId": "0x82d6d23dcb9809a43794aec76c07037e638060e9279b38ccf46b781661b9d7f1",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x4BCe5A3dE3dd742f9C30350c165Afb0BFD7843d8",
+        "donorToken": "0x2E5E3768AD97D96cCCe1d15d1b5F6F09FE857E28"
+      }
+    ],
+    "img": "/Images/pastoralists_mcv_pilot.png",
+    "path": "/campaign/pastoralists-mcv",
+    "title": "Pastoralists Mar-May 2025",
+    "desc": "A campaign to provide anticipatory cash transfers to pastoralist communities in two Kenyan counties: Kajiado and Laikipia.",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x314b0EfcACFD9A9fb7b7834B2a7e47d6325eca23",
+        "url": "https://etherscan.io/address/0x314b0EfcACFD9A9fb7b7834B2a7e47d6325eca23"
+      }
+    ],
+    "goal": "35000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+    "decimals": "18",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "1",
+    "chainName": "Ethereum",
+    "expiryTimestamp": "1749535200"
   }
 ]
