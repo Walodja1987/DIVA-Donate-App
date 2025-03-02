@@ -132,7 +132,7 @@ export const CampaignCard: React.FC<{
 	const collateralTokenContract = {
 		address: campaign.collateralToken,
 		abi: ERC20ABI,
-		chainId: campaignChainId as 137 | 42161,
+		chainId: campaignChainId as 137 | 42161 | 1,
 	} as const
 
 	const divaContract = {
@@ -140,7 +140,7 @@ export const CampaignCard: React.FC<{
 		abi: campaign.divaContractAddress === divaContractAddressOld && campaignChainId === 137
 			? DivaABIold
 			: DivaABI,
-		chainId: campaignChainId as 137 | 42161,
+		chainId: campaignChainId as 137 | 42161 | 1,
 	} as const
 
 	const debouncedAmount = useDebounce(amount, 300)

@@ -68,7 +68,7 @@ export const CampaignSection = () => {
 				abi: campaign.divaContractAddress === divaContractAddressOld
 					? DivaABIold
 					: DivaABI,
-				chainId: Number(campaign.chainId) as 137 | 42161
+				chainId: Number(campaign.chainId) as 137 | 42161 | 1
 			} as const
 
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -87,7 +87,7 @@ export const CampaignSection = () => {
 			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				chainId: Number(campaign.chainId) as 137 | 42161
+				chainId: Number(campaign.chainId) as 137 | 42161 | 1
 			} as const
 
 			const decimals = await readContract(wagmiConfig, {
