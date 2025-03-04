@@ -142,10 +142,14 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 												href={`${chainConfigs[campaignChainId].blockExplorer}address/${campaign.collateralToken}`}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="absolute right-0 top-0 bottom-0 text-white bg-[#005C53] focus:ring-green-300 font-medium rounded-lg text-sm px-6 py-2.5 text-center flex gap-2 items-center font-openSans"
+												className="absolute right-0 top-0 bottom-0 text-white bg-[#006AFF] focus:ring-green-300 font-medium rounded-lg text-sm px-6 py-2.5 text-center flex gap-2 items-center font-openSans"
 											>
-												<img src="/Images/usdt-logo.svg" alt="USDT" />
-												<div className="text-base">USDT</div>
+												<img
+													src="/Images/rlusd_logo.webp"
+													alt="RLUSD"
+													style={{ width: '30px', height: '30px' }}
+												/>
+												<div className="text-base">RLUSD</div>
 											</a>
 											<div
 												id="dropdown"
@@ -157,7 +161,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 														<a
 															href="#"
 															className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
-															USDT
+															RLUSD
 														</a>
 													</li>
 													<li>
