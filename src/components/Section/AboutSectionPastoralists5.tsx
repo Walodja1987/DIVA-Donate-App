@@ -29,15 +29,14 @@ export const AboutSectionPastoralists5 = () => (
 							Normalized Difference Vegetation Index
 						</a>
 						{' '}
-						 (NDVI) following the 
-							October-November-December 2024 rainy season and disburse funds to participating pastoralists if the NDVI at the end of this 
+						 (NDVI) following the March-May 2025 long rains season and disburse funds to participating pastoralists if the NDVI at the end of this 
 							period suggests insufficient vegetation to support livestock during the subsequent dry season.
 							The target cover amount of $75 per pastoralist intends to subsidize 
 							the provision of food for one livestock animal over a period of six months.
 							<br />
 							<br />
-							DIVA Donate is a collaborative initiative between DIVA Technologies and Fortune Credit, utilizing blockchain technology to provide effictive and efficient disaster relief to vulnerable communities affected by climate change. 
-							This campaign represents the fourth iteration in the series dedicated to supporting Kenyan pastoralists.
+							DIVA Donate is a collaborative initiative between DIVA Technologies and Fortune Credit, utilizing blockchain technology to provide effective and efficient disaster relief to vulnerable communities affected by climate change. 
+							This campaign represents the fifth iteration in the series dedicated to supporting Kenyan pastoralists.
 							{/* <br />
 							<br />
 							This campaign is a joint initiative between Mercy Corps Ventures, Fortune Credit, Shamba Network, and 
@@ -53,12 +52,12 @@ export const AboutSectionPastoralists5 = () => (
 					<ul
 						className="list-none font-openSans text-base font-normal mb-8">
 						<li>
-							Special thanks goes to our sponsors who seeded this campaign with a total of $11’133:
+							Special thanks goes to our sponsors who seeded this campaign:
 							<ul
 								role="list"
 								className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 mb-8 mt-4">
-								<li><strong>Arbitrum:</strong> ~$2,500 provided as part of the Arbitrum ReFi grant</li>
-								<li><strong>Mercy Corps Ventures:</strong> $8,633 of unreleased funds rolled from the previous campaign</li>
+								<li><strong>Ripple:</strong> Supporting the campaign with $25,000 funded with their new stablecoin RLUSD</li>
+								<li><strong>Mercy Corps Ventures & Arbitrum:</strong> ~$12,000 of unreleased funds rolled from previous campaigns</li>
 							</ul>							{/* {' '}
 							<a
 								href="https://agfundernews.com/mercy-corps-ventures-pilots-the-blockchain-to-get-cash-transfers-to-communities-ahead-of-climate-shock"
@@ -75,9 +74,9 @@ export const AboutSectionPastoralists5 = () => (
 					<ul
 						role="list"
 						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 text-base mb-8">
-						<li>200 Pastoralists</li>
+						<li>533 Pastoralists</li>
 						<li>$75 target cover amount per pastoralist</li>
-						<li>$15,000 total cover for the campaign</li>
+						<li>$40,000 total cover for the campaign</li>
 					</ul>
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Beneficiaries
@@ -85,7 +84,7 @@ export const AboutSectionPastoralists5 = () => (
 					<ul
 						role="list"
 						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3  mb-8">
-						<li>Pastoralists in Kajiado (Kenyan county)</li>
+						<li>Pastoralists in Kajiado and Laikipia North (Kenyan counties)</li>
 					</ul>
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Trigger metric
@@ -104,7 +103,7 @@ export const AboutSectionPastoralists5 = () => (
 						It serves as a reasonable metric for assessing drought as vegetation density generally correlates with rainfall patterns.
 						<br></br>
 						<br></br>
-						For this campaign, the NDVI as at 31 December 2024 within the eVIIRS dataset for Kajiado County, Kenya, 
+						For this campaign, the NDVI as at 31 May 2025 within the eVIIRS dataset for both counties, 
 						as published on the 
 						{' '}
 						<a
@@ -114,9 +113,8 @@ export const AboutSectionPastoralists5 = () => (
 							rel="noreferrer">
 							USGS FEWS NET Early Warning System website
 						</a>
-						, is used. This value will be reported via the Tellor Protocol on 10 January 2025, with a +1 shift applied for technical reasons.
+						, will be used. These values will be reported via the DIVA Donate Multisig on 7 June 2025, with a +1 shift applied for technical reasons.
 						The chosen dataset offers a smoothed NDVI timeseries that corrects low-quality observations caused by clouds or other atmospheric contamination.
-						The donation release profile has been derived by analyzing historical NDVI trends during drought years (2014, 2017, 2022), ensuring a tailored response to drought conditions.
 						{/* {' '}
 						<a
 							href="https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index"
@@ -130,31 +128,20 @@ export const AboutSectionPastoralists5 = () => (
 						Donation scenarios
 					</div>
 					<p className="pb-4">
-					The amount released to pastoralists depends on the NDVI value at the end of the campaign period and the underlying donation profile. 
-					Below, we illustrate the percentage of contributed funds released in specific sample scenarios, based on the underlying donation profile.
+					The amount released to pastoralists depends on the NDVI value at the end of the campaign period. The funds will be split 50/50 between the two regions.
+					Below are the scenarios for each region:
 					</p>
-					<ul
-						role="list"
-						className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3  mb-2">
-						<li>
-							{' '}
-							<a className="font-bold" target="_blank">
-								100%{' '}
-							</a>
-							- if the NDVI is at or below 1.45
-						</li>
-						<li>
-							<a className="font-bold" target="_blank">
-								50%{' '}
-							</a>{' '}
-							- if the NDVI is at 1.50
-						</li>
-						<li>
-							<a className="font-bold" target="_blank">
-								0%{' '}
-							</a>{' '}
-							- if the NDVI is at or above 1.52
-						</li>
+					<p className="font-semibold mb-2">Kajiado:</p>
+					<ul className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3 mb-4">
+						<li><span className="font-bold">100% </span> - if the NDVI is at or below 1.50</li>
+						<li><span className="font-bold">50% </span> - if the NDVI is at 1.53</li>
+						<li><span className="font-bold">0% </span> - if the NDVI is at or above 1.56</li>
+					</ul>
+					<p className="font-semibold mb-2">Laikipia:</p>
+					<ul className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3 mb-2">
+						<li><span className="font-bold">100% </span> - if the NDVI is at or below 1.54</li>
+						<li><span className="font-bold">25% </span> - if the NDVI is at 1.60</li>
+						<li><span className="font-bold">0% </span> - if the NDVI is at or above 1.62</li>
 					</ul>
 				</div>
 			</div>

@@ -48,7 +48,7 @@ export const LinkSectionPastoralists5 = () => (
 						</h3>
 					</div>
 					<p className="text-[#042940] font-semibold text-base">
-						Empowering pastoralists in Kenya - The third DIVA Donate campaign
+						Empowering pastoralists in Kenya - The 5th DIVA Donate campaign
 					</p>
 				</a>
 			</div>
@@ -91,7 +91,7 @@ export const LinkSectionPastoralists5 = () => (
 						</h3>
 					</div>
 					<p className="text-[#042940] font-semibold text-base">
-						A description of the NDVI eVIRRS dataset used for the campaign
+						A description of the NDVI eVIIRS dataset used for the campaign
 					</p>
 				</a>
 			</div>
