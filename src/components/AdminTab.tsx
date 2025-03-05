@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ADMIN_ADDRESS, divaContractAddress } from '../constants';
 import { parseUnits } from "viem";
 import { DivaABI, ERC20ABI } from '../abi';
-import { useAccount } from 'wagmi';
+import { useAccount, useContractRead } from 'wagmi';
 import { 
   simulateContract,
   writeContract,
@@ -40,17 +40,17 @@ export const AdminTab = () => {
     try {
       if (!activeAddress) throw new Error("No wallet connected");
 
-      // Define contracts with mainnet chainId
+      // Define contracts
       const collateralTokenContract = {
-        address: formData.collateralToken,
+        address: formData.collateralToken as `0x${string}`, // Type assertion for address
         abi: ERC20ABI,
-        chainId: 1, // Ethereum mainnet
+        chainId: 1,
       } as const;
 
       const divaContract = {
-        address: divaContractAddress,
+        address: divaContractAddress as `0x${string}`, // Type assertion for address
         abi: DivaABI,
-        chainId: 1, // Ethereum mainnet // @todo Make it dynamic based on the chain the wallet is connected to.
+        chainId: 1,
       } as const;
 
       // Parse input values
@@ -59,14 +59,14 @@ export const AdminTab = () => {
       const cap = parseUnits(formData.cap, 18);
       const gradient = parseUnits(formData.gradient, 18);
       const collateralAmount = parseUnits(formData.collateralAmount, 18);
-      const capacity = formData.capacity ? parseUnits(formData.capacity, 18) : parseUnits("115792089237316195423570985008687907853269984665640564039457584007913129639935", 0); // MaxUint256
+      const capacity = formData.capacity ? parseUnits(formData.capacity, 18) : parseUnits("115792089237316195423570985008687907853269984665640564039457584007913129639935", 0);
 
-      // Check allowance first
+      // Check allowance
       const allowance = await readContract(wagmiConfig, {
         ...collateralTokenContract,
         functionName: 'allowance',
-        args: [activeAddress, divaContractAddress],
-      }) as bigint;
+        args: [activeAddress as `0x${string}`, divaContractAddress as `0x${string}`],
+      });
 
       // Approve if needed
       if (allowance < collateralAmount) {
@@ -74,7 +74,7 @@ export const AdminTab = () => {
         const { request } = await simulateContract(wagmiConfig, {
           ...collateralTokenContract,
           functionName: 'approve',
-          args: [divaContractAddress, collateralAmount],
+          args: [divaContractAddress as `0x${string}`, collateralAmount],
           account: activeAddress,
         });
 
@@ -90,18 +90,18 @@ export const AdminTab = () => {
         functionName: 'createContingentPool',
         args: [[
           formData.referenceAsset,
-          formData.expiryTime,
+          BigInt(formData.expiryTime), // Convert to BigInt
           floor,
           inflection,
           cap,
           gradient,
           collateralAmount,
-          formData.collateralToken,
-          formData.dataProvider,
+          formData.collateralToken as `0x${string}`,
+          formData.dataProvider as `0x${string}`,
           capacity,
-          formData.longRecipient,
-          formData.shortRecipient,
-          "0x0000000000000000000000000000000000000000", // permissionedERC721Token
+          formData.longRecipient as `0x${string}`,
+          formData.shortRecipient as `0x${string}`,
+          "0x0000000000000000000000000000000000000000" as `0x${string}`,
         ]],
         account: activeAddress,
       });
