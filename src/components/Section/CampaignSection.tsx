@@ -36,7 +36,7 @@ import type { Campaign, CampaignStatus } from '@/types/campaignTypes'
 import type { DIVALiquidityResponse } from '@/types/subgraphTypes'
 
 // Wagmi
-import { wagmiConfig } from '@/componentts/wagmiConfig'
+import { wagmiConfig } from '@/components/wagmiConfig'
 import { readContract } from '@wagmi/core'
 
 // Subgraph queries
