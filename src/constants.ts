@@ -60,6 +60,7 @@ export type NavItemType = {
     rel?: string;
 };
 
+export const ADMIN_ADDRESS = "0xd288B4A23ECc79Eb4bb4661147f3AB3294919F54".toLowerCase();
 
 export const links: NavItemType[] = [
     {
@@ -87,3 +88,9 @@ export const links: NavItemType[] = [
         name: "Blog",
     },
 ];
+
+// Create a separate admin link that we'll add conditionally
+export const adminLink: NavItemType = {
+    to: "/admin",
+    name: "Admin",
+};

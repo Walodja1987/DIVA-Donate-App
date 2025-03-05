@@ -15,4 +15,15 @@ export const privyConfig: PrivyClientConfig = {
 	defaultChain: mainnet, // Users will be prompted to switch to this network if they are connected to a different chain
 	// @todo switch defaultChain to Arbitrum when going live with the new campaign
 	supportedChains: [polygon, arbitrum, mainnet],
+	// externalWallets: {
+	// 	metamask: {
+	// 	  enabled: true,
+	// 	},
+	// 	walletConnect: {
+	// 	  enabled: true,
+	// 	},
+	// 	coinbase: {
+	// 		enabled: false,
+	// 	}
+	// },
 };

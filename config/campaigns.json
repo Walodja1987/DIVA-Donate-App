@@ -133,16 +133,16 @@
     "campaignId": "pastoralists_5",
     "pools": [
       {
-        "poolId": "0xd06b6f650c4106fe743b29b8aba573082878e453fa54c3655317afb3b4dea6eb",
+        "poolId": "0xdc3f70e4438f479b8713c13b09e2369970a6244f286733df839c467182972690",
         "beneficiarySide": "short",
-        "beneficiaryToken": "0xB9c04A5A91a964fC3DAfd185569D2F1AfCbF4882",
-        "donorToken": "0x8608Ef8bE4f5114f2fDA90a92c5Ff097419db786"
+        "beneficiaryToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59",
+        "donorToken": "0x664E9390DB669f67DC76d2D38b43CbA51a25Abb3"
       },
       {
-        "poolId": "0xd4fe38fb2a4f852754aff3e8c08bfc81927efc293c7dce0547f880c19fea4ab2",
+        "poolId": "0x5df99a9f8937b53dd5a43c32acb7e4b5c94c04fc154cc9051c4e99af1f1e0492",
         "beneficiarySide": "short",
-        "beneficiaryToken": "0xBC50b113d503054Fa80c10e4Ff03ee6D86F2f538",
-        "donorToken": "0x63295Ec192D0b8F49E89903a21B7f589c321d2f0"
+        "beneficiaryToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB",
+        "donorToken": "0xA0AaaA8C64761Cb24FE80bbEd3b07cD423aab4a5"
       }
     ],
     "img": "/Images/header_6_with_effect.jpg",
