@@ -9,34 +9,36 @@ export const AboutSectionPastoralists5 = () => (
 					<ul className="list-none font-openSans text-base font-normal mb-8">
 						<li>
 							{' '}							
-							Pastoralist communities live a nomadic lifestyle, grazing animals on open-access 
+							This campaign represents the <strong>5th iteration</strong> in the series dedicated to providing <strong>anticipatory cash transfers to Kenyan pastoralists </strong>
+							which are disproportionately affected by climate-change-induced drought.
+							<br />
+							<br />
+							<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
+						Context
+					</h1>
+							<strong>Pastoralist communities live a nomadic lifestyle</strong>, grazing animals on open-access 
 							pastures and migrating with them in response to seasonal variations.
 							Livestock and livestock products serve as their primary sources of income and food. 
 							<br />
 							<br />
-							However, changing weather patterns induced by climate change are threatening the livelihoods of these communities
-							in the eastern Horn of Africa. The region is experiencing one of the worst droughts which already resulted in the loss of over 7 million livestock 
-							and put millions at risk of starvation in Ethiopia, Kenya, and Somalia. 
+							However, changing weather patterns induced by climate change are threatening the livelihoods of these communities. Over the past decade,
+							Kenya has experienced severe droughts which have decimated the pastoralists&apos; livestock and put the pastoralist communities at risk of starvation. 
 							<br />
 							<br />
-							The goal of this campaign is to assess vegetation health using the  
-						{' '}
-						<a
-							href="https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index"
-							className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
-							target={'_blank'}
-							rel="noreferrer">
-							Normalized Difference Vegetation Index
-						</a>
-						{' '}
-						 (NDVI) following the March-May 2025 long rains season and disburse funds to participating pastoralists if the NDVI at the end of this 
-							period suggests insufficient vegetation to support livestock during the subsequent dry season.
-							The target cover amount of $75 per pastoralist intends to subsidize 
-							the provision of food for one livestock animal over a period of six months.
+							To understand how climate change affects these communities and how our campaign can help, it&apos;s important to understand
+							the <strong>seasonal patterns</strong> in Kenya and their impact on pastoralist livelihoods.
 							<br />
 							<br />
-							DIVA Donate is a collaborative initiative between DIVA Technologies and Fortune Credit, utilizing blockchain technology to provide effective and efficient disaster relief to vulnerable communities affected by climate change. 
-							This campaign represents the fifth iteration in the series dedicated to supporting Kenyan pastoralists.
+							
+								Kenya&apos;s climate naturally fluctuates between rainy and dry seasons. Rainfall during the rainy season
+								stimulates vegetation growth, which provides necessary pasture for livestock in the coming dry season. 
+								<strong> Sufficient vegetation and fodder at the end of the rainy season are crucial for sustaining livestock and,
+								by extension, the livelihoods of pastoralist communities throughout the subsequent dry season.</strong>
+								<br />
+								<br />
+								The <strong>long rains</strong> season begins in mid-March and lasts until May/June, followed by a predominantly dry period
+								until October, during which vegetation levels gradually decline. The <strong>short rains</strong> arrive in mid-October and
+								continue through November and December, leading into a hot, typically rainless dry season lasting until March.
 							{/* <br />
 							<br />
 							This campaign is a joint initiative between Mercy Corps Ventures, Fortune Credit, Shamba Network, and 
@@ -46,19 +48,47 @@ export const AboutSectionPastoralists5 = () => (
 					</ul>
 
 					<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
-						Sponsors
+						Campaign goal
+					</h1>
+					<ul className="list-none font-openSans text-base font-normal mb-4">
+						<li>
+							The goal of this campaign is to assess vegetation health using the  
+							{' '}
+							<a
+								href="https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index"
+								className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
+								target={'_blank'}
+								rel="noreferrer">
+								Normalized Difference Vegetation Index
+							</a>
+							{' '}
+							(NDVI) following the March-May 2025 long rains season and disburse funds to participating pastoralists if the NDVI at the end of this 
+							period suggests insufficient vegetation to support livestock during the subsequent dry season.
+							The target cover amount of <strong>$75 per pastoralist</strong> intends to subsidize 
+							the provision of <strong>food for one livestock animal over a period of six months</strong>. Contributions will be equally split between the two counties.
+							<br />
+							<br />
+							The campaign goals are summarized below:
+						</li>
+					</ul>
+					<ul
+						role="list"
+						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 text-base mb-8">
+						<li><strong>533</strong> Pastoralists</li>
+						<li><strong>$75</strong> target cover amount per pastoralist</li>
+						<li><strong>$40,000</strong> total cover for the campaign</li>
+					</ul>
+
+					<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
+						Partners
 					</h1>
 					
-					<ul
-						className="list-none font-openSans text-base font-normal mb-8">
+					<ul className="list-none font-openSans text-base font-normal mb-8">
 						<li>
-							Special thanks goes to our sponsors who seeded this campaign:
-							<ul
-								role="list"
-								className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 mb-8 mt-4">
-								<li><strong>Ripple:</strong> Supporting the campaign with $25,000 funded with their new stablecoin RLUSD</li>
-								<li><strong>Mercy Corps Ventures & Arbitrum:</strong> ~$12,000 of unreleased funds rolled from previous campaigns</li>
-							</ul>							{/* {' '}
+							This campaign takes place in <strong>partnership with Ripple</strong> and utilizes their new stablecoin RLUSD, demonstrating its applicability in humanitarian
+							aid and disaster relief. Ripple has generously contributed <strong>$25,000</strong> to support this campaign. Additionally, approximately <strong> $12,000 </strong>
+							which remained unreleased in previous campaigns (funds received from Mercy Corps Ventures and Arbitrum) have been rolled into this campaign to further amplify the impact.
+							{/* {' '}
 							<a
 								href="https://agfundernews.com/mercy-corps-ventures-pilots-the-blockchain-to-get-cash-transfers-to-communities-ahead-of-climate-shock"
 								className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
@@ -68,16 +98,7 @@ export const AboutSectionPastoralists5 = () => (
 							</a> */}
 						</li>
 					</ul>
-					<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
-						Campaign goal
-					</h1>
-					<ul
-						role="list"
-						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 text-base mb-8">
-						<li>533 Pastoralists</li>
-						<li>$75 target cover amount per pastoralist</li>
-						<li>$40,000 total cover for the campaign</li>
-					</ul>
+					
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Beneficiaries
 					</div>
@@ -113,7 +134,7 @@ export const AboutSectionPastoralists5 = () => (
 							rel="noreferrer">
 							USGS FEWS NET Early Warning System website
 						</a>
-						, will be used. These values will be reported via the DIVA Donate Multisig on 7 June 2025, with a +1 shift applied for technical reasons.
+						, will be used. These values will be reported via the DIVA Donate Multisig on 7 June 2025.
 						The chosen dataset offers a smoothed NDVI timeseries that corrects low-quality observations caused by clouds or other atmospheric contamination.
 						{/* {' '}
 						<a
@@ -128,8 +149,8 @@ export const AboutSectionPastoralists5 = () => (
 						Donation scenarios
 					</div>
 					<p className="pb-4">
-					The amount released to pastoralists depends on the NDVI value at the end of the campaign period. The funds will be split 50/50 between the two regions.
-					Below are the scenarios for each region:
+					Payouts to pastoralists are determined by the NDVI values measured on 31 May 2025.
+					Below are the payouts in % of contributed funds based on different NDVI scenarios:
 					</p>
 					<p className="font-semibold mb-2">Kajiado:</p>
 					<ul className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3 mb-4">
@@ -143,6 +164,15 @@ export const AboutSectionPastoralists5 = () => (
 						<li><span className="font-bold">25% </span> - if the NDVI is at 1.60</li>
 						<li><span className="font-bold">0% </span> - if the NDVI is at or above 1.62</li>
 					</ul>
+					For details on the derivation of these threshold, see our
+					{' '}
+						<a
+							href="https://divadonate.xyz/posts/diva-conditional-donations-pastoralists-5"
+							className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
+							target={'_blank'}
+							rel="noreferrer">
+							blog post
+						</a>.
 				</div>
 			</div>
 
