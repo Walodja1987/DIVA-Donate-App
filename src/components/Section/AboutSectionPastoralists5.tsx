@@ -16,24 +16,19 @@ export const AboutSectionPastoralists5 = () => (
 							<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Context
 					</h1>
-							<strong>Pastoralist communities live a nomadic lifestyle</strong>, grazing animals on open-access 
+							<strong>Pastoral communities live a nomadic lifestyle</strong>, grazing animals on open-access 
 							pastures and migrating with them in response to seasonal variations.
 							Livestock and livestock products serve as their primary sources of income and food. 
 							<br />
 							<br />
 							However, changing weather patterns induced by climate change are threatening the livelihoods of these communities. Over the past decade,
-							Kenya has experienced severe droughts which have decimated the pastoralists&apos; livestock and put the pastoralist communities at risk of starvation. 
+							Kenya has experienced severe droughts which have decimated the pastoralists&apos; livestock and put the pastoral communities at risk of starvation. 
 							<br />
 							<br />
-							To understand how climate change affects these communities and how our campaign can help, it&apos;s important to understand
-							the <strong>seasonal patterns</strong> in Kenya and their impact on pastoralist livelihoods.
-							<br />
-							<br />
-							
 								Kenya&apos;s climate naturally fluctuates between rainy and dry seasons. Rainfall during the rainy season
 								stimulates vegetation growth, which provides necessary pasture for livestock in the coming dry season. 
-								<strong> Sufficient vegetation and fodder at the end of the rainy season are crucial for sustaining livestock and,
-								by extension, the livelihoods of pastoralist communities throughout the subsequent dry season.</strong>
+								<strong> Consequently, sufficient vegetation and fodder at the end of the rainy season are crucial for sustaining livestock and,
+								by extension, the livelihoods of pastoral communities throughout the subsequent dry season.</strong>
 								<br />
 								<br />
 								The <strong>long rains</strong> season begins in mid-March and lasts until May/June, followed by a predominantly dry period
@@ -43,7 +38,7 @@ export const AboutSectionPastoralists5 = () => (
 							<br />
 							This campaign is a joint initiative between Mercy Corps Ventures, Fortune Credit, Shamba Network, and 
 							DIVA Technologies to test the use of blockchain and smart contracts to deliver anticipatory cash transfers 
-							ahead of climate shocks to pastoralist communities in the Horn of Africa. */}
+							ahead of climate shocks to pastoral communities in the Horn of Africa. */}
 						</li>{' '}
 					</ul>
 
