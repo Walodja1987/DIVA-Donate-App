@@ -109,6 +109,7 @@ export const CampaignCard: React.FC<{
 	const [approveLoading, setApproveLoading] = useState<boolean>(false)
 	const [donateEnabled, setDonateEnabled] = useState<boolean>(false)
 	const [donateLoading, setDonateLoading] = useState<boolean>(false)
+	const [isApproveSuccessOpen, setIsApproveSuccessOpen] = useState(false)
 	
 	// Privy hooks
 	const { connectWallet } = usePrivy();
@@ -372,6 +373,7 @@ export const CampaignCard: React.FC<{
 			setApproveEnabled(false)
 			setDonateEnabled(true)
 			setApproveLoading(false)
+			setIsApproveSuccessOpen(true)
 		} catch (err) {
 			console.error('Error in approve transaction:', err)
 			setApproveLoading(false)
@@ -517,6 +519,8 @@ export const CampaignCard: React.FC<{
 								donateEnabled={donateEnabled}
 								openConnectModal={connectWallet}
 								handleSwitchNetwork={handleSwitchNetwork}
+								isApproveSuccessOpen={isApproveSuccessOpen}
+								onApproveSuccessClose={() => setIsApproveSuccessOpen(false)}
 							/>
 						)}
 					</div>

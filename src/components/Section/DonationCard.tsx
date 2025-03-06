@@ -45,6 +45,8 @@ interface DonationCardProps {
 	donateEnabled: boolean
 	openConnectModal: (() => void) | undefined
 	handleSwitchNetwork: (campaignChainId: number) => void
+	isApproveSuccessOpen: boolean
+	onApproveSuccessClose: () => void
 }
 
 export const DonationCard: React.FC<DonationCardProps> = ({
@@ -72,6 +74,8 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 	donateEnabled,
 	openConnectModal,
 	handleSwitchNetwork,
+	isApproveSuccessOpen,
+	onApproveSuccessClose,
 }) => {
 	return (
 		<div className="lg:h-[660px] justify-evenly px-4 py-8 lg:p-[60px] lg:w-[600px]">
@@ -97,6 +101,7 @@ export const DonationCard: React.FC<DonationCardProps> = ({
 						)} */}
 							{/* If you receive the error "TypeScript: Expression produces a union type that is too complex to represent.", then follow this advice: https://stackoverflow.com/questions/74847053/how-to-fix-expression-produces-a-union-type-that-is-too-complex-to-represent-t */}
 							<ThanksDonationModal isOpen={isOpen} onClose={onClose} />
+							<ApproveSuccessModal isOpen={isApproveSuccessOpen} onClose={onApproveSuccessClose} />
 							<Progress
 								className="mb-8 lg:mb-3 rounded-[15px]"
 								style={{ background: '#D6D58E' }}
@@ -239,7 +244,7 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 	<Modal isCentered isOpen={isOpen} onClose={onClose}>
 		<ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
 		<ModalContent>
-			<ModalHeader>🙏 Thank you for your Deposit! </ModalHeader>
+			<ModalHeader>🙏 Thank You For Your Deposit! </ModalHeader>
 			<ModalCloseButton />
 			<ModalBody>
 				Help us improve our product by participating in our{' '}
@@ -265,6 +270,36 @@ const ThanksDonationModal: React.FC<any> = ({ isOpen, onClose }) => (
 						className="text-white">
 						Take Survey
 					</Link>
+				</Button>
+			</ModalFooter>
+		</ModalContent>
+	</Modal>
+)
+
+const ApproveSuccessModal: React.FC<any> = ({ isOpen, onClose }) => (
+	<Modal isCentered isOpen={isOpen} onClose={onClose}>
+		<ModalOverlay bg="blackAlpha.300" backdropFilter="blur(5px)" />
+		<ModalContent>
+			<ModalHeader>✅ Approval Successful!</ModalHeader>
+			<ModalCloseButton />
+			<ModalBody>
+				Your approval was successful. You can now proceed with the deposit.
+			</ModalBody>
+			<ModalFooter>
+				<Button
+					colorScheme="teal"
+					className="text-white"
+					sx={{
+						backgroundColor: '#005C53',
+						color: 'white',
+						_hover: {
+							backgroundColor: '#042940',
+							color: 'white',
+						},
+					}}
+					onClick={onClose}
+				>
+					Ok
 				</Button>
 			</ModalFooter>
 		</ModalContent>
