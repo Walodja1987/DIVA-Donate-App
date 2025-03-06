@@ -437,6 +437,7 @@ export const CampaignCard: React.FC<{
 				await waitForTransactionReceipt(wagmiConfig, { hash })
 	
 				setDonateLoading(false)
+				setAmount('') // Reset amount after successful donation
 				checkAllowanceAndBalance()
 				onOpen() // Open Success Modal
 			} catch (err) {
@@ -476,6 +477,7 @@ export const CampaignCard: React.FC<{
 	}, [
 		chain,
 		activeAddress,
+		donateLoading
 	])
 
 	return (
