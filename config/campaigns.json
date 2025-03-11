@@ -133,22 +133,16 @@
     "campaignId": "pastoralists_5",
     "pools": [
       {
-        "poolId": "0xdc3f70e4438f479b8713c13b09e2369970a6244f286733df839c467182972690",
+        "poolId": "0xaf7bb56524511f313bfe896286d9eceb0651d7519b1b758b70c73898a2af7b0d",
         "beneficiarySide": "short",
-        "beneficiaryToken": "0xEC303f4e6ad76881D485d20F00044240d552bE59",
-        "donorToken": "0x664E9390DB669f67DC76d2D38b43CbA51a25Abb3"
-      },
-      {
-        "poolId": "0x5df99a9f8937b53dd5a43c32acb7e4b5c94c04fc154cc9051c4e99af1f1e0492",
-        "beneficiarySide": "short",
-        "beneficiaryToken": "0x7391BC64234312977Cc1624ef58fB3A4A7C78DFB",
-        "donorToken": "0xA0AaaA8C64761Cb24FE80bbEd3b07cD423aab4a5"
+        "beneficiaryToken": "0xb3Ea8b2E6C796278916cbbE71945e9FF2C0E7e66",
+        "donorToken": "0x4467F6D31D9C0a06A73944D7b7e23a1405653064"
       }
     ],
     "img": "/Images/header_6_with_effect.jpg",
     "path": "/campaign/pastoralists-5",
     "title": "Pastoralists Mar-May 2025",
-    "desc": "A campaign to provide anticipatory cash transfers to pastoralist communities in two Kenyan counties: Kajiado and Laikipia.",
+    "desc": "A campaign to provide anticipatory drought relief to pastoralist communities in the Kenyan County of Laikipia (North).",
     "donationRecipients" : [
       {
         "name": "DIVA",

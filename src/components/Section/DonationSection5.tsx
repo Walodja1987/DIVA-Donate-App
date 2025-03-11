@@ -10,17 +10,18 @@ type DonationDetail = {
 const DONATION_SPECIFICATIONS: DonationDetail[] = [
 	{
 		title: 'Trigger metric',
-		description: '1 + NDVI eVIIRS on 31 May 2025',
+		description: '1 + NDVI eVIIRS on (31 May 2025)',
 		image: '/Images/rain.png',
 	},
 	{
 		title: 'Expiry',
-		description: '10 June 2025, 8:00am UTC',
+		description: '7 June 2025, 05:00 AM UTC',
 		image: '/Images/Expiry.png',
 	},
 	{
 		title: 'Reporter',
 		description: 'DIVA Donate Multisig',
+		link: 'https://etherscan.io/address/0x314b0EfcACFD9A9fb7b7834B2a7e47d6325eca23',
 		image: '/Images/Reporter.png',
 	},
 	{
@@ -89,7 +90,7 @@ export const DonationSection5: React.FC = () => {
 							className="w-full"
 							width="800"
 							height="800"
-							src="/Images/Payoff Profile Kajiado_2025_1.png"
+							src="/Images/Payoff Profile Laikipia_North_2025_1.png"
 							alt="Modern building architecture"
 						/>
 					</div>

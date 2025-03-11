@@ -2,7 +2,7 @@ import React from 'react'
 import Layout from '../../components/Layout/Layout'
 import { CampaignCard } from '../../components/Section/CampaignCard'
 import { AboutSectionPastoralists5 } from '../../components/Section/AboutSectionPastoralists5'
-import { DonationSectionMulti5 } from '../../components/Section/DonationSectionMulti5'
+import { DonationSection5 } from '../../components/Section/DonationSection5'
 import { LinkSectionPastoralists5 } from '../../components/Section/LinkSectionPastoralists5'
 import { TopDonorsTable } from '../../components/Section/TopDonorsTable'
 import campaigns from '../../../config/campaigns.json'
@@ -29,7 +29,7 @@ export default function Pastoralists() {
 					thankYouMessage="Thank you for providing parametric drought insurance for pastoralists in Kenya 🙏"
 				/>
 				<AboutSectionPastoralists5 />
-				<DonationSectionMulti5 />
+				<DonationSection5 />
 				{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 				{/* @ts-ignore: Temporarily ignore type error, fix later */}
 				<TopDonorsTable campaign={campaign} />

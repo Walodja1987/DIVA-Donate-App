@@ -60,7 +60,7 @@ export const AboutSectionPastoralists5 = () => (
 							(NDVI) following the March-May 2025 long rains season and disburse funds to participating pastoralists if the NDVI at the end of this 
 							period suggests insufficient vegetation to support livestock during the subsequent dry season.
 							The target cover amount of <strong>$75 per pastoralist</strong> intends to subsidize 
-							the provision of <strong>food for one livestock animal over a period of six months</strong>. Contributions will be equally split between the two counties.
+							the provision of <strong>food for one livestock animal over a period of six months</strong>.
 							<br />
 							<br />
 							The campaign goals are summarized below:
@@ -100,7 +100,7 @@ export const AboutSectionPastoralists5 = () => (
 					<ul
 						role="list"
 						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3  mb-8">
-						<li>Pastoralists in Kajiado and Laikipia North (Kenyan counties)</li>
+						<li>Pastoralists in the Kenyan County of Laikipia (North)</li>
 					</ul>
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Trigger metric
@@ -119,7 +119,7 @@ export const AboutSectionPastoralists5 = () => (
 						It serves as a reasonable metric for assessing drought as vegetation density generally correlates with rainfall patterns.
 						<br></br>
 						<br></br>
-						For this campaign, the NDVI as at 31 May 2025 within the eVIIRS dataset for both counties, 
+						For this campaign, the NDVI as at 31 May 2025 within the eVIIRS dataset, 
 						as published on the 
 						{' '}
 						<a
@@ -145,19 +145,12 @@ export const AboutSectionPastoralists5 = () => (
 					</div>
 					<p className="pb-4">
 					Payouts to pastoralists are determined by the NDVI values measured on 31 May 2025.
-					Below are the payouts in % of contributed funds based on different NDVI scenarios:
+					Below are the payouts in % of contributed funds based on different (shifted) NDVI scenarios:
 					</p>
-					<p className="font-semibold mb-2">Kajiado:</p>
-					<ul className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3 mb-4">
-						<li><span className="font-bold">100% </span> - if the NDVI is at or below 1.50</li>
-						<li><span className="font-bold">50% </span> - if the NDVI is at 1.53</li>
-						<li><span className="font-bold">0% </span> - if the NDVI is at or above 1.56</li>
-					</ul>
-					<p className="font-semibold mb-2">Laikipia:</p>
 					<ul className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3 mb-2">
-						<li><span className="font-bold">100% </span> - if the NDVI is at or below 1.54</li>
-						<li><span className="font-bold">25% </span> - if the NDVI is at 1.60</li>
-						<li><span className="font-bold">0% </span> - if the NDVI is at or above 1.62</li>
+						<li><span className="font-bold">100% </span> - if the NDVI is at or below 1.55</li>
+						<li><span className="font-bold">67% </span> - if the NDVI is at 1.57</li>
+						<li><span className="font-bold">0% </span> - if the NDVI is at or above 1.61</li>
 					</ul>
 					For details on the derivation of these threshold, see our
 					{' '}
