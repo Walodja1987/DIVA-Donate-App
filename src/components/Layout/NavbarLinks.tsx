@@ -7,15 +7,24 @@ import {
 	MenuItem,
 	Button,
 } from '@chakra-ui/react'
+import { useWallets } from '@privy-io/react-auth'
 
 import campaigns from '../../../config/campaigns.json'
-import { links } from './../../constants'
+import { links, adminLink, ADMIN_ADDRESS } from './../../constants'
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons'
 
 export const NavbarLinks = () => {
+	const { wallets } = useWallets()
+	const connectedAddress = wallets[0]?.address?.toLowerCase()
+	
+	// Create navigation links array including admin link if authorized
+	const navLinks = connectedAddress === ADMIN_ADDRESS 
+		? [...links, adminLink]
+		: links
+
 	return (
 		<ul className="items-center justify-center flex space-x-6 space-y-0">
-			{links.map((link) => (
+			{navLinks.map((link) => (
 				<li key={link.name}>
 					{link.name === 'Campaigns' ? (
 						<Menu>

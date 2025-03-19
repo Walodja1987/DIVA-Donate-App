@@ -1,0 +1,341 @@
+---
+title: Empowering pastoralists in Kenya - The 5th DIVA Donate campaign
+description: Empowering pastoralists in Kenya - The 5th DIVA Donate campaign
+date: 2025-03-12T23:37:00.284Z
+coverImage: header_6_with_effect.jpg
+coverImageDescription: Pastoralists
+coverImageWidth: 900
+coverImageHeight: 628
+featured: true
+author: Wladimir Weinbender & Benson Njuguna
+---
+
+We are excited to announce the [5th iteration of the DIVA Donate campaign](https://www.divadonate.xyz/campaign/pastoralists-5) focused on using web3 
+technology in delivering anticipatory cash transfers to pastoral communities in Kenya ahead of drought. 
+
+We are particularly thrilled to share that this coming season's campaign will take place in partnership with Ripple and will utilize Ripple's
+new stablecoin, [RLUSD](https://etherscan.io/token/0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD), on Ethereum as the payout token, demonstrating its applicability in humanitarian
+aid and disaster relief. The collaboration with Ripple is a testament to the value of our work and the
+community's trust in our mission to become the most effective and efficient platform for disaster relief,
+powered by blockchain technology. We are deeply honored and incredibly grateful for this support! 🙏
+
+Beyond Ripple's contribution, approximately $12,000 in unreleased funds from previous campaigns - sponsored
+by Mercy Corps Ventures (MCV) and Arbitrum will be rolled into this new campaign, further amplifying the impact.
+
+In this blog post, we will explore the details of the new campaign.
+
+## ✨ About the campaign
+
+In our 5th campaign, we remain dedicated to providing anticipatory cash transfers to pastoral communities
+in Kenya which are disproportionately affected by climate-change-induced drought.
+
+### Context
+
+Pastoral communities in Kenya live a nomadic lifestyle, grazing animals on open-access pastures and migrating with them in
+response to seasonal variations. Livestock and livestock products serve as their primary sources of income and food.
+
+However, changing weather patterns induced by climate change are threatening the livelihoods of these communities. Over the past decade,
+Kenya has experienced severe droughts which have decimated the pastoralists' livestock and put the pastoral communities at risk of starvation.
+
+Kenya's climate naturally fluctuates between rainy and dry seasons. Rainfall during the rainy season
+stimulates vegetation growth, which provides necessary pasture for livestock in the coming dry season.
+**Sufficient vegetation and fodder at the end of the rainy season are crucial for sustaining livestock and,
+by extension, the livelihoods of pastoral communities throughout the subsequent dry season.**
+
+The **long rains** season begins in mid-March and lasts until May/June, followed by a predominantly dry period
+until October, during which vegetation levels gradually decline. The **short rains** arrive in mid-October and
+continue through November and December, leading into a hot, typically rainless dry season lasting until March.
+The start and end of the rainy seasons may experience slight variations of two to three weeks.
+
+The different seasonal phases and the average vegetation conditions during those phases are illustrated below
+(green indicating improved vegetation during rainy seasons and orange indicating declining vegetation during
+dry seasons):
+
+<p align="center">
+  <img src="/Images/posts/seasonal_schedule.png" />
+</p>
+<div style={{ marginTop: '-2rem', fontSize: '0.8rem' }}>
+_**Figure 1:** Seasonal calendar for Laikipia. Source: [NDMA Reports](https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-june-2022)_
+</div>
+
+### Campaign goal
+
+The campaign's objective is to assess vegetation conditions using the [Normalized Difference Vegetation Index](https://de.wikipedia.org/wiki/Normalized_Difference_Vegetation_Index) (NDVI)
+end of May 2025, where the NDVI typically peaks (see section on payoff profile calibration below), and disburse
+funds to participating pastoralists if the NDVI at the end of this period suggests insufficient vegetation to support
+livestock during the subsequent dry season.
+
+Compared to our previous campaigns and thanks to Ripple's support, we increased our **fundraising target to $40,000**,
+which will provide drought relief of **$75 to 533 pastoralists** residing in the northern part of the Kenyan County Laikipia
+in the event of drought, **sufficient to sustain one livestock for six months**.
+
+The location of the Laikipia County is highlighted in below map:
+
+<p align="center">
+  <img src="/Images/posts/laikipia_map_v3.png" />
+</p>
+<div style={{ marginTop: '-2rem', fontSize: '0.8rem' }}>
+_**Figure 2:** Kenya map. Source: [NDMA Reports](https://reliefweb.int/report/kenya/kenya-2019-long-rains-mid-season-food-and-nutrition-security-review-report-august-2019)_
+</div>
+
+Laikipia County has diverse climatic zones due to its varying altitude and topography. The northern region is predominantly arid and semi-arid,
+with low rainfall and frequent droughts, and is mainly used for pastoralism and wildlife conservation. In contrast, the central and southern parts
+transition into more fertile highlands with higher rainfall, cooler temperatures, and richer vegetation, supporting agriculture and livestock farming.
+
+<p align="center">
+  <img src="/Images/posts/Laikipia Climatic Zones.png" />
+</p>
+<div style={{ marginTop: '-2rem', fontSize: '0.8rem' }}>
+_**Figure 3:** Laikipia climatic zones. Source: [Second County Integrated Development Plan 2018 - 2022](https://ipfglobal.or.ke/wp-content/uploads/2023/10/Laikipia-cidp-2018-2022.pdf)_
+</div>
+
+### How it works
+
+1. The DIVA Donate team established a blockchain-based programmatic escrow, defining immutable triggers and payout conditions (see payoff calibration section below),
+including the drought indicator metric (NDVI in our case), expiration, and payoff profile, all transparently recorded
+and verifiable on the blockchain.
+2. Donors deposit RLUSD into the escrow, committing to the pre-defined payout conditions.
+3. Once the campaign expires, an oracle reports the NDVI value as of 31 May 2025:
+   * If the NDVI indicates drought conditions, the payout is automatically released to beneficiaries.
+   * If drought conditions are not met, participants can withdraw their funds and roll them into future campaigns. 
+
+The possibility to claim back unreleased funds and amplify the impact by redeploying them into future campaigns is one of the key
+features of the DIVA Donate platform. To illustrate, of the $20'000 initially deposited during the MCV pilot in Q4 2023, $8'400
+remained unreleased. These funds have since been redeployed in multiple campaigns, including Mar-May 2024, Oct-Dec 2024, and
+Mar-May 2025, **providing free drought insurance for pastoralists for four seasons**.
+
+
+## 🧑‍🎓 Calibrating the donation release profile
+
+We continue to rely on [FEWS NDVI data](https://earlywarning.usgs.gov/fews/product/902#documentation) as our trigger metric due 
+to its resilience against cloud coverage and atmospheric contamination. Its public availability also allows for transparent 
+verification by all stakeholders. 
+
+Our methodology to determine NDVI-based payout conditions remains consistent with previous campaigns. Specifically, we **analyzed
+historical NDVI values at the end of May**, marking the end of the long rain season, and **correlated them with on-ground assessments**
+from the [National Drought Management Authority](https://knowledgeweb.ndma.go.ke/Public/Resources/ResourceDetails.aspx?doc=3e0a4f40-b6a7-4393-9296-be1b2a972e73) (NDMA) reports for the first two months of the subsequent dry season.
+A detailed analysis for the target region is provided below.
+
+
+### Laikipia North
+
+#### Historical NDVI trends
+
+Examining 13 years of historical NDVI data (2012-2024) reveals the seasonality pattern mentioned earlier: an increase of vegetation during
+the long rain season (March-May), with a peak at the end of May, followed by a decline over the subsequent months.
+
+<p align="center">
+  <img src="/Images/posts/250310 FEWS Laikipia_NORTH_not_annotated.png" />
+</p>
+<div style={{ marginTop: '-1rem', fontSize: '0.8rem' }}>
+_**Figure 4:** Historical eVIIRS NDVI data for Laikipia North. Source: [FEWS](https://earlywarning.usgs.gov/fews/ewx/index.html)_
+</div>
+
+The chart below illustrates the distribution of NDVI values on May 31 over the years:
+
+<p align="center">
+  <img src="/Images/posts/NDVI_by_year_Laikipia_North_uni_color.png" />
+</p>
+<div style={{ marginTop: '-1rem', fontSize: '0.8rem' }}>
+_**Figure 5:** NDVI on 31 May for the years 2012-2024 for Laikipia North._
+</div>
+
+Historically, the NDVI levels on 31 May in Laikipia North ranged between 0.41 in 2022, and 0.75 in 2024, with an average NDVI value of 0.61.
+
+#### On-ground drought assessment reports
+
+To assess which NDVI levels are associated with drought stress in the subsequent dry period, we examined the NDMA reports for June and July
+for the years with the six lowest recorded NDVI years: 2014, 2017, 2019, 2021, 2022, and 2023.
+
+The vegetation health map for Laikipia North suggests that in 2014, 2017, 2021, and 2022, the region has experienced prolonged drought stress,
+characterized by moderate to severe drought conditions lasting at least four months after the onset of the dry period in June. In 2019, moderate
+drought stress was observed only in June, with conditions normalizing in the following months. In 2023, normal vegetation appeared normal in June
+and July, but deteriorated between August and October.
+
+<p align="center">
+  <img src="/Images/posts/Laikipia_North_VCI_Map.jpg"/>
+</p>
+<div style={{ marginTop: '-1rem', fontSize: '0.8rem' }}>
+_**Figure 6:** The VCI measures the average NDVI over a 3-month period, mapping the current vegetation health to its historical range, expressed as a
+percentage from 0% to 100%. Lower VCI values indicate that vegetation health is near the historical minimum, whereas higher values indicate levels
+closer to the historical maximum. More specifically, VCI values below 20% mark severe drought conditions (highlighted by a red box), values between
+20% and 35% indicate moderate drought (highlighted by a yellow box), and values above 35% reflect normal to optimal vegetation conditions
+(highlighted by a green box). The presence of yellow or red boxes during the dry season months June, July, August, and September, suggests
+insufficient vegetation build-up during the preceding rainy season. Vegetation map, see Figure 5 for details. Source: [NDMA Report Laikipia,
+December 2023](https://uploads.geobingan.info/attachment/1423e736002d4e8397701873989365eb.pdf)_
+</div>
+
+The analysis provided in the monthly reports paints a clearer picture on the ground:
+
+<table style={{ borderCollapse: 'collapse', width: '100%' }}>
+  <thead>
+    <tr style={{ backgroundColor: '#f5f5f5' }}>
+      <th>Year</th>
+      <th>NDVI</th>
+      <th>Drought conditions</th>
+      <th>Source reports</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>2022</b></td>
+      <td><b>0.41</b></td>
+      <td>Severe drought conditions; severe vegetation deficit; pasture condition is poor and completely depleted in pastoral livelihood zones of Laikipia North; the body condition of livestock is well below normal.</td>
+      <td>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-june-2022">June 2022</a><br/>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-july-2022">July 2022</a>
+      </td>
+    </tr>
+    <tr>
+      <td><b>2017</b></td>
+      <td><b>0.48</b></td>
+      <td>Vegetation conditions are way below normal, pasture conditions are poor due to rain deficit during the long rain season and overgrazing; below normal body condition of livestock.</td>
+      <td>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-june-2017">June 2017</a><br/>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-july-2017">July 2017</a>
+      </td>
+    </tr>
+    <tr>
+      <td><b>2014</b></td>
+      <td><b>0.51</b></td>
+      <td>Pasture situation in pastoral zones is significantly below normal due to poor rain performance; body condition of livestock is fair but deteriorating.</td>
+      <td>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-may-2019">May 2019</a>; no reports were available for June and July
+      </td>
+    </tr>
+    <tr>
+      <td><b>2019</b></td>
+      <td><b>0.52</b></td>
+      <td>The long rains started late (by a month), resulting in below-normal vegetation and poor pasture in May; livestock body conditions are borderline stressed to moderate.</td>
+      <td>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-june-2014">June 2014</a><br/>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-july-2014">July 2014</a>
+      </td>
+    </tr>
+    <tr>
+      <td><b>2021</b></td>
+      <td><b>0.57</b></td>
+      <td>Vegetation conditions and pasture conditions below normal range and deteriorating in pastoral zones, attributed to below normal precipitation levels; body condition of livestock was fair but showing signs of stress.</td>
+      <td>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-june-2021">June 2021</a><br/>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-july-2021">July 2021</a>
+      </td>
+    </tr>
+    <tr>
+      <td><b>2023</b></td>
+      <td><b>0.60</b></td>
+      <td>Normal vegetation and pasture conditions.</td>
+      <td>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-june-2023">June 2023</a><br/>
+        <a href="https://reliefweb.int/report/kenya/laikipia-county-drought-early-warning-bulletin-july-2023">July 2023</a>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+These findings indicate that NDVI values of 0.52 or lower are associated with increased drought stress, while values at or above 0.60
+indicate normal vegetation and pasture conditions. Since on-ground data is unavailable for NDVI values between 0.52 (2019) and 0.57
+(2021), it is reasonable to infer that values at or below 0.55 (approximately the midpoint) are also likely associated with drought stress.
+Further, using the long-term average of 0.61 as the level indicating normal vegetation conditions provides a buffer to account for variability.
+
+#### Donation release profile
+
+Based on the on-ground drought assessments, the donation release profile for Laikipia is structured as follows:
+
+<table style={{ borderCollapse: 'collapse', width: '100%' }}>
+  <thead>
+    <tr style={{ backgroundColor: '#f5f5f5' }}>
+      <th>NDVI range</th>
+      <th>Payout description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>NDVI ≤ 0.55</b></td>
+      <td>100% payout to beneficiaries (observed in 2014, 2017, 2019, and 2022)</td>
+    </tr>
+    <tr>
+      <td><b>NDVI ≥ 0.61</b></td>
+      <td>0% payout (observed in 2015 and 2016, for instance)</td>
+    </tr>
+    <tr>
+      <td><b>NDVI between 0.55 and 0.61</b></td>
+      <td>Linear payout scale, ensuring a gradual increase in payouts with increasing drought stress; in 2021 (NDVI: 0.57), 67% of the contributed funds would have been disbursed to pastoralists.</td>
+    </tr>
+  </tbody>
+</table>
+
+The payout profile is depicted below _(Note: For technical reasons, the NDVI value is shifted by +1 for final calculations)_:
+
+<p align="center">
+  <img src="/Images/posts/Payoff Profile Laikipia_North_2025_1.png" style={{ height: '500px'}}/>
+</p>
+<div style={{ marginTop: '-1rem', fontSize: '0.8rem' }}>
+_**Figure 7:** Donation release profile for Laikipia North._
+</div>
+
+## 💡 How to participate
+
+Participating in the campaign is simple if you have a browser wallet funded with [RLUSD](https://etherscan.io/token/0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD)
+on Ethereum. Just visit [divadonate.xyz](https://www.divadonate.xyz/campaign/pastoralists-5), connect your wallet, enter the
+amount you wish to contribute, click "Deposit" and confirm the transaction in your wallet.
+
+Note that you may be asked to "Approve" the transfer first in order to grant DIVA Protocol, the smart contract powering DIVA 
+Donate, the permission to move RLUSD on your behalf. For a step-by-step guide, you can check out the 
+[video tutorial](https://www.loom.com/share/76fd76726d314cacb018600b444e0723?t=9) produced for a previous campaign 
+(make sure to select the "Pastoralists Mar-May 2025" campaign, connect your wallet to Ethereum and have RLUSD in your wallet).
+
+For those new to crypto, there is a one-time setup process to go through to set up a wallet and convert your local fiat currency 
+into cryptocurrency. Refer to our [FAQs](https://docs.divadonate.xyz/overview/faq#how-can-i-participate-in-a-campaign) for more guidance. If you need support, head over to the diva-donate channel in our 
+[Discord](https://discord.gg/8fAvUspmv3) and ask your questions. 
+
+## 🏆 Rewards
+
+Consistent with previous campaigns, participants will receive a digital certificate (POAP) to commemorate their contribution. Donations of $75 or more will receive the golden-ring POAP. Smaller contributions will be rewarded with the silver POAP.
+
+<p align="center">
+  <img src="/Images/posts/Golden POAP white BG.gif" style={{ width: '45%', height: 'auto', display: 'inline-block', padding: '20px' }}/>
+  <img src="/Images/posts/SilverPOAPwhite.gif" style={{ width: '45%', height: 'auto', display: 'inline-block', padding: '20px' }}/>
+</p>
+
+## 🔢 DIVA Donate Statistics
+
+Below provides the since inception statistics of the DIVA Donate initiative (excluding the new campaign):
+* **Number campaigns:** 4
+* **Contributed:** $46'510
+* **Donated:** $11'744 (25%, meaning that every dollar contributed provided drought relief coverage for four seasons on average)
+
+Now also available in our [docs](https://docs.divadonate.xyz/).
+
+## 💎 Join the cause
+
+The DIVA Donate team is actively seeking partners who share our vision of harnessing blockchain technology to provide effective 
+support to vulnerable communities affected by climate change. Given the versatile nature of DIVA Protocol, the smart contract-based 
+infrastructure powering DIVA Donate, the donation payout can be linked to virtually any metric and adapted to many different use 
+cases. If you represent a charity or NGO passionate about this concept, [reach out](mailto:wladimir.weinbender@divatech.ch) and join forces to provide more efficient and 
+effective support to those in need.
+
+## 🌔 Conclusion
+
+The 5th campaign emphasizes our continued commitment to mitigate the impact of climate change on pastoralist communities in Kenya.
+We are grateful for the continued support of our donors and partners and look forward to making a meaningful difference in the
+lives of those we serve. Together, we can continue to empower communities and foster resilience against the challenges posed by
+climate change.
+
+
+## 🍀 About DIVA Donate
+
+DIVA Donate is an innovative platform that leverages blockchain technology to enable parametric conditional donations 
+for disaster relief. It is a joint initiative between two entities united around the mission of empowering vulnerable 
+communities affected by climate change:
+1. [**Fortune Connect**](https://fortuneconnectltd.com/): A digital resilience provider specifically targeting microfinance customers in Kenya which provides economic and climate resilience ecosystem digitally driven solutions that have reached  50k+ customers including small-holder farmers and pastoralists.
+2. [**DIVA Technologies AG**](https://www.divaprotocol.io/): Developer of DIVA Protocol, a smart contract-based system for creating and managing custom derivative contracts peer-to-peer.
+
+## 🔗 Links
+
+* DIVA Donate: [Website](https://www.divadonate.xyz/) | [Twitter](https://twitter.com/DIVADonate_xyz)
+* DIVA Protocol: [Website](https://www.divaprotocol.io/) | [Github](https://github.com/divaprotocol/diva-protocol-v1) | [Docs](https://docs.divaprotocol.io/) | [Twitter](https://twitter.com/divaprotocol_io) | [Discord](https://discord.gg/8fAvUspmv3)
+* Fortune Connect: [Website](https://fortuneconnectltd.com/) | [Twitter](https://twitter.com/fortuneconnectk)
+
+
+

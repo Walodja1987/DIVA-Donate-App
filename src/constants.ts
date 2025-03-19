@@ -26,19 +26,25 @@ type ChainConfig = {
 
 export const chainConfigs: { [chainId: number]: ChainConfig } = {
     137: {
-      name: 'Polygon',
-      graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-polygon/version/latest',
-      blockExplorer: 'https://polygonscan.com/',
-      divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
+        name: 'Polygon',
+        graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-polygon/version/latest',
+        blockExplorer: 'https://polygonscan.com/',
+        divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
     },
     42161: {
-      name: 'Arbitrum One',
-      graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-arbitrum-one/version/latest',
-      blockExplorer: 'https://arbiscan.io/',
-      divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
+        name: 'Arbitrum One',
+        graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-arbitrum-one/version/latest',
+        blockExplorer: 'https://arbiscan.io/',
+        divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
+    },
+    1: {
+        name: 'Ethereum',
+        graphUrl: 'https://api.studio.thegraph.com/query/73880/diva-protocol-v1-ethereum/version/latest',
+        blockExplorer: 'https://etherscan.io/',
+        divaContractAddress: '0x2C9c47E7d254e493f02acfB410864b9a86c28e1D'
     },
     // Add more chains as needed
-  }
+}
 
 // export const chainConfig = {
 //     name: 'Mumbai',
@@ -54,6 +60,7 @@ export type NavItemType = {
     rel?: string;
 };
 
+export const ADMIN_ADDRESS = "0xd288B4A23ECc79Eb4bb4661147f3AB3294919F54".toLowerCase();
 
 export const links: NavItemType[] = [
     {
@@ -81,3 +88,9 @@ export const links: NavItemType[] = [
         name: "Blog",
     },
 ];
+
+// Create a separate admin link that we'll add conditionally
+export const adminLink: NavItemType = {
+    to: "/admin",
+    name: "Admin",
+};

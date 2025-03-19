@@ -128,5 +128,36 @@
     "chainId": "42161",
     "chainName": "Arbitrum One",
     "expiryTimestamp": "1736488800"
+  },
+  {
+    "campaignId": "pastoralists_5",
+    "pools": [
+      {
+        "poolId": "0xaf7bb56524511f313bfe896286d9eceb0651d7519b1b758b70c73898a2af7b0d",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0xb3Ea8b2E6C796278916cbbE71945e9FF2C0E7e66",
+        "donorToken": "0x4467F6D31D9C0a06A73944D7b7e23a1405653064"
+      }
+    ],
+    "img": "/Images/header_6_with_effect.jpg",
+    "path": "/campaign/pastoralists-5",
+    "title": "Pastoralists Mar-May 2025",
+    "desc": "A campaign to provide anticipatory drought relief to pastoralist communities in the Kenyan County of Laikipia (North).",
+    "donationRecipients" : [
+      {
+        "name": "DIVA",
+        "address": "0x314b0EfcACFD9A9fb7b7834B2a7e47d6325eca23",
+        "url": "https://etherscan.io/address/0x314b0EfcACFD9A9fb7b7834B2a7e47d6325eca23"
+      }
+    ],
+    "goal": "40000",
+    "raised": "",
+    "donated": "",
+    "collateralToken": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+    "decimals": "18",
+    "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
+    "chainId": "1",
+    "chainName": "Ethereum",
+    "expiryTimestamp": "1749272400"
   }
 ]

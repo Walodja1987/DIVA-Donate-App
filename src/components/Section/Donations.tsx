@@ -137,7 +137,7 @@ export default function Donations() {
 
 	type TokenInfo = {
 		donorToken: `0x${string}`;
-		chainId: 137 | 42161;
+		chainId: 137 | 42161 | 1;
 		campaignId: string;
 		poolId: `0x${string}`;
 	  };
@@ -170,7 +170,7 @@ export default function Donations() {
 		const tokenInfos: TokenInfo[] = campaigns.flatMap(campaign => 
 		  campaign.pools.map(pool => ({
 			donorToken: pool.donorToken as `0x${string}`,
-			chainId: Number(campaign.chainId) as 137 | 42161,
+			chainId: Number(campaign.chainId) as 137 | 42161 | 1,
 			campaignId: campaign.campaignId,
 			poolId: pool.poolId as `0x${string}`
 		  }))
@@ -333,11 +333,11 @@ export default function Donations() {
 						beneficiarySide: pool.beneficiarySide,
 						donationRecipientAddress: campaign.donationRecipients[0].address,
 						decimals: Number(campaign.decimals),
-						chainId: Number(campaign.chainId) as 137 | 42161
+						chainId: Number(campaign.chainId) as 137 | 42161 | 1
 					};
 				});
 				return acc;
-			}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipientAddress: string, decimals: number, chainId: 137 | 42161 }>);
+			}, {} as Record<string, { campaignId: string, beneficiarySide: string, donationRecipientAddress: string, decimals: number, chainId: 137 | 42161 | 1 }>);
 		  
 			// Attach poolDetails to the flattened data.
 			// Example of an item in dataWithCampaignId array:
@@ -473,7 +473,7 @@ export default function Donations() {
 			abi: campaign.divaContractAddress === divaContractAddressOld
 				? DivaABIold
 				: DivaABI,
-			chainId: Number(campaign.chainId) as 137 | 42161
+			chainId: Number(campaign.chainId) as 137 | 42161 | 1
 		} as const
 	
 		updateRedeemLoading(campaign.campaignId, true)
@@ -545,7 +545,7 @@ export default function Donations() {
 				abi: campaign.divaContractAddress === divaContractAddressOld
 					? DivaABIold
 					: DivaABI,
-				chainId: Number(campaign.chainId) as 137 | 42161
+				chainId: Number(campaign.chainId) as 137 | 42161 | 1
 			} as const
 
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -564,7 +564,7 @@ export default function Donations() {
 			const tokenContract = {
 				address: donorPositionToken,
 				abi: ERC20ABI,
-				chainId: Number(campaign.chainId) as 137 | 42161
+				chainId: Number(campaign.chainId) as 137 | 42161 | 1
 			} as const
 
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
