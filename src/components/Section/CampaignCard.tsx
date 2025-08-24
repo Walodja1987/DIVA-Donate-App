@@ -9,6 +9,9 @@ import React, { useEffect, useState } from 'react'
 // Hooks
 import { useDisclosure } from '@chakra-ui/react'
 import { useDebounce } from '../../utils/hooks/useDebounce'
+import { useQuery } from '@tanstack/react-query'
+import request from 'graphql-request'
+import { queryCampaignStats } from '@/queries/divaSubgraph'
 
 // Components
 import { DonationCard } from './DonationCard'
@@ -242,115 +245,49 @@ export const CampaignCard: React.FC<{
 		balance
 	  ])
 
-	// Update state variables for all campaigns in `campaigns.json`
-	useEffect(() => {
-		if (
-			isConnected &&
-			chainId === campaignChainId &&
-			activeAddress != null
-		) {
-			let sumCapacityPools: number | 'Unlimited'
-			let sumToGoPools: number | 'Unlimited'
-			let sumRaisedPools: number
-
-			Promise.all(
-				// @todo consider using multicall here, similar to CampaignSection
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-ignore: Temporarily ignore type error, fix later
-				campaign.pools.map((pool: CampaignPool) =>
-					readContract(wagmiConfig, {
-						...divaContract,
-						functionName: 'getPoolParameters',
-						args: [pool.poolId as any],
-					}).then((res: any) => {
-						return {
-							poolParams: res,
-							beneficiarySide: pool.beneficiarySide,
-						}
-					})
-				)
-			).then((poolData: PoolExtended[]) => {
-				// Create an array to store promises for fetching beneficiary token balances
-				const balancePromises = poolData.map((pool) => {
-					const beneficiaryTokenContract = {
-						address:
-							pool.beneficiarySide === 'short'
-								? pool.poolParams.shortToken
-								: pool.poolParams.longToken,
-						abi: ERC20ABI, // Position token is an extended version of ERC20, but using ERC20 ABI is fine here
-					} as const
-					return readContract(wagmiConfig, {
-						...beneficiaryTokenContract,
-						functionName: 'balanceOf',
-						args: [campaign.donationRecipients[0].address],
-					}) // @todo consider removing the array type from donationRecipients in campaigns.json and simply use an object as there shouldn't be multiple donation recipients yet
-				})
-
-				// Use Promise.all to fetch the beneficiary token balances for all pools
-				return Promise.all(balancePromises as Promise<bigint>[]).then(
-					(beneficiaryTokenBalances: bigint[]) => {
-						// Aggregate the raised amount across the pools linked to the campaign. Note that using
-						// `collateralBalance` may not equal to raised amount if users choose a different recipient
-						// address during add liquidity.
-						sumRaisedPools = Number(
-							formatUnits(
-								beneficiaryTokenBalances.reduce(
-									(acc, data) => acc + BigInt(data),
-									BigInt(0)
-								),
-								decimals
-							)
-						)
-						if (campaign.raised !== '') {
-							sumRaisedPools = Number(campaign.raised)
-						}
-						setRaised(sumRaisedPools)
-
-						// Aggregate the total pool capacity
-						if (isUnlimited(poolData[0].poolParams.capacity)) {
-							sumCapacityPools = 'Unlimited'
-						} else {
-							sumCapacityPools = Number(
-								formatUnits(
-									poolData.reduce(
-										(acc, data) => acc + BigInt(data.poolParams.capacity),
-										BigInt(0)
-									),
-									decimals
-								)
-							)
-						}
-						if (campaign.goal !== '') {
-							sumCapacityPools = Number(campaign.goal)
-						}
-						setGoal(sumCapacityPools)
-
-						// Derive ToGo from `sumCapacityPools` and `sumRaisedPools`
-						if (sumCapacityPools === 'Unlimited') {
-							sumToGoPools = 'Unlimited'
-						} else {
-							sumToGoPools = sumCapacityPools - sumRaisedPools
-						}
-						setToGo(sumToGoPools)
-
-						setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100) // @todo test whehter it's working here. Moved it from a former useEffect block
-					}
-				)
-			})
+	// Inside the CampaignCard component, add the query
+	const { data: statsData, isLoading: statsLoading } = useQuery({
+		queryKey: ['campaignStats', campaign.pools.map(pool => pool.poolId)],
+		queryFn: async () => {
+			const response = await request(
+				chainConfigs[Number(campaign.chainId)].graphUrl,
+				queryCampaignStats(campaign.pools.map(pool => pool.poolId))
+			);
+			return response.pools;
 		}
-	}, [
-		chain,
-		donateLoading,
-		activeAddress,
-	])
+	});
 
+	// Replace the existing stats-related useEffect with this one
 	useEffect(() => {
-		setPercentage(goal === 'Unlimited' ? 0 : (raised / goal) * 100)
-	}, [
-		goal,
-		raised,
-		donateLoading
-	])
+		if (statsData) {
+			let sumCapacityPools: number | 'Unlimited' = 0;
+			let sumRaisedPools: number = 0;
+
+			statsData.forEach((pool: any) => {
+				// Calculate totals
+				if (isUnlimited(pool.capacity)) {
+					sumCapacityPools = 'Unlimited';
+				} else if (sumCapacityPools !== 'Unlimited') {
+					sumCapacityPools += Number(formatUnits(pool.capacity, decimals));
+				}
+				sumRaisedPools += Number(formatUnits(pool.collateralBalance, decimals));
+			});
+
+			// Apply overrides from campaign data
+			if (campaign.goal !== '') {
+				sumCapacityPools = Number(campaign.goal);
+			}
+			if (campaign.raised !== '') {
+				sumRaisedPools = Number(campaign.raised);
+			}
+
+			// Update states
+			setGoal(sumCapacityPools);
+			setRaised(sumRaisedPools);
+			setToGo(sumCapacityPools === 'Unlimited' ? 'Unlimited' : sumCapacityPools - sumRaisedPools);
+			setPercentage(sumCapacityPools === 'Unlimited' ? 0 : (sumRaisedPools / sumCapacityPools) * 100);
+		}
+	}, [statsData, campaign]);
 
 	const handleApprove = async () => {
 		setApproveLoading(true)
@@ -431,6 +368,12 @@ export const CampaignCard: React.FC<{
 					args: [batchAddLiquidityArgs],
 					account: activeAddress,
 				})
+				                // Convert BigInt values to strings before logging
+								const serializedArgs = batchAddLiquidityArgs.map(arg => ({
+									...arg,
+									collateralAmountIncr: arg.collateralAmountIncr.toString()
+								}))
+								console.log("batchAddLiquidityArgs", JSON.stringify(serializedArgs, null, 2))
 	
 				// If simulation is successful, proceed with the actual transaction
 				const hash = await writeContract(wagmiConfig, request)
