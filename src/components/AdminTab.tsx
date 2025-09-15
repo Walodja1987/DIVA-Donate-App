@@ -41,6 +41,33 @@ export const AdminTab = () => {
     }
   };
 
+  // Helper function to convert Unix timestamp to local date format
+  const formatUnixTimestampToLocal = (unixTimestamp: string): string => {
+    if (!unixTimestamp || unixTimestamp === "0") return "Invalid date";
+    
+    try {
+      const timestamp = parseInt(unixTimestamp) * 1000; // Convert to milliseconds
+      const date = new Date(timestamp);
+      
+      // Format: "Mo, 14 Aug 2025, 10:00 PM (CET, UTC+1)"
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZoneName: 'longOffset'
+      };
+      
+      return date.toLocaleString('en-US', options);
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
+      return "Invalid date";
+    }
+  };
+
   const [formData, setFormData] = useState({
     referenceAsset: "https://ipfs.io/ipfs/bafybeidtxi5d2u4cr2l6nujfksbfzgapbnv44vxk5tgtgflifutigtrtla/reference_asset_kajiado.json",
     expiryTime: "0", // Will be set when user enters datetime
@@ -209,7 +236,7 @@ export const AdminTab = () => {
             />
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            Unix timestamp: {formData.expiryTime}
+            {formatUnixTimestampToLocal(formData.expiryTime)} | Unix timestamp: {formData.expiryTime}
           </div>
         </div>
 
