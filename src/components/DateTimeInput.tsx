@@ -17,11 +17,11 @@ interface Segment {
 const DateTimeInput: React.FC<DateTimeInputProps> = ({ 
   value, 
   onChange, 
-  placeholder = "DD-MM-YYYY, HH:MM:SS",
+  placeholder = "DD-MM-YYYY, HH:MM",
   className = ""
 }) => {
   const [activeSegment, setActiveSegment] = useState(0);
-  const [segments, setSegments] = useState<string[]>(['', '', '', '', '', '', '', '']);
+  const [segments, setSegments] = useState<string[]>(['', '', '', '', '', '00']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const segmentConfig: Segment[] = [
@@ -35,17 +35,17 @@ const DateTimeInput: React.FC<DateTimeInputProps> = ({
 
   // Parse the input value into segments
   useEffect(() => {
-    if (value && value !== 'DD-MM-YYYY, HH:MI:SS') {
+    if (value && value !== 'DD-MM-YYYY, HH:MM') {
       // Split by comma first to separate date and time
       const [datePart, timePart] = value.split(',');
       
       if (datePart && timePart) {
         // Parse date part: DD-MM-YYYY
         const dateSegments = datePart.trim().split('-');
-        // Parse time part: HH:MM:SS
+        // Parse time part: HH:MM:SS (seconds will be set to 00)
         const timeSegments = timePart.trim().split(':');
         
-        const newSegments = ['', '', '', '', '', ''];
+        const newSegments = ['', '', '', '', '', '00'];
         
         // Set date segments
         if (dateSegments.length >= 3) {
@@ -54,11 +54,11 @@ const DateTimeInput: React.FC<DateTimeInputProps> = ({
           newSegments[2] = dateSegments[2] || '';
         }
         
-        // Set time segments
-        if (timeSegments.length >= 3) {
+        // Set time segments (hours and minutes only, seconds always 00)
+        if (timeSegments.length >= 2) {
           newSegments[3] = timeSegments[0] || '';
           newSegments[4] = timeSegments[1] || '';
-          newSegments[5] = timeSegments[2] || '';
+          // newSegments[5] is already set to '00'
         }
         
         setSegments(newSegments);
@@ -68,7 +68,7 @@ const DateTimeInput: React.FC<DateTimeInputProps> = ({
 
   // Update the full value when segments change
   useEffect(() => {
-    const fullValue = `${segments[0] || 'DD'}-${segments[1] || 'MM'}-${segments[2] || 'YYYY'}, ${segments[3] || 'HH'}:${segments[4] || 'MM'}:${segments[5] || 'SS'}`;
+    const fullValue = `${segments[0] || 'DD'}-${segments[1] || 'MM'}-${segments[2] || 'YYYY'}, ${segments[3] || 'HH'}:${segments[4] || 'MM'}:00`;
     onChange(fullValue);
   }, [segments, onChange]);
 
@@ -79,7 +79,7 @@ const DateTimeInput: React.FC<DateTimeInputProps> = ({
 
     // Auto-advance to next segment if current is complete and valid
     if (inputValue.length === segmentConfig[index].maxLength && segmentConfig[index].validator(inputValue)) {
-      if (index < segments.length - 1) {
+      if (index < segmentConfig.length - 1) {
         setActiveSegment(index + 1);
         setTimeout(() => {
           const nextInput = inputRefs.current[index + 1];
@@ -112,7 +112,7 @@ const DateTimeInput: React.FC<DateTimeInputProps> = ({
           prevInput.select(); // Select all text in the previous field
         }
       }, 0);
-    } else if (e.key === 'ArrowRight' && index < segments.length - 1) {
+    } else if (e.key === 'ArrowRight' && index < segmentConfig.length - 1) {
       setActiveSegment(index + 1);
       setTimeout(() => {
         const nextInput = inputRefs.current[index + 1];
@@ -246,18 +246,11 @@ const DateTimeInput: React.FC<DateTimeInputProps> = ({
         <input
           ref={(el) => (inputRefs.current[5] = el)}
           type="text"
-          value={segments[5]}
-          onChange={(e) => handleInputChange(5, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(5, e)}
-          onFocus={() => handleFocus(5)}
-          onClick={() => handleClick(5)}
+          value="00"
+          disabled
           placeholder="SS"
           maxLength={2}
-          className={`w-8 text-center border rounded px-1 py-1 ${
-            activeSegment === 5 
-              ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' 
-              : 'border-gray-300 bg-white'
-          } focus:outline-none`}
+          className="w-8 text-center border rounded px-1 py-1 border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed"
         />
       </div>
     </div>
