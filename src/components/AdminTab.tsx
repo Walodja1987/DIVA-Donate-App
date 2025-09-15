@@ -69,11 +69,11 @@ export const AdminTab = () => {
   };
 
   const [formData, setFormData] = useState({
-    referenceAsset: "https://ipfs.io/ipfs/bafybeidtxi5d2u4cr2l6nujfksbfzgapbnv44vxk5tgtgflifutigtrtla/reference_asset_kajiado.json",
+    referenceAsset: "https://amethyst-rainy-harrier-629.mypinata.cloud/ipfs/bafkreidpjnus2zxf2hx5szkv4laiosxtwfwm26uzenthlziqotk6nmvjjm",
     expiryTime: "0", // Will be set when user enters datetime
-    floor: "1.50",
-    inflection: "1.56", 
-    cap: "1.56",
+    floor: "1.55",
+    inflection: "1.55", 
+    cap: "1.55",
     gradient: "1",
     collateralAmount: "0",
     collateralToken: "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",

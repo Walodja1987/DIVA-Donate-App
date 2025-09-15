@@ -17,7 +17,6 @@ interface Segment {
 const DateTimeInput: React.FC<DateTimeInputProps> = ({ 
   value, 
   onChange, 
-  placeholder = "DD-MM-YYYY, HH:MM",
   className = ""
 }) => {
   const [activeSegment, setActiveSegment] = useState(0);
