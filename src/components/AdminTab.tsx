@@ -11,6 +11,7 @@ import {
   readContract,
 } from '@wagmi/core';
 import { wagmiConfig } from '../components/wagmiConfig';
+import DateTimeInput from './DateTimeInput';
 
 export const AdminTab = () => {
   const { wallets } = useWallets();
@@ -18,12 +19,61 @@ export const AdminTab = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { address: activeAddress } = useAccount();
   
+  // Helper function to convert dd-mm-yyyy, hh:mm:ss to Unix timestamp
+  const convertToUnixTimestamp = (dateTimeString: string): string => {
+    if (!dateTimeString) return "0";
+    
+    try {
+      // Parse format: dd-mm-yyyy, hh:mm:ss
+      const [datePart, timePart] = dateTimeString.split(', ');
+      const [day, month, year] = datePart.split('-').map(Number);
+      const [hours, minutes, seconds] = timePart.split(':').map(Number);
+      
+      // Create date object (JavaScript Date constructor expects month-1)
+      // JavaScript automatically handles DST for the target date
+      const date = new Date(year, month - 1, day, hours, minutes, seconds);
+      
+      // Convert to UTC timestamp
+      return Math.floor(date.getTime() / 1000).toString();
+    } catch (error) {
+      console.error('Error parsing datetime:', error);
+      return "0";
+    }
+  };
+
+  // Helper function to convert Unix timestamp to local date format
+  const formatUnixTimestampToLocal = (unixTimestamp: string): string => {
+    if (!unixTimestamp || unixTimestamp === "0") return "Invalid date";
+    
+    try {
+      const timestamp = parseInt(unixTimestamp) * 1000; // Convert to milliseconds
+      const date = new Date(timestamp);
+      
+      // Format: "Mo, 14 Aug 2025, 10:00 PM (CET, UTC+1)"
+      const options: Intl.DateTimeFormatOptions = {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZoneName: 'longOffset'
+      };
+      
+      return date.toLocaleString('en-US', options);
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
+      return "Invalid date";
+    }
+  };
+
   const [formData, setFormData] = useState({
-    referenceAsset: "https://ipfs.io/ipfs/bafybeidtxi5d2u4cr2l6nujfksbfzgapbnv44vxk5tgtgflifutigtrtla/reference_asset_kajiado.json",
-    expiryTime: "1749272400",
-    floor: "1.50",
-    inflection: "1.56", 
-    cap: "1.56",
+    referenceAsset: "https://amethyst-rainy-harrier-629.mypinata.cloud/ipfs/bafkreidpjnus2zxf2hx5szkv4laiosxtwfwm26uzenthlziqotk6nmvjjm",
+    expiryTime: "0", // Will be set when user enters datetime
+    floor: "1.55",
+    inflection: "1.55", 
+    cap: "1.55",
     gradient: "1",
     collateralAmount: "0",
     collateralToken: "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
@@ -32,6 +82,19 @@ export const AdminTab = () => {
     longRecipient: "0xd288B4A23ECc79Eb4bb4661147f3AB3294919F54",
     shortRecipient: "0x314b0EfcACFD9A9fb7b7834B2a7e47d6325eca23"
   });
+
+  // State for the datetime input (local time) - starts empty
+  const [expiryDateTime, setExpiryDateTime] = useState("");
+
+  // Handle datetime change and update both local state and form data
+  const handleDateTimeChange = (dateTimeString: string) => {
+    setExpiryDateTime(dateTimeString);
+    const unixTimestamp = convertToUnixTimestamp(dateTimeString);
+    setFormData(prev => ({
+      ...prev,
+      expiryTime: unixTimestamp
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,13 +209,35 @@ export const AdminTab = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Expiry Time (UNIX)</label>
-          <input
-            type="text"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            value={formData.expiryTime}
-            onChange={(e) => setFormData({...formData, expiryTime: e.target.value})}
-          />
+          <label className="block text-sm font-medium text-gray-700">
+            Expiry Time (Local Time)
+            <div className="inline-block ml-2 relative group">
+              <svg 
+                className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" 
+                fill="currentColor" 
+                viewBox="0 0 20 20"
+              >
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none w-80 z-10">
+                <div className="space-y-2">
+                  <div><strong>DST Note:</strong> The time you enter (e.g., 14:00) will always be 14:00 in your local timezone. The system automatically adjusts UTC conversion for daylight saving time transitions.</div>
+                  <div><strong>Example:</strong> If you set 15-11-2024, 14:00:00, it will be 14:00 CET (UTC+1) in November, but if you set 15-07-2024, 14:00:00, it will be 14:00 CET (UTC+2) in July.</div>
+                </div>
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+              </div>
+            </div>
+          </label>
+          <div className="mt-1">
+            <DateTimeInput
+              value={expiryDateTime}
+              onChange={handleDateTimeChange}
+              className="border border-gray-300 rounded-md p-2 bg-white"
+            />
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            {formatUnixTimestampToLocal(formData.expiryTime)} | Unix timestamp: {formData.expiryTime}
+          </div>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
