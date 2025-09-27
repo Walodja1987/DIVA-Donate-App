@@ -9,31 +9,35 @@ export const AboutSectionPastoralists6 = () => (
 					<ul className="list-none font-openSans text-base font-normal mb-8">
 						<li>
 							{' '}							
-							This campaign represents the <strong>5th iteration</strong> in the series dedicated to providing <strong>anticipatory cash transfers to Kenyan pastoralists </strong>
+							This campaign represents the <strong>6th iteration</strong> in the series dedicated to providing <strong>anticipatory cash transfers to Kenyan pastoralists </strong>
 							which are disproportionately affected by climate-change-induced drought.
 							<br />
 							<br />
 							<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Context
 					</h1>
-							<strong>Pastoral communities live a nomadic lifestyle</strong>, grazing animals on open-access 
-							pastures and migrating with them in response to seasonal variations.
-							Livestock and livestock products serve as their primary sources of income and food. 
+							<strong>Pastoral communities live a nomadic lifestyle</strong>, moving with their herds across open rangelands in search of pasture and water.
+							Livestock and livestock products serve as their primary sources of food and income. 
 							<br />
 							<br />
 							However, changing weather patterns induced by climate change are threatening the livelihoods of these communities. Over the past decade,
 							Kenya has experienced severe droughts which have decimated the pastoralists&apos; livestock and put the pastoral communities at risk of starvation. 
 							<br />
 							<br />
-								Kenya&apos;s climate naturally fluctuates between rainy and dry seasons. Rainfall during the rainy season
-								stimulates vegetation growth, which provides necessary pasture for livestock in the coming dry season. 
-								<strong> Consequently, sufficient vegetation and fodder at the end of the rainy season are crucial for sustaining livestock and,
-								by extension, the livelihoods of pastoral communities throughout the subsequent dry season.</strong>
-								<br />
-								<br />
-								The <strong>long rains</strong> season begins in mid-March and lasts until May/June, followed by a predominantly dry period
-								until October, during which vegetation levels gradually decline. The <strong>short rains</strong> arrive in mid-October and
-								continue through November and December, leading into a hot, typically rainless dry season lasting until March.
+							Kenya&apos;s climate naturally fluctuates between rainy and dry seasons. 
+							The <strong>long rains</strong> season (MAM) begins in mid-March and lasts until May/June, followed by a predominantly dry period
+							until October, during which vegetation levels gradually decline. The <strong>short rains</strong> (OND) arrive in mid-October and
+							continue through November and December, leading into a hot, typically rainless dry season lasting until March. 
+							Together, the two rainy seasons account for 70–90% of Kenya's annual rainfall.
+							<br />
+							<br />
+							Rainfall during the rainy season stimulates vegetation growth, which provides necessary pasture for livestock in the coming dry season.  
+							<strong> Consequently, sufficient vegetation and fodder build-up during the rainy season are crucial. They allow livestock 
+								to recover from the preceding dry period and build reserves needed to survive the next one. 
+								This directly impacts the livelihoods and wellbeing of pastoral communities who depend on their herds.</strong>
+							
+							
+							
 							{/* <br />
 							<br />
 							This campaign is a joint initiative between Mercy Corps Ventures, Fortune Credit, Shamba Network, and 
@@ -57,9 +61,9 @@ export const AboutSectionPastoralists6 = () => (
 								Normalized Difference Vegetation Index
 							</a>
 							{' '}
-							(NDVI) following the March-May 2025 long rains season and disburse funds to participating pastoralists if the NDVI at the end of this 
-							period suggests insufficient vegetation to support livestock during the subsequent dry season.
-							The target cover amount of <strong>$75 per pastoralist</strong> intends to subsidize 
+							(NDVI) at <strong>nine checkpoints</strong> (every 10 days) during the Oct-Dec 2025 short rains season and disburse funds to participating 
+							pastoralists if the NDVI at any of these checkpoints the satellite data suggests insufficient vegetation.
+							The maximum cover amount of <strong>$75 per pastoralist</strong> intends to subsidize 
 							the provision of <strong>food for one livestock animal over a period of six months</strong>.
 							<br />
 							<br />
@@ -68,10 +72,10 @@ export const AboutSectionPastoralists6 = () => (
 					</ul>
 					<ul
 						role="list"
-						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 text-base mb-8">
-						<li><strong>533</strong> Pastoralists</li>
-						<li><strong>$75</strong> target cover amount per pastoralist</li>
-						<li><strong>$40,000</strong> total cover for the campaign</li>
+						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3 text-base mb-8 font-openSans font-normal">
+						<li><strong>517</strong> Pastoralists</li>
+						<li><strong>$75</strong> Maximum target cover amount per pastoralist ($8.30 per checkpoint)</li>
+						<li><strong>$37,000</strong> total cover for the campaign</li>
 					</ul>
 
 					<h1 className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
@@ -80,7 +84,7 @@ export const AboutSectionPastoralists6 = () => (
 					
 					<ul className="list-none font-openSans text-base font-normal mb-8">
 						<li>
-							This campaign takes place in <strong>partnership with Ripple</strong> and utilizes their new stablecoin RLUSD, demonstrating its applicability in humanitarian
+							This campaign takes place in <strong>partnership with Ripple</strong> and utilizes their stablecoin RLUSD, demonstrating its applicability in humanitarian
 							aid and disaster relief. Ripple has generously contributed <strong>$25,000</strong> to support this campaign. Additionally, approximately <strong> $12,000 </strong>
 							which remained unreleased in previous campaigns (funds received from Mercy Corps Ventures and Arbitrum) have been rolled into this campaign to further amplify the impact.
 							{/* {' '}
@@ -97,15 +101,13 @@ export const AboutSectionPastoralists6 = () => (
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Beneficiaries
 					</div>
-					<ul
-						role="list"
-						className="list-disc marker:text-[#000000] list-disc pl-10 space-y-3  mb-8">
-						<li>Pastoralists in the Kenyan County of Laikipia (North)</li>
+					<ul className="list-none font-openSans text-base font-normal mb-8">
+						<li>Selected pastoralists in the Kenyan County of Laikipia (North).</li>
 					</ul>
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Trigger metric
 					</div>
-					<ul className="list-disc mb-8">
+					<ul className="list-none font-openSans text-base font-normal mb-8">
 						The pasture condition is assessed using an indicator called NDVI (
 						<a
 							href="https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index"
@@ -119,7 +121,7 @@ export const AboutSectionPastoralists6 = () => (
 						It serves as a reasonable metric for assessing drought as vegetation density generally correlates with rainfall patterns.
 						<br></br>
 						<br></br>
-						For this campaign, the NDVI as at 31 May 2025 within the eVIIRS dataset, 
+						For this campaign, the NDVI within the eVIIRS dataset, 
 						as published on the 
 						{' '}
 						<a
@@ -129,8 +131,8 @@ export const AboutSectionPastoralists6 = () => (
 							rel="noreferrer">
 							USGS FEWS NET Early Warning System website
 						</a>
-						, will be used. These values will be reported via the DIVA Donate Multisig on 7 June 2025.
-						The chosen dataset offers a smoothed NDVI timeseries that corrects low-quality observations caused by clouds or other atmospheric contamination.
+						, will be used. This dataset offers a smoothed NDVI timeseries that corrects low-quality observations caused by clouds or other atmospheric contamination.
+						These values will be reported via the DIVA Donate Multisig following the nine checkpoint dates.
 						{/* {' '}
 						<a
 							href="https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index"
@@ -143,24 +145,27 @@ export const AboutSectionPastoralists6 = () => (
 					<div className="font-semibold text-2xl font-['lora'] text-[#042940] m-auto leading-normal mb-2">
 						Donation scenarios
 					</div>
-					<p className="pb-4">
-					Payouts to pastoralists are determined by the NDVI values measured on 31 May 2025.
-					Below are the payouts in % of contributed funds based on different (shifted) NDVI scenarios:
+					<p className="pb-4 font-openSans text-base font-normal">
+					Payouts to pastoralists are determined based on the NDVI values measured on each checkpoint date.
+					If the NDVI value is below 0.55, 100% of the funds associated with the checkpoint (1/9th of overall contributions) will be disbursed. 
+					No payouts will be made if the NDVI is at or above 0.55. For technical reasons, the reported NDVI will be shifted by +1.
 					</p>
-					<ul className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3 mb-2">
+					{/* <ul className="list-disc marker:text-[#000000] list-disc pl-5 space-y-3 mb-2 font-openSans text-base font-normal">
 						<li><span className="font-bold">100% </span> - if the NDVI is at or below 1.55</li>
 						<li><span className="font-bold">67% </span> - if the NDVI is at 1.57</li>
 						<li><span className="font-bold">0% </span> - if the NDVI is at or above 1.61</li>
-					</ul>
-					For details on the derivation of these threshold, see our
+					</ul> */}
+					<p className="pb-4 font-openSans text-base font-normal">
+					For details on the derivation of the threshold as well as the checkpoint dates, see our
 					{' '}
 						<a
-							href="https://divadonate.xyz/posts/diva-conditional-donations-pastoralists-5"
+							href="https://divadonate.xyz/posts/diva-conditional-donations-pastoralists-6"
 							className="inline-flex items-center font-medium text-blue-600 hover:text-blue-800 dark:text-blue-500 dark:hover:text-blue-700"
 							target={'_blank'}
 							rel="noreferrer">
 							blog post
 						</a>.
+					</p>
 				</div>
 			</div>
 
