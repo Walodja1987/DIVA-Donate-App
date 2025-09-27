@@ -26,7 +26,7 @@ export default function Pastoralists() {
 					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 					// @ts-ignore: Temporarily ignore type error, fix later
 					campaign={campaign}
-					thankYouMessage="Thank you for providing parametric drought insurance for pastoralists in Kenya 🙏"
+					thankYouMessage="Thank you for providing parametric drought protection for pastoralists in Kenya 🙏"
 				/>
 				<AboutSectionPastoralists6 />
 				<DonationSection6 />

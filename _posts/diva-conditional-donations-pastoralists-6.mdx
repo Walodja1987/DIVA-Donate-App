@@ -1,0 +1,249 @@
+---
+title: Empowering pastoralists in Kenya - The 6th DIVA Donate campaign
+description: Empowering pastoralists in Kenya - The 6th DIVA Donate campaign
+date: 2025-09-29T23:37:00.284Z
+coverImage: campaign_6.png
+coverImageDescription: Pastoralists
+coverImageWidth: 600
+coverImageHeight: 428
+featured: true
+author: Wladimir Weinbender
+---
+
+We are excited to announce the launch of the [**6th DIVA Donate campaign**](https://www.divadonate.xyz/campaign/pastoralists-6), continuing our 
+mission to use web3 technology for anticipatory cash transfers that support pastoralist communities in Kenya ahead of drought.
+
+This campaign builds on the foundation of earlier efforts while introducing an **innovative progressive payout design**. 
+
+The funds from the 5th campaign which were left unreleased due to favorable vegetation conditions ($36,677 in total) have been rolled over, 
+highlighting the amplified impact of every dollar contributed. As before, we utilize Ripple's stablecoin 
+[RLUSD](https://etherscan.io/token/0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD) on Ethereum as the payout token, 
+demonstrating its applicability in humanitarian aid and disaster relief.
+
+## ✨ About the campaign
+
+In the 6th campaign, we continue to target pastoralist households in northern Laikipia, Kenya, who rely on livestock as their primary source of 
+income and food security. These communities are acutely vulnerable to climate change, with rainfall variability often leading 
+to pasture shortages and livestock losses.
+
+Our objective remains the same: to provide timely drought relief through parametric cash transfers linked to vegetation health, 
+measured via the Normalized Difference Vegetation Index (NDVI).
+
+The location of the Laikipia County is highlighted in below map:
+<p align="center">
+  <img src="/Images/posts/laikipia_map_v3.png" />
+</p>
+<div style={{ marginTop: '-2rem', fontSize: '0.8rem' }}>
+_**Figure 1:** Kenya map. Source: [NDMA Reports](https://reliefweb.int/report/kenya/kenya-2019-long-rains-mid-season-food-and-nutrition-security-review-report-august-2019)_
+</div>
+
+
+## 🆕 Key change to previous campaigns
+
+In previous campaigns, NDVI was assessed once at the end of the rainy season. If vegetation levels were insufficient, a payout was triggered. 
+This setup created only a single payout opportunity per campaign. 
+
+The 6th campaign introduces a **multi-checkpoint payout structure**:
+* The Oct-Dec 2025 rainy season is divided into **nine observation points**, spaced every ten days.
+* At each checkpoint, NDVI is compared against a **fixed threshold of 0.55**, a level identified through historical data as indicative of healthy vegetation conditions (see “Payout threshold calibration” section for details).
+* If NDVI falls below this threshold, a payout is triggered.
+
+Each triggered checkpoint disburses approximately **$8.30 to each of the 517 participating pastoralists**, with a maximum potential of $75 (9 x $8.30) across the season. 
+
+
+## 🌍 Why this matters
+
+### Timelier support
+The new design ensures that relief can arrive earlier in the season if forage is scarce, rather than waiting until December. 
+Healthy vegetation and forage for livestock during the rainy season is crucial. It enables herds to recover from the preceding 
+dry season and build the reserves needed to withstand the subsequent dry period. By linking payouts directly to vegetation levels 
+throughout the season, the new model makes aid both timelier and more relevant.
+
+### Gaining beneficiary trust
+Further, by moving from a single event to a progressive payout model, we address the trust problem that insurance-type programs 
+like DIVA Donate face. Because such programs only pay out in rare adverse events by design, participants can lose confidence when 
+seasons pass without support. Indeed, across the five campaigns to date, a payout was triggered only once..
+Introducing multiple checkpoints within a season increases the likelihood of disbursements, albeit in smaller amounts per event, 
+making support more tangible and reinforcing trust in the DIVA Donate initiative.
+
+Progressive payouts remain largely untested in both insurance and anticipatory action because traditional payout cycles are too 
+costly to administer. With blockchain-based automation, however, DIVA Donate can demonstrate that progressive payout models are 
+affordable but can also make such products more attractive and impactful.
+
+
+## 💸 Payout threshold calibration
+
+To determine the payout trigger, we analyzed historical NDVI data alongside on-ground assessment reports. 
+As illustrated in the vegetation health map for Laikipia North, the years 2019 and 2020 were characterized 
+by very good vegetation conditions during the Oct-Dec period.
+
+
+<p align="center">
+  <img src="/Images/posts/Laikipia_North_VCI_Map.jpg"/>
+</p>
+<div style={{ marginTop: '-1rem', fontSize: '0.8rem' }}>
+_**Figure 2:** Vegetation health map for Laikipia North. Source: [NDMA Report Laikipia,
+December 2023](https://uploads.geobingan.info/attachment/1423e736002d4e8397701873989365eb.pdf)_
+</div>
+
+
+The NDVI curves for 2019 and 2020 are presented below. Both remained consistently above the 0.55 threshold during 
+the Oct-Dec season (see green support line). This empirical evidence supports the use of 0.55 as the payout 
+trigger level for the campaign.
+
+<p align="center">
+  <img src="/Images/posts/2019_2020_Laikipia_North_NDVI_v2.png"/>
+</p>
+<div style={{ marginTop: '-1rem', fontSize: '0.8rem' }}>
+_**Figure 3:** NDVI in the years 2019 and 2020 for Laikipia North. Source: [FEWS dataset](https://earlywarning.usgs.gov/fews/ewx/index.html)_
+</div>
+
+## 📊 Historical example: 2023 Oct-Dec season
+
+To illustrate the impact of the multi-checkpoint approach, consider the Oct-Dec 2023 period in Laikipia North.
+As shown in the NDVI chart below, the NDVI was below the threshold from October until mid-November, and improved by 
+December (NDVI > 0.55). Under the previous single-checkpoint design, no payout would have been triggered 
+because the end-of-season NDVI was healthy, despite early stress that left animals with less time to 
+build reserves for the subsequent dry period.
+
+<p align="center">
+  <img src="/Images/posts/2023_Laikipia_North.png"/>
+</p>
+<div style={{ marginTop: '-1rem', fontSize: '0.8rem' }}>
+_**Figure 3:** NDVI in 2023 for Laikipia North. Source: [FEWS dataset](https://earlywarning.usgs.gov/fews/ewx/index.html)_
+</div>
+
+With the new progressive, multi-checkpoint design, such a scenario would result in early, 
+smaller disbursements at the beginning of the season, and no payouts once conditions improve.
+
+
+### 🔧 Technical setup
+
+To implement this structure, donor contributions are **equally distributed across nine payout pools**, one for each checkpoint. 
+For example, if a donor contributes $18 before the first checkpoint, then $2 is allocated to each pool. From the donor’s 
+perspective, the process remains unchanged: one simple deposit transaction. This highlights the flexibility of the underlying 
+DIVA Protocol that powers the DIVA Donate platform.
+
+The table below outlines the nine checkpoints and their corresponding reporting dates. Reporting dates are set 5-9 days after 
+each checkpoint to accommodate NDVI data publication delays and to ensure that payouts can be processed during working hours. 
+This second point reflects one of the key learnings from previous campaigns: timely execution requires both reliable data 
+availability and operational readiness.
+
+<table style={{ borderCollapse: 'collapse', width: '100%' }}>
+  <thead>
+    <tr style={{ backgroundColor: '#f5f5f5' }}>
+      <th>#</th>
+      <th>Checkpoint date</th>
+      <th>Reporting date</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>10 Oct 2025</td>
+      <td>Wed, 15 Oct 2025, 9 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>20 Oct 2025</td>
+      <td>Mo, 27 Oct 2025, 8 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>30 Oct 2025</td>
+      <td>Tue, 4 Nov 2025, 8 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>10 Nov 2025</td>
+      <td>Mo, 17 Nov 2025, 8 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>20 Nov 2025</td>
+      <td>Tue, 25 Nov 2025, 8 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>31 Nov 2025</td>
+      <td>Mo, 8 Dec 2025, 8 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>10 Dec 2025</td>
+      <td>Tue, 16 Dec 2025, 8 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>20 Dec 2025</td>
+      <td>Mo, 29 Dec 2025, 8 AM CET (10 AM EAT)</td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>31 Dec 2025</td>
+      <td>Tue, 6 Jan 2026, 8 AM CET (10 AM EAT)</td>
+    </tr>
+  </tbody>
+</table>
+
+
+## 🏆 Participation and rewards
+Donors can participate via the [divadonate.xyz](https://www.divadonate.xyz/campaign/pastoralists-6) campaign page by depositing RLUSD 
+on Ethereum into the campaign escrow.
+
+As before, contributors will receive a POAP digital certificate to commemorate their donation. Contributions of $75 or more will 
+be recognized with a golden-ring POAP, while smaller amounts receive the silver edition.
+
+<p align="center">
+  <img src="/Images/posts/DIVA-POAP-Gold_campaign_6.gif" style={{ width: '45%', height: 'auto', display: 'inline-block', padding: '20px' }}/>
+  <img src="/Images/posts/DIVA-POAP-Silver_campaign_6.gif" style={{ width: '45%', height: 'auto', display: 'inline-block', padding: '20px' }}/>
+</p>
+
+## 🔢 DIVA Donate impact so far
+
+Since inception, DIVA Donate has:
+* Launched 6 campaigns (with 5 now completed)
+* Secured contributions of $83,219 from Mercy Corps Ventures, Arbitrum, Ripple and DIVA Protocol community members
+* Released $11,744 (14%) as drought relief payouts
+
+You can find those statistics also in our [docs](https://docs.divadonate.xyz/).
+
+
+## 💎 Join the cause
+
+The DIVA Donate team is actively seeking partners who share our vision of harnessing blockchain technology to provide effective 
+support to vulnerable communities affected by climate change. Given the versatile nature of DIVA Protocol, the smart contract-based 
+infrastructure powering DIVA Donate, the donation payout can be linked to virtually any metric and adapted to many different use 
+cases. If you represent an organization passionate about this concept, [reach out](mailto:wladimir.weinbender@divatech.ch) and join 
+forces to provide more efficient and effective support to those in need.
+
+
+## 🌔 Conclusion
+
+The 6th DIVA Donate campaign reflects both continuity and innovation: continuity in our commitment to pastoralist resilience, 
+and innovation in the way we deliver timely and reliable support.
+
+By introducing nine observation checkpoints and adopting a progressive payout model, we increase the probability of payouts, 
+align them more closely with real needs, and strengthen confidence in anticipatory financing. 
+
+We are deeply grateful to our donors and partners for their ongoing trust and support. Together, we can continue to build resilience 
+for vulnerable communities facing the realities of climate change.
+
+
+## 🍀 About DIVA Donate
+
+DIVA Donate is an innovative platform that leverages blockchain technology to enable parametric conditional donations 
+for disaster relief. It is a joint initiative between two entities united around the mission of empowering vulnerable 
+communities affected by climate change:
+1. [**Fortune Connect**](https://fortuneconnectltd.com/): A digital resilience provider specifically targeting microfinance customers in Kenya which provides economic and climate resilience ecosystem digitally driven solutions that have reached  50k+ customers including small-holder farmers and pastoralists.
+2. [**DIVA Technologies AG**](https://www.divaprotocol.io/): Developer of DIVA Protocol, a smart contract-based system for creating and managing custom derivative contracts peer-to-peer.
+
+
+## 🔗 Links
+
+* DIVA Donate: [Website](https://www.divadonate.xyz/) | [Twitter](https://twitter.com/DIVADonate_xyz)
+* DIVA Protocol: [Website](https://www.divaprotocol.io/) | [Github](https://github.com/divaprotocol/diva-protocol-v1) | [Docs](https://docs.divaprotocol.io/) | [Twitter](https://twitter.com/divaprotocol_io) | [Discord](https://discord.gg/8fAvUspmv3)
+* Fortune Connect: [Website](https://fortuneconnectltd.com/) | [Twitter](https://twitter.com/fortuneconnectk)
+
+
+

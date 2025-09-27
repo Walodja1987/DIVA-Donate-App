@@ -10,7 +10,7 @@ type DonationDetail = {
 const DONATION_SPECIFICATIONS: DonationDetail[] = [
 	{
 		title: 'Trigger metric',
-		description: '1 + NDVI eVIIRS (Multiple Dates)',
+		description: '1 + NDVI eVIIRS (At Checkpoint Date)',
 		image: '/Images/rain.png',
 	},
 	{
@@ -88,9 +88,9 @@ export const DonationSection6: React.FC = () => {
 					<div className="lg:mt-0 lg:flex w-full lg:w-[450px] mt-10">
 						<Image
 							className="w-full"
-							width="800"
-							height="800"
-							src="/Images/Payoff Profile Laikipia_North_2025_1.png"
+							width="1000"
+							height="1000"
+							src="/Images/payoff_profile_campaign_6.png"
 							alt="Modern building architecture"
 						/>
 					</div>
