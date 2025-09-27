@@ -130,18 +130,66 @@
     "expiryTimestamp": "1736488800"
   },
   {
-    "campaignId": "pastoralists_5",
+    "campaignId": "pastoralists_6",
     "pools": [
       {
-        "poolId": "0xaf7bb56524511f313bfe896286d9eceb0651d7519b1b758b70c73898a2af7b0d",
+        "poolId": "0x2BA35F3B1B1551787272F185A22F56D2611B5631AEA05F7A047551EA4119600D",
         "beneficiarySide": "short",
-        "beneficiaryToken": "0xb3Ea8b2E6C796278916cbbE71945e9FF2C0E7e66",
-        "donorToken": "0x4467F6D31D9C0a06A73944D7b7e23a1405653064"
+        "beneficiaryToken": "0xC6426753264774EAB988d91DD29CfE6a626b14a0",
+        "donorToken": "0xF253278A45fD1EB0F2B16260C9314b8740Fa94cf"
+      },
+      {
+        "poolId": "0xEC89FC43E7D6B3B62130AE4897DC7B07D0316E6EAD259CFE26430179A356E7ED",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x43ACeb3AE246e6460276bA52F83Ea7cBDb76F454",
+        "donorToken": "0x712C359B44a32CA2D61C337414b90dB81C9738Ca"
+      },
+      {
+        "poolId": "0xBA8C882E9B79DBE68754818E85A90B2BC2B3EC1E74B4C0C71E25E7A693FA8CDA",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x7fe93BC6522D1C53FFEcf3631E9DCcA24d1Cb545",
+        "donorToken": "0x1080561018B288cC22D36f84AcEf3A49819edC3c"
+      },
+      {
+        "poolId": "0x3A86EE9092E531EE12492E29C6B1376D25EDBB15FB325CA079BA4936F4DDCF63",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x9894eF35Fb087F23AE3b2fF8C3117243DC3d0F7B",
+        "donorToken": "0x48aC0D5aB538930FF9114555fe136c69Fe984946"
+      },
+      {
+        "poolId": "0x5B76AAEB398962758370CFEF5B9EFE27D99F64285EBB2781CC338A6009CE9944",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x8F243945C82981ca5c28412ECA8918F901E9902c",
+        "donorToken": "0x44aCAb14866C42272dF288f38F6aF33b81289A95"
+      },
+      {
+        "poolId": "0x5E8EC166FD76962BF603707E3843DF35775713AF37251EB49393C30683F7C378",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0xb4e0853A78a5D8B867dbCC82316E29255553627a",
+        "donorToken": "0x2A8f74C55ba4D71E0dDca70855B072597F99F293"
+      },
+      {
+        "poolId": "0xA714B647F37734B13E2A7E09A2BF54F23764CD267C35CB35A5EAAC455F08660B",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x9EE849674Dc72B740d64EFCCC0483985AEDC6096",
+        "donorToken": "0xc632DDd87Df05d68742c06744AC81Af7170a00D8"
+      },
+      {
+        "poolId": "0xF8F1D4D66007CF537B75D8977720B8EA8BAF33D589C6E01ED229D9AC48CA2CD1",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x0f4D9deAea01DF99F845b9E7F185F4131545c873",
+        "donorToken": "0x5F734faAe90435625569DB89e76619BDAa50857d"
+      },
+      {
+        "poolId": "0xE304F3118F931EAEE7174AACB92AE7A3E0C54813036F388C4BDAE7F42ADC794B",
+        "beneficiarySide": "short",
+        "beneficiaryToken": "0x7C63f1b9027eb787da3fEc7929e70CF447D77d89",
+        "donorToken": "0x84b1da6a53ADc1Caa593fB94fA0F3D9967b89ee1"
       }
     ],
     "img": "/Images/header_6_with_effect.jpg",
     "path": "/campaign/pastoralists-5",
-    "title": "Pastoralists Mar-May 2025",
+    "title": "Pastoralists Oct-Dec 2025",
     "desc": "A campaign to provide anticipatory drought relief to pastoralist communities in the Kenyan County of Laikipia (North).",
     "donationRecipients" : [
       {
@@ -150,7 +198,7 @@
         "url": "https://etherscan.io/address/0x314b0EfcACFD9A9fb7b7834B2a7e47d6325eca23"
       }
     ],
-    "goal": "40000",
+    "goal": "35000",
     "raised": "",
     "donated": "",
     "collateralToken": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
@@ -158,6 +206,6 @@
     "divaContractAddress": "0x2C9c47E7d254e493f02acfB410864b9a86c28e1D",
     "chainId": "1",
     "chainName": "Ethereum",
-    "expiryTimestamp": "1749272400"
+    "expiryTimestamp": "1767682800"
   }
 ]
