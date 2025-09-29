@@ -32,7 +32,7 @@ export default function Pastoralists() {
 				<DonationSection6 />
 				{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 				{/* @ts-ignore: Temporarily ignore type error, fix later */}
-				<TopDonorsTable campaign={campaign} />
+				{/* <TopDonorsTable campaign={campaign} /> */}
 				<LinkSectionPastoralists6 />
 			</main>
 		</Layout>
