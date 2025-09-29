@@ -28,7 +28,7 @@ export const AboutSectionPastoralists6 = () => (
 							The <strong>long rains</strong> season (MAM) begins in mid-March and lasts until May/June, followed by a predominantly dry period
 							until October, during which vegetation levels gradually decline. The <strong>short rains</strong> (OND) arrive in mid-October and
 							continue through November and December, leading into a hot, typically rainless dry season lasting until March. 
-							Together, the two rainy seasons account for 70–90% of Kenya's annual rainfall.
+							Together, the two rainy seasons account for 70–90% of Kenya&apos;s annual rainfall.
 							<br />
 							<br />
 							Rainfall during the rainy season stimulates vegetation growth, which provides necessary pasture for livestock in the coming dry season.  
