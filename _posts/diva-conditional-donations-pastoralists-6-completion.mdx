@@ -31,22 +31,26 @@ If vegetation health dropped below this level at any checkpoint, the correspondi
 
 ---
 
-## 🆕 Progressive payouts vs. the legacy single-window model
+## 🆕 Progressive payouts vs. the legacy end-of-season model (updated)
 
-Under the **legacy single-window model**, the NDVI outcome observed during this season would have triggered a **full payout of the campaign amount**.
+In earlier campaigns, NDVI was typically assessed **once at the end of the rainy season**, and the payout was **not strictly binary**. Instead, we modeled the release as a **linear payout curve**: once NDVI fell below a defined upper threshold (e.g., **0.55**), the payout would start increasing gradually as vegetation conditions worsened, up to a lower bound (e.g., **0.50**) at which a **full payout** would be triggered.
 
-With the new **multi-window design**, payouts were more granular:
+This campaign deliberately tested a different approach: rather than concentrating the entire season’s protection in a single end-of-season measurement (with a continuous payout curve), we split the season into **nine ten-day checkpoints**, each with its own funding pool and a simple trigger test against the **0.55** threshold.
 
-* **4 out of 9 checkpoints** fell below the threshold
-* Each triggered window released **~4,074 RLUSD**
-* Total payouts amounted to **4 × 4,074 = 16,296 RLUSD**
+**How the two approaches compare for this season**
 
-This difference is not a weakness of the new design—it is the intended outcome:
+* Under the **legacy end-of-season linear curve**, the NDVI observed over the season would have implied a **full payout** (assuming a lower bound of **0.50** for 100% release).
+* Under the **multi-window design**, only **4 out of 9 checkpoints** fell below the threshold, resulting in **four partial releases**:
 
-* The old model is **binary**: all or nothing, late in the season
-* The new model is **responsive**: early support when stress appears, and restraint when conditions improve
+**Total released:** 4 × 4,074 RLUSD = **16,296 RLUSD**
 
-This campaign thus provides a concrete, data-backed comparison between the two approaches.
+This difference is intentional and highlights the key design trade-off:
+
+* The **end-of-season linear curve** concentrates the decision into one point in time and scales payout with severity at that point.
+* The **multi-window structure** delivers support **when stress occurs**, but avoids paying for windows where conditions are healthy—even if the season later deteriorates again.
+
+In other words, the new design prioritizes **timing and responsiveness** over a single severity-based release at season end.
+
 
 ---
 
