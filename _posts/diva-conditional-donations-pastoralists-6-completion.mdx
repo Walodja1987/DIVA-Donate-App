@@ -27,32 +27,37 @@ Instead of a single NDVI measurement at the end of the Oct–Dec rainy season, t
 
 The total campaign funds of **\$36,673** were distributed evenly across the nine checkpoints, allocating **$4,074** to each.
 
-
-
----
-
-## 🆕 Progressive payouts vs. the single end-of-season payout
-
-With a final NDVI of **0.49** on 31 December, the single end-of-season model with a **linear payout curve** ranging from 0% payout at **0.55** NDVI to 100% at **0.50**, would have triggered a **\$36,673** payout (100%) at the end of the season. 
-
-In the **multi-window model**, the release was **\$16,296** (c. 44%) since only 4 out of 9 checkpoints fell below the pre-defined binary threshold of 0.55.
-
-Although the total payout was lower this time in the multi-window model, the results could easily be reversed. In a "late recovery" scenario where vegetation starts poorly but recovers by the end of December the multi-window model would provide early-season support, whereas the end-of-season model would trigger no payout at all, ignoring the months of stress pastoralists endured.
-
-This highlights the key trade-off between the two approaches:
-* **Single end-of-season model:** Prioritizes **severity**, concentrating funds on extreme end-of-season outcomes.
-* **Multi-window model:** Prioritizes **timing and trust**. By delivering smaller, more frequent payouts exactly when stress occurs, we build greater confidence. Beneficiaries see the model working in real-time rather than waiting months for an "all or nothing" result.
-
 ---
 
 ## 📊 NDVI outcomes across the season
 
-Out of the nine observation windows:
+Out of the nine observation windows, four triggered a release based on the **0.55 NDVI threshold**:
 
-* **Windows 2, 3, 8 and 9** triggered payouts
-* **Windows 1, 4, 5, 6 and 7** showed sufficient vegetation and did not trigger
+| Checkpoint | Observation Date | NDVI Value | Payout Status |
+| :--- | :--- | :--- | :--- |
+| 1 | 10 Oct 2025 | 0.55 | No Payout |
+| 2 | 20 Oct 2025 | 0.50 | **Payout** |
+| 3 | 31 Oct 2025 | 0.54 | **Payout** |
+| 4 | 10 Nov 2025 | 0.56 | No Payout |
+| 5 | 20 Nov 2025 | 0.59 | No Payout |
+| 6 | 30 Nov 2025 | 0.61 | No Payout |
+| 7 | 10 Dec 2025 | 0.58 | No Payout |
+| 8 | 20 Dec 2025 | 0.51 | **Payout** |
+| 9 | 31 Dec 2025 | 0.49 | **Payout** |
 
-Importantly, NDVI conditions fluctuated materially during the season—confirming that a single end-of-season snapshot can mask **early-season stress** that still has real consequences for herd recovery and resilience.
+This resulted in a total payout of **\$16,296** (44% of the total campaign size).
+
+---
+
+## 🆕 Progressive payouts vs. single payout model
+
+The last NDVI in the observation period was **0.49** on 31 December. In the **single payout model**, it would have triggered a payout of **\$36,673** (100%) at the end of the season (assuming a linear payout curve ranging from 0% payout at 0.55 NDVI to 100% at 0.50). This compares to **\$16,296** (c. 44%) in the **multi-window model**.
+
+Although the total payout was lower this time in the multi-window model, the results could easily be reversed. In a late recovery scenario where vegetation starts poorly but recovers by the end of December the multi-window model would provide early-season support, whereas the single payout model would trigger no payout at all, ignoring the months of stress pastoralists endured.
+
+Besides timing, another benefit of the progressive payouts is trust. By delivering smaller, more frequent payouts, beneficiaries see the model working rather than waiting months for a result.
+
+TODO: Comment on costs and attention for reporting.
 
 ---
 
@@ -79,16 +84,16 @@ This risk is **not specific to multi-window campaigns**—the same issue could h
 
 ## 💸 Payout execution and beneficiary impact
 
-### Summary of payouts
+Below is a summary of the key campaign statistics:
 
-Across the four triggered windows:
+* Amount disbursed: **\$16,296**
+* Pastoralists reached: **506** ($32.20 per person)
+* Female recipients: **81%**
 
-* **16,296 RLUSD** were released
-* Converted and disbursed as **KES 1,922,777.85**
-* Reaching **506 unique pastoralists**
-* **81% of recipients were women**
+The campaign demonstrated remarkable speed in execution. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1-5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023. 
 
-Each payout round was executed within **hours of outcome reporting**, demonstrating end-to-end automation from satellite data to mobile money (M-Pesa).
+This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to rapid operational improvements over the course of the season.
+
 
 ---
 
@@ -178,11 +183,14 @@ While slightly higher than a single payout, these costs remain **well within acc
 3. **Payout size influences usage**
    Smaller, frequent payouts support household liquidity; larger payouts better support livestock-specific interventions.
 
-4. **Data dependency risk must be planned for**
-   Even satellite-based systems require contingency planning.
+4. **Data dependency and comparability risks**
+   The campaign highlighted a heavy reliance on centralized data providers (like FEWS). NDVI data aggregation is highly complex and not easily replicable; different sources (e.g., EU Copernicus) use varying logic and resolution, making datasets difficult to compare or use as immediate fallbacks without extensive normalization.
 
 5. **Liquidity impact on local partners is manageable**
-   Progressive payouts do not inherently strain operational capacity.
+   Progressive payouts do not inherently strain operational capacity and can even reduce peak liquidity pressure.
+
+6. **Technical hurdles in disbursement**
+   Up to 40 transfers failed during the campaign due to [REASON_PLACEHOLDER]. Understanding these failure points is critical for improving the robustness of the automated disbursement pipeline.
 
 ---
 
