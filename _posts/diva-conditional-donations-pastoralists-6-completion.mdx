@@ -42,6 +42,8 @@ Out of the nine checkpoints, **four fell below the NDVI threshold** and triggere
 | 8 | 20 Dec 2025 | 0.51 | **Payout** |
 | 9 | 31 Dec 2025 | 0.49 | **Payout** |
 
+>Note: The NDVI values shown above were the prevailing values as of the time of reporting. When looking at the NDVI curve today, these values may deviate as the FEWS smoothing algorithm adjusts historical values retroactively.
+
 In total, **\$16,296** in escrowed funds were released, representing 44% of the overall campaign amount. After deducting operational costs (c. 3.6%, refer to [cost analysis](#cost-analysis) section for details) and accounting for unsuccessful M-Pesa transfers (c. 4.2%), the final disbursement amounted to **\$15,022**. These funds reached **506 pastoralists**, with each recipient receiving an average of **$29.70**.
 
 
@@ -70,9 +72,29 @@ This gives an effective amount disbursed to beneficiaries of **$15,706** (96.4% 
 - Since the DIVA Donate multisig acted as the oracle for this campaign, no oracle fees (normally 0.05% of campaign size) were charged. This helped to improve the overall cost base by c. 0.1%.
 
 
+## 🔒 Operational disruption: FEWS data interruption
+
+During **Window 3**, outcome reporting was disrupted by the **US government shutdown**, which temporarily halted publication of NDVI data by **FEWS**, our primary data source.
+
+**Key implications:**
+
+* NDVI reporting for the 31 October snapshot was **delayed by 18 days**
+* We evaluated several alternative NDVI datasets; however, differences in calibration, spatial resolution, and processing methodologies prevented direct comparison and reliable substitution.
+* Ultimately, the value was reported once FEWS data became available again, using DIVA Protocol's fallback reporting setup.
+
+This incident underscores the data availability risks associated with relying on complex satellite-based datasets and centralized data processing centers. Interruptions or disruptions at any point in this data pipeline can delay or compromise timely outcome verification, in the worst case result in incorrect payouts.
+
+
+While data interruption risks exist in both models (progressive and single payout), the single payout model is particularly vulnerable: if data isn't available when the end-of-season reporting window opens and closes, the entire payout opportunity may be missed—even if retrospective data later shows a payout should have been triggered. The multi-window structure provides greater resilience, as individual window delays can be reported later (as demonstrated with Window 3), while other checkpoints proceed independently. Going forward, a clearly defined **fallback data strategy** should be part of campaign design.
+
+Going forward, a clearly defined **fallback data strategy** should be part of campaign design. 
+
+Ideally, the outcome data could be sourced and aggregated independently by anyone, without reliance on a single provider or centralized entity. Enabling such decentralized and open-access data feeds is an important research area. **Improvements in this direction could make parametric donation initiatives like DIVA Donate more resilient and robust against disruptions in specific data pipelines or providers.** If you are working on it, [reach out to us](https://x.com/DIVADonate_xyz)!
+
+
 ## 🆕 Progressive vs. single payout model
 
-The final NDVI reading on 31 December was **0.49**. Under a **single payout model**, this outcome would have triggered a full payout of **\$36,673** (100%) at the end of the season, based on a linear payout curve (0% at 0.55 NDVI, up to 100% at 0.50). In contrast, the **multi-window model** paid out **\$16,296** (c. 44% of the pool), as funds were released only when the threshold was breached at specific checkpoints.
+The final NDVI reading on 31 December was **0.49**. Under a **single payout model**, this outcome would have triggered a full payout of **\$36,673** (100%) at the end of the season, based on a linear payout curve (0% at 0.55 NDVI, up to 100% at 0.50). In contrast, the **multi-window model** paid out **\$16,296** (c. 44% of the pool, ignoring costs and transfer failure for the sake of demonstration), as funds were released only when the threshold was breached at specific checkpoints.
 
 The difference in total payout highlights the distinct risk distribution of each model. In this instance, the multi-window structure resulted in a lower overall payout, but this isn't always the case. If NDVI values had started low but recovered towards the end of the season, the progressive model would still provide meaningful, timely support during the low vegetation months, whereas the single payout would offer nothing until the very end.
 
@@ -83,108 +105,11 @@ However, these improvements come with tradeoffs. The progressive approach increa
 **In summary, while the single payout model is simpler and more cost-effective, the multi-window model offers earlier, visible support and builds confidence in the payout process at the price of higher administrative overhead and expenses.**
 
 
-## ⚠️ Operational disruption: FEWS data interruption
-
-During **Window 3**, outcome reporting was disrupted by the **US government shutdown**, which temporarily halted publication of NDVI data by **FEWS**, our primary data source.
-
-**Key implications:**
-
-* NDVI reporting for the 31 Oct snapshot was **delayed by 18 days**
-* We evaluated several alternative NDVI datasets; however, differences in calibration, spatial resolution, and processing methodologies prevented direct comparison and reliable substitution.
-* Ultimately, the value was reported once FEWS data became available again, using DIVA Protocol's fallback reporting setup.
-
-This incident underscores the data availability risks associated with relying on sophisticated satellite-based datasets and centralized data processing centers. Interruptions or disruptions at any point in this data pipeline can delay or compromise timely outcome verification, in the worst case result in incorrect payouts.
-
-This risk is not specific to multi-window campaigns. The same issue could have affected a single end-of-season snapshot. Going forward, a clearly defined **fallback data strategy** should be part of campaign design. 
-
-Ideally, the outcome data could be sourced and aggregated independently by anyone, without reliance on a single provider or centralized entity. Enabling such decentralized and open-access data feeds is an important research area. **Improvements in this direction could make parametric donation initiatives like DIVA Donate more resilient and robust against disruptions in specific data pipelines or providers.** If you are working on it, [reach out to us](https://x.com/DIVADonate_xyz)!
-
-
-
-## 💸 Payout execution and beneficiary impact
-
-Below summarizes the key campaign statistics:
-
-* Campaign size: **\$36,673**
-* Number of checkpoints: **9**
-* Pastoralists reached: **506**
-* Female participants: **81%**
-* Number of payout events: **4**
-* Total disbursed: **\$15,022** ($29.7 per pastoralist on average)
+## 💸 Payout execution
 
 The campaign demonstrated improved speed in execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1-5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023. 
 
 This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to rapid operational improvements over the course of the season.
-
-
-
-
-
-
-## 🐐 One large payout or several smaller ones?
-
-The multi-window approach surfaced an important practical question:
-
-### Would a single large payout be better for pastoralists?
-
-**Observed positives of progressive payouts**
-
-* Beneficiaries received money **quickly**, early in the season
-* Immediate feedback reinforced trust: *“this thing works”*
-* Reduced uncertainty compared to waiting months for a binary outcome
-
-**Observed limitations**
-
-* Individual payouts (~KES 1,000 per person) are often:
-
-  * Too small to meaningfully finance **fodder purchases**
-  * More likely to be used for **household consumption or transport**
-* A larger lump sum would more likely be allocated toward **livestock-specific needs**
-
-This suggests a potential trade-off:
-
-> Progressive payouts improve **timing and trust**,
-> while larger single payouts may better support **productive investments**.
-
-Future campaign designs could explore **hybrid structures**, such as:
-
-* Early micro-payouts + conditional end-of-season top-ups
-* Accumulating triggered windows into a delayed bulk release
-
-
-
-## 🏦 Liquidity management and operational feasibility
-
-From an implementing partner perspective, the progressive model proved **manageable**:
-
-* Individual payout rounds were relatively small
-* Liquidity requirements did **not materially disrupt** Fortune Connect’s core operations
-* Staggered payouts reduced peak liquidity pressure compared to a single large disbursement
-
-This is an important validation point:
-**progressive parametric aid is not only technically feasible, but operationally realistic** for local financial partners.
-
-
-
-## 💰 Transaction costs and efficiency
-
-Running four payout rounds instead of one naturally increased the number of transactions.
-
-That said:
-
-* **Total transaction costs** amounted to **~0.8%** of funds disbursed
-* Costs included:
-
-  * Blockchain transactions
-  * FX conversion
-  * Off-ramping
-  * Mobile money fees
-
-While slightly higher than a single payout, these costs remain **well within acceptable bounds**—especially considering the improved timing and resilience benefits.
-
-(Quantifying the delta versus a hypothetical single-payout scenario is a next step.)
-
-
 
 
 
