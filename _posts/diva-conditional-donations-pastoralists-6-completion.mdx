@@ -84,9 +84,6 @@ During **Window 3**, outcome reporting was disrupted by the **US government shut
 
 This incident underscores the data availability risks associated with relying on complex satellite-based datasets and centralized data processing centers. Interruptions or disruptions at any point in this data pipeline can delay or compromise timely outcome verification, in the worst case result in incorrect payouts.
 
-
-While data interruption risks exist in both models (progressive and single payout), the single payout model is particularly vulnerable: if data isn't available when the end-of-season reporting window opens and closes, the entire payout opportunity may be missed—even if retrospective data later shows a payout should have been triggered. The multi-window structure provides greater resilience, as individual window delays can be reported later (as demonstrated with Window 3), while other checkpoints proceed independently. Going forward, a clearly defined **fallback data strategy** should be part of campaign design.
-
 Going forward, a clearly defined **fallback data strategy** should be part of campaign design. 
 
 Ideally, the outcome data could be sourced and aggregated independently by anyone, without reliance on a single provider or centralized entity. Enabling such decentralized and open-access data feeds is an important research area. **Improvements in this direction could make parametric donation initiatives like DIVA Donate more resilient and robust against disruptions in specific data pipelines or providers.** If you are working on it, [reach out to us](https://x.com/DIVADonate_xyz)!
@@ -96,20 +93,28 @@ Ideally, the outcome data could be sourced and aggregated independently by anyon
 
 The final NDVI reading on 31 December was **0.49**. Under a **single payout model**, this outcome would have triggered a full payout of **\$36,673** (100%) at the end of the season, based on a linear payout curve (0% at 0.55 NDVI, up to 100% at 0.50). In contrast, the **multi-window model** paid out **\$16,296** (c. 44% of the pool, ignoring costs and transfer failure for the sake of demonstration), as funds were released only when the threshold was breached at specific checkpoints.
 
-The difference in total payout highlights the distinct risk distribution of each model. In this instance, the multi-window structure resulted in a lower overall payout, but this isn't always the case. If NDVI values had started low but recovered towards the end of the season, the progressive model would still provide meaningful, timely support during the low vegetation months, whereas the single payout would offer nothing until the very end.
+**Benefits of the multi-window approach:**
 
-Timeliness isn't the only benefit. By delivering smaller, more frequent payouts, beneficiaries see the model working rather than waiting months for a result.
+* **Timely support during stress periods:** If NDVI values start low but recover by season end, the progressive model provides early support during the low vegetation months, whereas the single payout model may not pay out anything.
 
-However, these improvements come with tradeoffs. The progressive approach increases operational complexity, requiring consistent reporting, escrow setup, and disbursement at each interval. Costs were also approximately 1.1% higher in this campaign compared to a single payout, reflecting additional transaction and coordination fees.
+* **Builds beneficiary trust:** By delivering smaller, more frequent payouts, beneficiaries see the model working in real-time rather than waiting months for a result.
 
-**In summary, while the single payout model is simpler and more cost-effective, the multi-window model offers earlier, visible support and builds confidence in the payout process at the price of higher administrative overhead and expenses.**
+* **Greater resilience to data interruptions:** While data availability risks exist in both models, the single payout model is particularly vulnerable—if data isn't available when the end-of-season reporting window opens and closes, the entire payout opportunity may be missed. The multi-window structure allows individual window delays to be reported later (as demonstrated with Window 3), while other checkpoints proceed independently.
+
+**Tradeoffs:**
+
+* **Higher operational complexity:** Requires consistent reporting, escrow setup, and disbursement at each interval.
+
+* **Increased costs:** Approximately 1.1% higher in this campaign compared to a single payout, reflecting additional transaction and coordination fees.
+
+**In summary, while the single payout model is simpler and more cost-effective, the multi-window model offers earlier, visible support, builds confidence in the payout process, and provides greater resilience to data disruptions at the price of higher administrative overhead and expenses.**
 
 
 ## 💸 Payout execution
 
-The campaign demonstrated improved speed in execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1-5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023. 
+The campaign demonstrated improved speed in payout execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1–5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023. 
 
-This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to rapid operational improvements over the course of the season.
+This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to operational improvements over the course of the season.
 
 
 
