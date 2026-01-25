@@ -96,14 +96,27 @@ This efficiency gain was largely driven by the multi-window design, which allowe
 
 ---
 
-## 📈 Aggregate disbursement statistics
+## 📈 Cost analysis
 
-* **Total \$ released:** $16,296
-* **Total KES received:** KES 2,028,367
-* **Total cash disbursed:** KES 1,922,777
-* **Total transaction costs (M-Pesa):** 15,352 KES (≈ 0.8%)
-* **Blockchain costs:** $40
-* **Remaining balance across pools:** 95,989.15 KES
+Total costs amounted to **4.2%** of the gross payout value, which is higher than the **2.5%** reported for the initial MCV pilot campaign (Q4 2023). This increase aligns with our expectations that a multi-window payout structure incurs higher aggregate transaction costs. 
+
+Key drivers of the increased costs are:
+- Smaller, more frequent M-Pesa transfers result in a higher per-transaction fee relative to the amount sent (TODO: confirm with Benson)
+- Deploying nine instead of one blockchain escrows increased cumulative on-chain transaction fees
+- Conducting several off-ramps and foreign exchange conversions of smaller amounts led to less favorable rates and higher proportional servicing costs
+
+Below provides the details of the cost analysis:
+
+* The **gross payout** released by the DIVA Protocol escrow amounted to **$16,388**.
+* From this amount, we deducted:
+  * **\$92** (0.6%) DIVA Protocol fees (0.25% charged on campaign size)
+  * **\$61** (0.4%) Blockchain transaction costs (pool setup, outcome reporting, and payout transactions)
+  * **\$80** (0.5%) M-Pesa transaction fees (assuming no failed transactions)
+  * **\$449** (2.7%) Off-ramp and FX conversion fees
+
+This gives an effective amount disbursed to beneficiaries of **$15,706** (95.6% of the gross payout). 
+
+**Note:** Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, a total of **$15,022** was successfully distributed to pastoralists.
 
 ---
 
