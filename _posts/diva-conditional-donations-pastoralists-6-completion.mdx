@@ -14,24 +14,21 @@ We are pleased to announce the successful completion of the **6th DIVA Donate ca
 
 In this campaign, we **tested a multi-checkpoint design** as an alternative to the previous single end-of-season assessment. By utilizing **multiple NDVI checkpoints** throughout the rainy period, we explored the benefits of earlier and more frequent payouts to build resilience.
 
-In total, **four payouts totaling $16,296 were triggered**, providing pastoralists financial support during times of low vegetation.
+In total, **four payouts totaling $15,022 were triggered**, providing pastoralists financial support during times of low vegetation.
 
----
 
 ## ✨ Campaign overview
 
 The objective of the 6th campaign remained unchanged: to provide **timely, need-based cash support** to pastoralist households whose livelihoods depend on healthy pasture availability.
 
-Instead of a single NDVI measurement at the end of the Oct–Dec rainy season, the period was split into **nine checkpoints** spaced every 10 days, beginning on 10 October and ending on 31 December 2025. At each checkpoint, NDVI was assessed against a fixed threshold of **0.55** (refer to our [announcement article](https://www.divadonate.xyz/posts/diva-conditional-donations-pastoralists-6) for derivation details); if vegetation health dropped below this level, the corresponding pool was released automatically.
+Instead of a single NDVI measurement at the end of the Oct–Dec rainy season, the period was split into **nine checkpoints** spaced every 10 days, beginning on 10 October and ending on 31 December 2025. At each checkpoint, NDVI was assessed against a fixed threshold of **0.55** (refer to our [announcement article](https://www.divadonate.xyz/posts/diva-conditional-donations-pastoralists-6) for details); if vegetation health dropped below this level, the corresponding pool funds were released automatically.
+
+Each checkpoint operated as an independent escrow, with **\$4,074** allocated for potential payout at each window, totaling **$36,673** across all nine checkpoints.
 
 
-The total campaign funds of **\$36,673** were distributed evenly across the nine checkpoints, allocating **$4,074** to each.
+## 📊 NDVI outcomes and payouts
 
----
-
-## 📊 NDVI outcomes across the season
-
-Out of the nine observation windows, four triggered a release based on the **0.55 NDVI threshold**:
+Out of the nine checkpoints, **four fell below the NDVI threshold** and triggered a payout:
 
 | Checkpoint | Observation Date | NDVI Value | Payout Status |
 | :--- | :--- | :--- | :--- |
@@ -45,21 +42,46 @@ Out of the nine observation windows, four triggered a release based on the **0.5
 | 8 | 20 Dec 2025 | 0.51 | **Payout** |
 | 9 | 31 Dec 2025 | 0.49 | **Payout** |
 
-This resulted in a total payout of **\$16,296** (44% of the total campaign size).
+In total, **\$16,296** in escrowed funds were released, representing 44% of the overall campaign amount. After deducting operational costs (c. 3.6%, refer to [cost analysis](#cost-analysis) section for details) and accounting for unsuccessful M-Pesa transfers (c. 4.2%), the final disbursement amounted to **\$15,022**. These funds reached **506 pastoralists**, with each recipient receiving an average of **$29.70**.
 
----
 
-## 🆕 Progressive payouts vs. single payout model
+## 📈 Cost analysis
 
-The last NDVI in the observation period was **0.49** on 31 December. In the **single payout model**, it would have triggered a payout of **\$36,673** (100%) at the end of the season (assuming a linear payout curve ranging from 0% payout at 0.55 NDVI to 100% at 0.50). This compares to **\$16,296** (c. 44%) in the **multi-window model**.
+Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%** recorded in the initial MCV pilot campaign (Q4 2023), which utilized a single end-of-season reporting model. This increase is consistent with our expectation that a multi-window payout structure would lead to higher overall transaction costs.
 
-Although the total payout was lower this time in the multi-window model, the results could easily be reversed. In a late recovery scenario where vegetation starts poorly but recovers by the end of December the multi-window model would provide early-season support, whereas the single payout model would trigger no payout at all, ignoring the months of stress pastoralists endured.
+**Key drivers of the increased costs were:**
+- Deploying nine instead of one blockchain escrows increased cumulative on-chain transaction fees. This contributed c. 0.3% in additional costs.
+- Smaller, more frequent M-Pesa transfers result in a higher per-transaction fee relative to the amount sent (**TODO: confirm with Benson**). This contributed c. **xx** in additional costs.
+- Conducting several off-ramps and foreign exchange conversions of smaller amounts led to less favorable rates and higher proportional servicing costs. This contributed c. **xx** in additional costs.
 
-Besides timing, another benefit of the progressive payouts is trust. By delivering smaller, more frequent payouts, beneficiaries see the model working rather than waiting months for a result.
+**Below provides the details of the cost analysis:**
 
-TODO: Comment on costs and attention for reporting.
+* The **gross payout** released by the DIVA Protocol escrow amounted to **$16,296**.
+* From this amount, we deducted:
+  * **\$61** (0.4%) Blockchain transaction costs (pool setup, outcome reporting, and payout transactions)
+  * **\$80** (0.5%) M-Pesa transaction fees (assuming no failed transactions)
+  * **\$449** (2.8%) Off-ramp and FX conversion fees
 
----
+This gives an effective amount disbursed to beneficiaries of **$15,706** (96.4% of the gross payout). 
+
+**Notes:**
+- Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, only **\$15,022** was effectively distributed to pastoralists. c. 4.2% remained undisbursed and are currently kept in KES.
+- DIVA Protocol fees of $91.7 (0.25% on campaign size) were rebated which helped to improve the overall cost base by c. 0.6%.
+- Since the DIVA Donate multisig acted as the oracle for this campaign, no oracle fees (normally 0.05% of campaign size) were charged. This helped to improve the overall cost base by c. 0.1%.
+
+
+## 🆕 Progressive vs. single payout model
+
+The final NDVI reading on 31 December was **0.49**. Under a **single payout model**, this outcome would have triggered a full payout of **\$36,673** (100%) at the end of the season, based on a linear payout curve (0% at 0.55 NDVI, up to 100% at 0.50). In contrast, the **multi-window model** paid out **\$16,296** (c. 44% of the pool), as funds were released only when the threshold was breached at specific checkpoints.
+
+The difference in total payout highlights the distinct risk distribution of each model. In this instance, the multi-window structure resulted in a lower overall payout, but this isn't always the case. If NDVI values had started low but recovered towards the end of the season, the progressive model would still provide meaningful, timely support during the low vegetation months, whereas the single payout would offer nothing until the very end.
+
+Timeliness isn't the only benefit. By delivering smaller, more frequent payouts, beneficiaries see the model working rather than waiting months for a result.
+
+However, these improvements come with tradeoffs. The progressive approach increases operational complexity, requiring consistent reporting, escrow setup, and disbursement at each interval. Costs were also approximately 1.1% higher in this campaign compared to a single payout, reflecting additional transaction and coordination fees.
+
+**In summary, while the single payout model is simpler and more cost-effective, the multi-window model offers earlier, visible support and builds confidence in the payout process at the price of higher administrative overhead and expenses.**
+
 
 ## ⚠️ Operational disruption: FEWS data interruption
 
@@ -77,48 +99,27 @@ This risk is not specific to multi-window campaigns. The same issue could have a
 
 Ideally, the outcome data could be sourced and aggregated independently by anyone, without reliance on a single provider or centralized entity. Enabling such decentralized and open-access data feeds is an important research area. **Improvements in this direction could make parametric donation initiatives like DIVA Donate more resilient and robust against disruptions in specific data pipelines or providers.** If you are working on it, [reach out to us](https://x.com/DIVADonate_xyz)!
 
----
+
 
 ## 💸 Payout execution and beneficiary impact
 
-Below summarizes the aggregate disbursement statistics:
+Below summarizes the key campaign statistics:
 
-* Amount disbursed: **\$16,296**
-* Pastoralists reached: **506** ($32.20 per person)
-* Female recipients: **81%**
-* Roll-over balance (i.e. amount that can be rolled into the next campaigns): **RLUSD 20,379**
+* Campaign size: **\$36,673**
+* Number of checkpoints: **9**
+* Pastoralists reached: **506**
+* Female participants: **81%**
+* Number of payout events: **4**
+* Total disbursed: **\$15,022** ($29.7 per pastoralist on average)
 
->Note: The DIVA Protocol fees of c. $90 will be rebated and were accounted for in the Roll-over balance.
-
-The campaign demonstrated remarkable speed in execution. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1-5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023. 
+The campaign demonstrated improved speed in execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1-5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023. 
 
 This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to rapid operational improvements over the course of the season.
 
----
 
-## 📈 Cost analysis
 
-Total costs amounted to **4.2%** of the gross payout value, which is higher than the **2.5%** reported for the initial MCV pilot campaign (Q4 2023). This increase aligns with our expectations that a multi-window payout structure incurs higher aggregate transaction costs. 
 
-Key drivers of the increased costs are:
-- Smaller, more frequent M-Pesa transfers result in a higher per-transaction fee relative to the amount sent (TODO: confirm with Benson)
-- Deploying nine instead of one blockchain escrows increased cumulative on-chain transaction fees
-- Conducting several off-ramps and foreign exchange conversions of smaller amounts led to less favorable rates and higher proportional servicing costs
 
-Below provides the details of the cost analysis:
-
-* The **gross payout** released by the DIVA Protocol escrow amounted to **$16,388**.
-* From this amount, we deducted:
-  * **\$92** (0.6%) DIVA Protocol fees (0.25% charged on campaign size)
-  * **\$61** (0.4%) Blockchain transaction costs (pool setup, outcome reporting, and payout transactions)
-  * **\$80** (0.5%) M-Pesa transaction fees (assuming no failed transactions)
-  * **\$449** (2.7%) Off-ramp and FX conversion fees
-
-This gives an effective amount disbursed to beneficiaries of **$15,706** (95.6% of the gross payout). 
-
-**Note:** Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, a total of **$15,022** was successfully distributed to pastoralists.
-
----
 
 ## 🐐 One large payout or several smaller ones?
 
@@ -150,7 +151,7 @@ Future campaign designs could explore **hybrid structures**, such as:
 * Early micro-payouts + conditional end-of-season top-ups
 * Accumulating triggered windows into a delayed bulk release
 
----
+
 
 ## 🏦 Liquidity management and operational feasibility
 
@@ -163,7 +164,7 @@ From an implementing partner perspective, the progressive model proved **managea
 This is an important validation point:
 **progressive parametric aid is not only technically feasible, but operationally realistic** for local financial partners.
 
----
+
 
 ## 💰 Transaction costs and efficiency
 
@@ -185,7 +186,7 @@ While slightly higher than a single payout, these costs remain **well within acc
 
 
 
----
+
 
 ## 📚 Key learnings from Campaign 6
 
@@ -207,7 +208,7 @@ While slightly higher than a single payout, these costs remain **well within acc
 6. **Technical hurdles in disbursement**
    Up to 40 transfers failed during the campaign due to [REASON_PLACEHOLDER]. Understanding these failure points is critical for improving the robustness of the automated disbursement pipeline.
 
----
+
 
 ## 🌖 Conclusion
 
