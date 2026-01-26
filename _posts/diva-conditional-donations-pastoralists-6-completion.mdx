@@ -10,6 +10,8 @@ featured: true
 author: Wladimir Weinbender
 ---
 
+Successful completion of the 6th DIVA Donate campaign
+
 We are pleased to announce the successful completion of the **6th DIVA Donate campaign**, which ran from **October to December 2025** to provide anticipatory drought relief to pastoralist communities in **Laikipia North, Kenya**. This campaign was conducted in collaboration with **Ripple** and utilized their stablecoin, **RLUSD**, on Ethereum as the payout token to demonstrate its applicability in humanitarian aid. The partnership with Ripple is a testament to the value of our work and mission to build the most effective platform for disaster relief.
 
 In this campaign, we **tested a multi-checkpoint design** as an alternative to the previous single end-of-season assessment. By utilizing **multiple NDVI checkpoints** throughout the rainy period, we explored the benefits of earlier and more frequent payouts to build resilience.
@@ -49,7 +51,7 @@ In total, **\$16,296** in escrowed funds were released, representing 44% of the 
 
 ## 📈 Cost analysis
 
-Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%** recorded in the initial MCV pilot campaign (Q4 2023), which utilized a single end-of-season reporting model. This increase is consistent with our expectation that a multi-window payout structure would lead to higher overall transaction costs.
+Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%** recorded in the initial MCV pilot campaign (Q4 2023), which utilized a single end-of-season reporting model. This increase is consistent with our expectation that a multi-window payout structure would lead to higher overall transaction costs. Despite this increase, the 3.6% cost remains approximately **65% lower** compared to the 10–35% in fees and operational costs typically associated with traditional transfer methods.
 
 **Key drivers of the increased costs were:**
 - Deploying nine instead of one blockchain escrows increased cumulative on-chain transaction fees. This contributed c. 0.3% in additional costs.
@@ -67,9 +69,9 @@ Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%
 This gives an effective amount disbursed to beneficiaries of **$15,706** (96.4% of the gross payout). 
 
 **Notes:**
-- Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, only **\$15,022** was effectively distributed to pastoralists. c. 4.2% remained undisbursed and are currently kept in KES.
-- DIVA Protocol fees of $91.7 (0.25% on campaign size) were rebated which helped to improve the overall cost base by c. 0.6%.
-- Since the DIVA Donate multisig acted as the oracle for this campaign, no oracle fees (normally 0.05% of campaign size) were charged. This helped to improve the overall cost base by c. 0.1%.
+* Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, only **\$15,022** was effectively distributed to pastoralists. c. 4.2% remained undisbursed and are currently kept in KES.
+* DIVA Protocol fees of $91.7 (0.25% on campaign size) were rebated which helped to improve the overall cost base by c. 0.6%.
+* Since the DIVA Donate multisig acted as the oracle for this campaign, no oracle fees (normally 0.05% of campaign size) were charged. This helped to improve the overall cost base by c. 0.1%.
 
 
 ## 🔒 Operational disruption: FEWS data interruption
@@ -99,7 +101,7 @@ The final NDVI reading on 31 December was **0.49**. Under a **single payout mode
 
 * **Builds beneficiary trust:** By delivering smaller, more frequent payouts, beneficiaries see the model working in real-time rather than waiting months for a result.
 
-* **Greater resilience to data interruptions:** While data availability risks exist in both models, the single payout model is particularly vulnerable—if data isn't available when the end-of-season reporting window opens and closes, the entire payout opportunity may be missed. The multi-window structure allows individual window delays to be reported later (as demonstrated with Window 3), while other checkpoints proceed independently.
+* **Greater resilience to data interruptions:** While data availability risks exist in both models, the single payout model is particularly vulnerable. If data isn't available when the end-of-season reporting window opens and closes, the entire payout opportunity may be missed. The multi-window structure provides protection by allowing payouts to be triggered at multiple checkpoints before any interruption occurs, and delayed windows can be reported later once data becomes available (as demonstrated with Window 3).
 
 **Tradeoffs:**
 
@@ -118,46 +120,29 @@ This efficiency gain was largely driven by the multi-window design, which allowe
 
 
 
-## 📚 Key learnings from Campaign 6
+## 📚 Key learnings
 
-1. **Progressive payouts work operationally**
-   End-to-end automation across multiple checkpoints is viable at low marginal cost.
+1. **Progressive payouts work**
+   The multiple checkpoint model represents a viable alternative to the single payout model.
 
-2. **Timing matters as much as amount**
-   Early-season stress is real and visible in NDVI—even if end-season conditions recover.
+3. **Building beneficiary trust through smaller and more frequent payouts**
+   Smaller, frequent payouts support household liquidity; larger payouts better support livestock-specific interventions. [**Pending feedback from participating pastoralists**]
 
-3. **Payout size influences usage**
-   Smaller, frequent payouts support household liquidity; larger payouts better support livestock-specific interventions.
+4. **Data dependency**
+   The DIVA Donate campaigns are by design heavily reliant on centralized data providers (like FEWS). NDVI data aggregation is highly complex and not easily replicable; different sources (e.g., EU Copernicus) use varying logic and resolution, making datasets difficult to compare or use as immediate fallbacks without extensive normalization.
 
-4. **Data dependency and comparability risks**
-   The campaign highlighted a heavy reliance on centralized data providers (like FEWS). NDVI data aggregation is highly complex and not easily replicable; different sources (e.g., EU Copernicus) use varying logic and resolution, making datasets difficult to compare or use as immediate fallbacks without extensive normalization.
-
-5. **Liquidity impact on local partners is manageable**
-   Progressive payouts do not inherently strain operational capacity and can even reduce peak liquidity pressure.
-
-6. **Technical hurdles in disbursement**
-   Up to 40 transfers failed during the campaign due to [REASON_PLACEHOLDER]. Understanding these failure points is critical for improving the robustness of the automated disbursement pipeline.
-
-
+6. **Transaction failures in M-Pesa disbursement**
+   In total, 116 transfers failed during the M-Pesa transfers due to [**REASON_PLACEHOLDER + How to improve -> Benson**].
 
 ## 🌖 Conclusion
 
-The 6th DIVA Donate campaign represents a **milestone** for anticipatory action:
+The 6th DIVA Donate campaign successfully validated progressive parametric aid in a real-world setting, demonstrating that multi-window payout structures can deliver timely support while building beneficiary trust.
 
-* It validates **progressive parametric aid** in a real-world setting
-* It surfaces nuanced trade-offs between **timeliness, size, and impact**
-* It demonstrates that blockchain-based infrastructure can support **complex payout logic** at low cost and high reliability
-
-Most importantly, it reinforces the core mission of DIVA Donate:
-to deliver **the right support, at the right time, based on objective data**.
-
-We are deeply grateful to **Ripple** and our other partners and donors for enabling this experimentation—and to the pastoralist communities whose participation makes learning and improvement possible.
+We are deeply grateful to Ripple and our other partners and donors for enabling this experimentation, and to the pastoralist communities whose participation makes learning and improvement possible.
 
 ## 🍀 About DIVA Donate
 
-DIVA Donate is an innovative platform that leverages blockchain technology to enable parametric conditional donations for pre-disaster 
-preparedness and relief. It is a joint initiative between two entities united around the mission of empowering vulnerable communities 
-affected by climate change through anticipatory support that activates before disasters strike:
+DIVA Donate is an innovative platform that leverages blockchain technology to enable parametric conditional donations for pre-disaster  preparedness and relief. It is a joint initiative between two entities united around the mission of empowering vulnerable communities affected by climate change through anticipatory support that activates before disasters strike:
 1. [**Fortune Credit**](https://fortunecredit.co.ke/): a microfinance institution in Kenya which provides credit, insurance & other financial services to 50k+ customers including small-holder farmers & pastoralists, and
 2. [**DIVA Technologies AG**](https://www.divaprotocol.io/): developer of DIVA Protocol, a smart contract-based system for creating and managing custom derivative contracts peer-to-peer.
 
