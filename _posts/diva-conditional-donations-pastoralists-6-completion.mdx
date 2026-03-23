@@ -18,6 +18,10 @@ In this campaign, we **tested a multi-checkpoint design** as an alternative to t
 
 In total, **four payouts totaling $15,022 were triggered**, providing pastoralists financial support during times of low vegetation.
 
+**Key impact findings include:**
+
+- **64%** reduction in transaction costs (from 10% to 3.6% of the transaction value)
+- **>95%** reduction in payment settlement time over traditional transfers
 
 ## ✨ Campaign overview
 
@@ -51,12 +55,12 @@ In total, **\$16,296** in escrowed funds were released, representing 44% of the 
 
 ## 📈 Cost analysis
 
-Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%** recorded in the initial MCV pilot campaign (Q4 2023), which utilized a single end-of-season reporting model. This increase is consistent with our expectation that a multi-window payout structure would lead to higher overall transaction costs. Despite this increase, the 3.6% cost remains approximately **65% lower** compared to the 10–35% in fees and operational costs typically associated with traditional transfer methods.
+Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%** recorded in the initial MCV pilot campaign (Q4 2023), which utilized a single end-of-season reporting model. This increase is consistent with our expectation that a multi-window payout structure would lead to higher overall transaction costs. Despite this increase, the 3.6% cost remains approximately **64% lower** compared to the 10–35% in fees and operational costs typically associated with traditional transfer methods.
 
 **Key drivers of the increased costs were:**
+
 - Deploying nine instead of one blockchain escrows increased cumulative on-chain transaction fees. This contributed c. 0.3% in additional costs.
-- Smaller, more frequent M-Pesa transfers result in a higher per-transaction fee relative to the amount sent (**TODO: confirm with Benson**). This contributed c. **xx** in additional costs.
-- Conducting several off-ramps and foreign exchange conversions of smaller amounts led to less favorable rates and higher proportional servicing costs. This contributed c. **xx** in additional costs.
+- Smaller, more frequent M-Pesa transfers result in a higher per-transaction fee relative to the amount sent (c. **122%** in additional M-Pesa transaction costs).
 
 **Below provides the details of the cost analysis:**
 
@@ -69,10 +73,11 @@ Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%
 This gives an effective amount disbursed to beneficiaries of **$15,706** (96.4% of the gross payout). 
 
 **Notes:**
-* Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, only **\$15,022** was effectively distributed to pastoralists. c. 4.2% remained undisbursed and are currently kept in KES.
+* Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, only **\$15,022** was effectively distributed to pastoralists. c. 4.2% remained undisbursed and are currently kept in KES, to be redeployed into the next campaign.
 * DIVA Protocol fees of $91.7 (0.25% on campaign size) were rebated which helped to improve the overall cost base by c. 0.6%.
 * Since the DIVA Donate multisig acted as the oracle for this campaign, no oracle fees (normally 0.05% of campaign size) were charged. This helped to improve the overall cost base by c. 0.1%.
 
+The blockchain transaction costs of \$61 were relatively low, reflecting the currently low gas prices on Ethereum. During periods of high network congestion, transaction costs could be up to 20x higher, making this approach economically infeasible. Leveraging lower-cost blockchain networks, such as XRPL, may offer substantial cost savings in the future.
 
 ## 🔒 Operational disruption: FEWS data interruption
 
@@ -114,25 +119,59 @@ The final NDVI reading on 31 December was **0.49**. Under a **single payout mode
 
 ## 💸 Payout execution
 
-The campaign demonstrated improved speed in payout execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1–5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023. 
+The campaign demonstrated improved speed in payout execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1–5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023, and **>95%** reduction in time for the delivery of the donation funds from release to beneficiary compared to traditional means (baseline: **168 hours**).
 
 This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to operational improvements over the course of the season.
 
 
+## 💰 Fund flow: RLUSD journey from donor to pastoralist
+
+The following diagram illustrates the complete flow of Ripple's RLUSD stablecoin from initial donation through to final distribution to pastoralists:
+
+<img src="/Images/posts/user-flow.png" alt="RLUSD Fund Flow: Donor to Pastoralist" style={{maxWidth: "100%", height: "auto"}} />
+
+**RLUSD deposits:** Donors deposit RLUSD into the DIVA Protocol escrow contract, where funds are held securely until the outcome is determined.
+
+**Oracle reports outcome:** The Oracle observes the campaign (NDVI measurements) and reports the outcome to the DIVA Protocol once the reporting window opens.
+
+**DIVA Protocol determines payout:** Based on the reported outcome, the blockchain protocol automatically determines whether funds should be released. If the NDVI threshold is breached, funds are made available for the custodian (Fortune Credit) to claim; otherwise, unreleased funds can be claimed back by the Donor.
+
+**Custodian claims and off-ramps:** The custodian claims any released RLUSD funds and converts them from digital assets to traditional currency through an off-ramp process.
+
+**Distribution via M-Pesa:** The custodian distributes the converted funds to pastoralists via M-Pesa, Kenya's mobile money platform.
+
+**Pastoralists withdraw:** Beneficiaries receive funds in their M-Pesa accounts and can withdraw them as needed.
+
+This flow demonstrates how RLUSD serves as the digital asset layer that enables transparent, automated, and efficient conditional donations, with the off-ramp to M-Pesa ensuring accessibility for recipients who may not have direct access to blockchain infrastructure.
+
 
 ## 📚 Key learnings
 
-1. **Progressive payouts work**
+1. **Progressive payouts work**  
    The multiple checkpoint model represents a viable alternative to the single payout model.
 
-3. **Building beneficiary trust through smaller and more frequent payouts**
-   Smaller, frequent payouts support household liquidity; larger payouts better support livestock-specific interventions. [**Pending feedback from participating pastoralists**]
+2. **Building beneficiary trust through smaller and more frequent payouts**  
+   Smaller, frequent payouts support household liquidity; larger payouts better support livestock-specific interventions. [Pending feedback from participating pastoralists]
 
-4. **Data dependency**
+3. **Data dependency**  
    The DIVA Donate campaigns are by design heavily reliant on centralized data providers (like FEWS). NDVI data aggregation is highly complex and not easily replicable; different sources (e.g., EU Copernicus) use varying logic and resolution, making datasets difficult to compare or use as immediate fallbacks without extensive normalization.
 
-6. **Transaction failures in M-Pesa disbursement**
-   In total, 116 transfers failed during the M-Pesa transfers due to [**REASON_PLACEHOLDER + How to improve -> Benson**].
+4. **Transaction failures in M-Pesa disbursement**  
+   In total, 116 transfers failed during the M-Pesa transfers due to the numbers being inactive (deregistered), as well as names of recipients registered during onboarding being different from the names registered on M-Pesa. To improve, phone number verification can be done during onboarding.
+
+## 📋 Baseline vs endline household survey
+
+We compared baseline (Oct–Dec 2025) and endline (March 2026) phone surveys in a matched panel of 162 households, paired using M-Pesa numbers as household identifiers.
+
+Headline results:
+
+- **Meal frequency:** Among matched households with data at both points (**n=129**), the share eating **three meals per day** rose from **13%** to **77%** (**68** households improved; **5** worsened).
+- **Hunger:** The share reporting **hunger-free** status increased from **20%** to **56%** (**91**/162). **71** households moved out of hunger, while **59** remained hungry and **12** were newly hungry at endline. This represents a **partial** improvement in line with severe, ongoing drought pressure.
+- **Livestock:** Average cattle and sheep holdings fell sharply among reporting households (**−57%** and **−51%**); goats were more resilient (**−24%**, with **27** households gaining goats). These herd dynamics are **drought-driven** rather than programme outcomes.
+- **Self-reported wellbeing:** **85%** reported **reduced stress**, **64%** **improved capacity to meet expenses**, and **41%** **improved savings** relative to baseline.
+- **Programme perception:** **95%** agreed livestock conditions had improved; **mean likelihood to recommend** the programme was **9.1/10** (baseline survey), with **97%** scoring **8+**.
+
+<div className="text-black opacity-80 font-serif" style={{ display: 'inline' }}><a href="/final-results-dashboard.html" target="_blank" rel="noopener noreferrer">Open the results dashboard</a> for full tables, charts, and methodology notes.</div>
 
 ## 🌖 Conclusion
 
