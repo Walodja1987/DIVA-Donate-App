@@ -129,7 +129,7 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
     <div class="kpi"><div class="kpi-n">162</div><div class="kpi-l">Matched HHs</div></div>
     <div class="kpi"><div class="kpi-n white">~5mo</div><div class="kpi-l">Follow-up period</div></div>
     <div class="kpi"><div class="kpi-n white">2,650</div><div class="kpi-l">Median income (KES)</div></div>
-    <div class="kpi"><div class="kpi-n">9.1/10</div><div class="kpi-l">Recommend score</div></div>
+    <div class="kpi"><div class="kpi-n">81.25</div><div class="kpi-l">NPS Score</div></div>
   </div>
 </div>
 
@@ -158,16 +158,16 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
         <div class="ba-period">Baseline · Oct–Dec 2025</div>
         <div class="ba-num">13%</div>
         <div class="ba-lbl">eating 3 meals/day</div>
-        <div class="ba-ctx">17 of 129 · 111 on 2 meals · 1 on 1 meal</div>
-        <div class="badge neg">86% on 2 meals or fewer</div>
+        <div class="ba-ctx">17 of 129 with meal data at both points</div>
+        <div class="badge neg">86% on 2 meals or fewer (112/129)</div>
       </div>
       <div class="ba-arr">→</div>
       <div class="ba-side e">
         <div class="ba-period">Endline · March 2026</div>
         <div class="ba-num">77%</div>
         <div class="ba-lbl">eating 3 meals/day</div>
-        <div class="ba-ctx">99 of 129 · 61 still on 2 meals · 2 on 1 meal</div>
-        <div class="badge pos">↑ +64 percentage points</div>
+        <div class="ba-ctx">99 of 129 with meal data at both points · 33 of remaining 33 HHs had no baseline meal record</div>
+        <div class="badge pos">↑ +64 percentage points (of 129 paired HHs)</div>
       </div>
     </div>
   </div>
@@ -247,20 +247,10 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
     </div>
   </div>
 
-  <div class="two-col" style="margin-top:18px">
-    <div class="cc">
-      <h3>Hunger Incidence Comparison</h3>
-      <div class="cc-note">% of matched households experiencing hunger · n=162</div>
-      <div class="cw"><canvas id="hungerCompChart"></canvas></div>
-    </div>
-    <div class="cc">
-      <h3>Baseline Hunger by Month</h3>
-      <div class="cc-note">Months respondents reported going without food</div>
-      <div style="background:var(--A-lt);border:1px solid #F6AD55;border-radius:4px;padding:18px 20px;margin-top:4px;font-size:13px;color:var(--A);line-height:1.75;font-family:'DM Mono',monospace;">
-        <strong>Chart removed — data too sparse to report.</strong><br>
-        Only 45 of 162 matched households have any entry in the hunger-months column. The remaining 117 left it blank (enumerators typically only completed the text summary, not the month sub-fields). Charting 45 partial responses as representative of 162 households would be misleading. Drought month data (left) is more reliable — 156 of 162 responded.
-      </div>
-    </div>
+  <div class="cc" style="margin-top:18px;max-width:520px">
+    <h3>Hunger Incidence Comparison</h3>
+    <div class="cc-note">% of matched households experiencing hunger · n=162</div>
+    <div class="cw"><canvas id="hungerCompChart"></canvas></div>
   </div>
 
   <div class="insight warn">
@@ -303,7 +293,7 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
   </div>
 
   <div class="insight neg">
-    Herd losses were severe across all species — driven by the prolonged Sept 2025 drought. All 9 camel-owning households lost their entire camel holdings. However, <strong>goats showed the most resilience: 27 households actually increased their goat herd</strong>, making goat restocking the strongest candidate for a targeted recovery programme. Additionally, 95% of endline respondents agreed their livestock situation improved due to the donation, and 96% reported no livestock deaths after receiving it — evidence that the transfer slowed further decline.
+    Herd losses were severe across all species — driven by the prolonged Sept 2025 drought. All 9 camel-owning households lost their entire camel holdings. <strong>Goats showed the most resilience: 27 households actually increased their goat herd</strong>, making goat restocking the strongest candidate for a targeted recovery programme. On livestock deaths post-donation, <strong>105 of 162 matched households (64.8%) reported no deaths</strong>, while 57 (35.2%) did report deaths — a significantly more difficult picture than the broader unmatched cohort, and consistent with the severity of drought losses captured in the herd size data above.
   </div>
 </section>
 
@@ -387,12 +377,12 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
     </div>
     <div class="cc">
       <div class="big-stat">
-        <div class="big-stat-n" style="color:var(--E)">9.1<span style="font-size:28px">/10</span></div>
-        <div class="big-stat-l">Likelihood to Recommend</div>
-        <div style="font-size:12px;color:#bbb;margin-top:6px;font-family:'DM Mono',monospace">Baseline NPS proxy · n=160</div>
+        <div class="big-stat-n" style="color:var(--E)">81.25</div>
+        <div class="big-stat-l">NPS Score</div>
+        <div style="font-size:12px;color:#bbb;margin-top:6px;font-family:'DM Mono',monospace">Promoters 82.5% − Detractors 1.25% · n=160</div>
       </div>
-      <h3 style="margin-top:8px">NPS Distribution</h3>
-      <div class="cc-note">Scale 0–10 · Recommend to friend/neighbour?</div>
+      <h3 style="margin-top:8px">NPS Score Breakdown</h3>
+      <div class="cc-note">Promoters (9–10) vs Passives (7–8) vs Detractors (0–6) · n=160</div>
       <div class="cw sm"><canvas id="npsChart"></canvas></div>
     </div>
     <div class="cc">
@@ -437,7 +427,7 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
   </div>
 
   <div class="insight pos">
-    With a baseline NPS proxy of <strong>9.1/10 and a programme value score of 8.2/10</strong>, beneficiaries were already strong advocates before the donation was received. Post-donation, 95% of matched households agreed their livestock situation improved. The combination of high advocacy scores and experienced benefit creates a strong foundation for a second programme phase or insurance product introduction.
+    With a baseline programme value score of <strong>8.2/10</strong> and a true NPS of <strong>81.25</strong> (Promoters 82.5% minus Detractors 1.25%), beneficiaries were already strong advocates before the donation was received. Post-donation, 95% of matched households agreed their livestock situation improved. The combination of high advocacy scores and experienced benefit creates a strong foundation for a second programme phase or insurance product introduction. <em style="font-style:normal;font-size:12px;color:#aaa;">Note: NPS is calculated as % Promoters (score 9–10) minus % Detractors (score 0–6). Passives (score 7–8) are excluded from the calculation. The NPS was collected at baseline, before donation delivery.</em>
   </div>
 </section>
 
@@ -460,7 +450,7 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
   </div>
 
   <div class="callout" style="margin-top:18px">
-    Median household income at baseline: <strong>KES 2,650/month</strong> · Mean: KES 2,842/month · 86% of households earned between KES 1,000–5,000/month. September 2025 was the peak drought month — reported by 74 of 162 matched households. This provides critical context for interpreting livestock losses and hunger incidence as drought-driven rather than programme-driven.
+    Median household income at baseline: <strong>KES 2,650/month</strong> · Mean: KES 2,842/month · 96% of households earned between KES 1,000–5,000/month (154 of 160 with income data). September 2025 was the peak drought month — reported by 74 of 162 matched households. This provides critical context for interpreting livestock losses and hunger incidence as drought-driven rather than programme-driven.
   </div>
 </section>
 
@@ -476,9 +466,9 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
     <tbody>
       <tr>
         <td><strong>3 meals/day</strong></td>
-        <td class="td-b">13% (17/129)</td>
-        <td class="td-e">77% (99/129)</td>
-        <td class="td-pos">↑ 68 improved · 5 worsened</td>
+        <td class="td-b">13% (17/129 paired)</td>
+        <td class="td-e">77% (99/129 paired)</td>
+        <td class="td-pos">↑ 68 improved · 5 worsened · 33 HHs no baseline meal record</td>
         <td>✅ Strong</td>
       </tr>
       <tr>
@@ -538,6 +528,13 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
         <td>✅ Positive</td>
       </tr>
       <tr>
+        <td><strong>No livestock deaths post-donation</strong></td>
+        <td class="td-b">—</td>
+        <td class="td-e">64.8% (105/162)</td>
+        <td class="td-neg">35.2% (57 HHs) reported deaths — drought-driven</td>
+        <td>⚠️ Partial</td>
+      </tr>
+      <tr>
         <td><strong>Agreed livestock improved</strong></td>
         <td class="td-b">—</td>
         <td class="td-e">95% (154/162)</td>
@@ -552,23 +549,14 @@ footer{padding:28px 56px;font-family:'DM Mono',monospace;font-size:11px;color:#C
         <td>✅ Strong</td>
       </tr>
       <tr>
-        <td><strong>Likelihood to recommend (0–10)</strong></td>
-        <td class="td-b">9.1 mean</td>
+        <td><strong>NPS Score (0–100)</strong></td>
+        <td class="td-b">81.25 · World-class</td>
         <td class="td-e">—</td>
-        <td class="td-pos">97% score 8+</td>
+        <td class="td-pos">Promoters 82.5% − Detractors 1.25%</td>
         <td>✅ Strong</td>
       </tr>
     </tbody>
   </table>
-
-  <!-- <div class="callout" style="margin-top:20px">
-    <strong>Priority actions suggested by the data:</strong>
-    (1) Follow up with the 59 households whose hunger persisted at endline — understand whether it was a timing issue (donation arrived too late) or insufficient amount.
-    (2) Investigate the 12 new hunger cases — what shocks emerged post-donation?
-    (3) Examine the 8 households that disagreed livestock improved — are there systematic differences in their profiles?
-    (4) Consider a goat restocking programme as a recovery pathway — 27 households increased goat numbers, demonstrating viability even under drought conditions.
-    (5) The 5 households whose meal frequency worsened and the 5 whose meals did not improve should be reviewed individually.
-  </div> -->
 </section>
 
 </div>
@@ -620,8 +608,6 @@ new Chart('hungerCompChart',{type:'bar',data:{
     scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,max:100,ticks:{callback:v=>v+'%'}}}
   }
 });
-
-// hungerMonthsChart removed — data too sparse (45 of 162 matched HHs responded)
 
 // Livestock mean
 new Chart('livestockMeanChart',{type:'bar',data:{
@@ -707,14 +693,17 @@ new Chart('progValChart',{type:'bar',data:{
   }
 });
 
-// NPS
-new Chart('npsChart',{type:'bar',data:{
-  labels:['6','7','8','9','10'],
-  datasets:[{data:[2,3,23,78,54],
-    backgroundColor:['#B7791F','#B7791F','#4A90D9','#276749','#276749'],borderRadius:2}]
-  },options:{responsive:true,maintainAspectRatio:false,
-    plugins:{legend:{display:false}},
-    scales:{x:{grid:{display:false}},y:{beginAtZero:true,title:{display:true,text:'Households'}}}
+// NPS — correct calculation showing Promoters/Passives/Detractors
+new Chart('npsChart',{type:'doughnut',data:{
+  labels:['Promoters (9–10): 132','Passives (7–8): 26','Detractors (0–6): 2'],
+  datasets:[{data:[132,26,2],
+    backgroundColor:[E+'CC',G+'CC',R+'CC'],borderWidth:0,hoverOffset:4}]
+  },options:{responsive:true,maintainAspectRatio:false,cutout:'55%',
+    plugins:{legend:{position:'bottom',labels:{padding:10,font:{size:10}}},
+      tooltip:{callbacks:{label:function(c){
+        const pct=(c.raw/160*100).toFixed(1);
+        return c.label+' ('+pct+'%)';
+      }}}}
   }
 });
 
