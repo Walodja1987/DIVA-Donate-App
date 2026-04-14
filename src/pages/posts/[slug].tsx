@@ -38,7 +38,7 @@ const components = {
 		</h3>
 	),
 	p: (props) => (
-		<p {...props} className="text-black opacity-80 font-serif">
+		<p {...props} className="text-black/80 font-serif">
 			{props.children}
 		</p>
 	),
