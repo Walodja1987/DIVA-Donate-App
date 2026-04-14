@@ -1,0 +1,245 @@
+---
+title: Successful completion of the 6th DIVA Donate campaign
+description: Successful completion of the 6th DIVA Donate campaign
+date: 2026-01-25T23:37:00.284Z
+coverImage: campaign_6.png
+coverImageDescription: Pastoralists
+coverImageWidth: 600
+coverImageHeight: 428
+featured: true
+author: Wladimir Weinbender
+---
+
+Successful completion of the 6th DIVA Donate campaign
+
+We are pleased to announce the successful completion of the **6th DIVA Donate campaign**, which ran from **October to December 2025** to provide anticipatory drought relief to pastoralist communities in **Laikipia North, Kenya**. This campaign was conducted in collaboration with **Ripple** and utilized their stablecoin, **RLUSD**, on Ethereum as the payout token to demonstrate its applicability in humanitarian aid. The partnership with Ripple is a testament to the value of our work and mission to build the most effective platform for disaster relief.
+
+In this campaign, we **tested a multi-checkpoint design** as an alternative to the previous single end-of-season assessment. By utilizing **multiple NDVI checkpoints** throughout the rainy period, we explored the benefits of earlier and more frequent payouts to build resilience.
+
+In total, **four payouts totaling $15,022 were triggered**, providing pastoralists financial support during times of low vegetation.
+
+**Key impact findings include:**
+
+- **64%** reduction in transaction costs (from 10% to 3.6% of the transaction value)
+- **>95%** reduction in payment settlement time over traditional transfers
+
+## ✨ Campaign overview
+
+The objective of the 6th campaign remained unchanged: to provide **timely, need-based cash support** to pastoralist households whose livelihoods depend on healthy pasture availability.
+
+Instead of a single NDVI measurement at the end of the Oct–Dec rainy season, the period was split into **nine checkpoints** spaced every 10 days, beginning on 10 October and ending on 31 December 2025. At each checkpoint, NDVI was assessed against a fixed threshold of **0.55** (refer to our [announcement article](https://www.divadonate.xyz/posts/diva-conditional-donations-pastoralists-6) for details); if vegetation health dropped below this level, the corresponding pool funds were released automatically.
+
+Each checkpoint operated as an independent escrow, with **\$4,074** allocated for potential payout at each window, totaling **$36,673** across all nine checkpoints.
+
+
+## 📊 NDVI outcomes and payouts
+
+Out of the nine checkpoints, **four fell below the NDVI threshold** and triggered a payout:
+
+<table style={{ borderCollapse: 'collapse', width: '100%' }}>
+  <thead>
+    <tr style={{ backgroundColor: '#f5f5f5' }}>
+      <th>Checkpoint</th>
+      <th>Observation Date</th>
+      <th>NDVI Value</th>
+      <th>Payout Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>10 Oct 2025</td>
+      <td>0.55</td>
+      <td>No Payout</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>20 Oct 2025</td>
+      <td>0.50</td>
+      <td><strong style={{ color: 'green' }}>Payout</strong></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>31 Oct 2025</td>
+      <td>0.54</td>
+      <td><strong style={{ color: 'green' }}>Payout</strong></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>10 Nov 2025</td>
+      <td>0.56</td>
+      <td>No Payout</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>20 Nov 2025</td>
+      <td>0.59</td>
+      <td>No Payout</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>30 Nov 2025</td>
+      <td>0.61</td>
+      <td>No Payout</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>10 Dec 2025</td>
+      <td>0.58</td>
+      <td>No Payout</td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td>20 Dec 2025</td>
+      <td>0.51</td>
+      <td><strong style={{ color: 'green' }}>Payout</strong></td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td>31 Dec 2025</td>
+      <td>0.49</td>
+      <td><strong style={{ color: 'green' }}>Payout</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<div style={{ fontSize: '0.92em', fontStyle: 'italic', marginTop: '0.3em', marginBottom: '1.7em' }}>
+  Note: The NDVI values shown above were the prevailing values as of the time of reporting. When looking at the NDVI curve today, these values may deviate as the FEWS smoothing algorithm adjusts historical values retroactively.
+</div>
+
+In total, **\$16,296** in escrowed funds were released, representing 44% of the overall campaign amount. After deducting operational costs (c. 3.6%, refer to [cost analysis](#cost-analysis) section for details) and accounting for unsuccessful M-Pesa transfers (c. 4.2%), the final disbursement amounted to **\$15,022**. These funds reached **506 pastoralists**, with each recipient receiving an average of **$29.70**.
+
+
+## 📈 Cost analysis
+
+Total costs represented **3.6%** of the gross payout value, exceeding the **2.5%** recorded in the initial MCV pilot campaign (Q4 2023), which utilized a single end-of-season reporting model. This increase is consistent with our expectation that a multi-window payout structure would lead to higher overall transaction costs. Despite this increase, the 3.6% cost remains approximately **64% lower** compared to the 10–35% in fees and operational costs typically associated with traditional transfer methods.
+
+**Key drivers of the increased costs were:**
+
+- Deploying nine instead of one blockchain escrows increased cumulative on-chain transaction fees. This contributed c. 0.3% in additional costs.
+- Smaller, more frequent M-Pesa transfers result in a higher per-transaction fee relative to the amount sent (c. **122%** in additional M-Pesa transaction costs).
+
+**Below provides the details of the cost analysis:**
+
+* The **gross payout** released by the DIVA Protocol escrow amounted to **$16,296**.
+* From this amount, we deducted:
+  * **\$61** (0.4%) Blockchain transaction costs (pool setup, outcome reporting, and payout transactions)
+  * **\$80** (0.5%) M-Pesa transaction fees (assuming no failed transactions)
+  * **\$449** (2.8%) Off-ramp and FX conversion fees
+
+This gives an effective amount disbursed to beneficiaries of **$15,706** (96.4% of the gross payout). 
+
+**Notes:**
+* Out of 2,036 total M-Pesa transfers across the four payout events, 116 transactions failed due to inactive recipient accounts. As a result, only **\$15,022** was effectively distributed to pastoralists. c. 4.2% remained undisbursed and are currently kept in KES, to be redeployed into the next campaign.
+* DIVA Protocol fees of $91.7 (0.25% on campaign size) were rebated which helped to improve the overall cost base by c. 0.6%.
+* Since the DIVA Donate multisig acted as the oracle for this campaign, no oracle fees (normally 0.05% of campaign size) were charged. This helped to improve the overall cost base by c. 0.1%.
+
+The blockchain transaction costs of \$61 were relatively low, reflecting the currently low gas prices on Ethereum. During periods of high network congestion, transaction costs could be up to 20x higher, making this approach economically infeasible. Leveraging lower-cost blockchain networks, such as XRPL, may offer substantial cost savings in the future.
+
+## 🔒 Operational disruption: FEWS data interruption
+
+During **Window 3**, outcome reporting was disrupted by the **US government shutdown**, which temporarily halted publication of NDVI data by **FEWS**, our primary data source.
+
+**Key implications:**
+
+* NDVI reporting for the 31 October snapshot was **delayed by 18 days**
+* We evaluated several alternative NDVI datasets; however, differences in calibration, spatial resolution, and processing methodologies prevented direct comparison and reliable substitution.
+* Ultimately, the value was reported once FEWS data became available again, using DIVA Protocol's fallback reporting setup.
+
+This incident underscores the data availability risks associated with relying on complex satellite-based datasets and centralized data processing centers. Interruptions or disruptions at any point in this data pipeline can delay or compromise timely outcome verification, in the worst case result in incorrect payouts.
+
+Going forward, a clearly defined **fallback data strategy** should be part of campaign design. 
+
+Ideally, the outcome data could be sourced and aggregated independently by anyone, without reliance on a single provider or centralized entity. Enabling such decentralized and open-access data feeds is an important research area. **Improvements in this direction could make parametric donation initiatives like DIVA Donate more resilient and robust against disruptions in specific data pipelines or providers.** If you are working on it, [reach out to us](https://x.com/DIVADonate_xyz)!
+
+
+## 🆕 Progressive vs. single payout model
+
+The final NDVI reading on 31 December was **0.49**. Under a **single payout model**, this outcome would have triggered a full payout of **\$36,673** (100%) at the end of the season, based on a linear payout curve (0% at 0.55 NDVI, up to 100% at 0.50). In contrast, the **multi-window model** paid out **\$16,296** (c. 44% of the pool, ignoring costs and transfer failure for the sake of demonstration), as funds were released only when the threshold was breached at specific checkpoints.
+
+**Benefits of the multi-window approach:**
+
+* **Timely support during stress periods:** If NDVI values start low but recover by season end, the progressive model provides early support during the low vegetation months, whereas the single payout model may not pay out anything.
+
+* **Builds beneficiary trust:** By delivering smaller, more frequent payouts, beneficiaries see the model working in real-time rather than waiting months for a result.
+
+* **Greater resilience to data interruptions:** While data availability risks exist in both models, the single payout model is particularly vulnerable. If data isn't available when the end-of-season reporting window opens and closes, the entire payout opportunity may be missed. The multi-window structure provides protection by allowing payouts to be triggered at multiple checkpoints before any interruption occurs, and delayed windows can be reported later once data becomes available (as demonstrated with Window 3).
+
+**Tradeoffs:**
+
+* **Higher operational complexity:** Requires consistent reporting, escrow setup, and disbursement at each interval.
+
+* **Increased costs:** Approximately 1.1% higher in this campaign compared to a single payout, reflecting additional transaction and coordination fees.
+
+**In summary, while the single payout model is simpler and more cost-effective, the multi-window model offers earlier, visible support, builds confidence in the payout process, and provides greater resilience to data disruptions at the price of higher administrative overhead and expenses.**
+
+
+## 💸 Payout execution
+
+The campaign demonstrated improved speed in payout execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1–5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023, and **>95%** reduction in time for the delivery of the donation funds from release to beneficiary compared to traditional means (baseline: 168 hours).
+
+This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to operational improvements over the course of the season.
+
+
+## 💰 Fund flow: RLUSD journey from donor to pastoralist
+
+The following diagram illustrates the complete flow of Ripple's RLUSD stablecoin from initial donation through to final distribution to pastoralists:
+
+<img src="/Images/posts/user-flow.png" alt="RLUSD Fund Flow: Donor to Pastoralist" style={{maxWidth: "100%", height: "auto"}} />
+
+1. **RLUSD deposits:** Donors deposit RLUSD into the DIVA Protocol escrow contract, where funds are held securely until the outcome is determined.
+2. **Oracle reports outcome:** The Oracle observes the campaign (NDVI measurements) and reports the outcome to the DIVA Protocol once the reporting window opens.
+3. **DIVA Protocol determines payout:** Based on the reported outcome, the blockchain protocol automatically determines whether funds should be released. If the NDVI threshold is breached, funds are made available for the custodian (Fortune Credit) to claim; otherwise, unreleased funds can be claimed back by the Donor.
+4. **Custodian claims and off-ramps:** The custodian claims any released RLUSD funds and converts them from digital assets to traditional currency through an off-ramp process.
+5. **Distribution via M-Pesa:** The custodian distributes the converted funds to pastoralists via M-Pesa, Kenya's mobile money platform.
+6. **Pastoralists withdraw:** Beneficiaries receive funds in their M-Pesa accounts and can withdraw them as needed.
+
+This flow demonstrates how RLUSD serves as the digital asset layer that enables transparent, automated, and efficient conditional donations, with the off-ramp to M-Pesa ensuring accessibility for recipients who may not have direct access to blockchain infrastructure.
+
+
+## 📚 Key learnings
+
+1. **Progressive payouts work**  
+   The multiple checkpoint model represents a viable alternative to the single payout model.
+
+2. **Building beneficiary trust through smaller and more frequent payouts**  
+   Smaller, frequent payouts support household liquidity; larger payouts better support livestock-specific interventions. [Pending feedback from participating pastoralists]
+
+3. **Data dependency**  
+   The DIVA Donate campaigns are by design heavily reliant on centralized data providers (like FEWS). NDVI data aggregation is highly complex and not easily replicable; different sources (e.g., EU Copernicus) use varying logic and resolution, making datasets difficult to compare or use as immediate fallbacks without extensive normalization.
+
+4. **Transaction failures in M-Pesa disbursement**  
+   In total, 116 transfers failed during the M-Pesa transfers due to the numbers being inactive (deregistered), as well as names of recipients registered during onboarding being different from the names registered on M-Pesa. To improve, phone number verification can be done during onboarding.
+
+## 📋 Baseline vs endline household survey
+
+We compared baseline (Oct–Dec 2025) and endline (March 2026) phone surveys in a matched panel of 162 households, paired using M-Pesa numbers as household identifiers.
+
+Headline results:
+
+- **Meal frequency:** Among matched households with data at both points (n=129), the share eating **three meals per day** rose from **13%** to **77%** (68 households improved; 5 worsened).
+- **Hunger:** The share reporting **hunger-free** status increased from **20%** to **56%** (91/162). **71** households moved out of hunger, while **59** remained hungry and **12** were newly hungry at endline. This represents a **partial** improvement in line with severe, ongoing drought pressure.
+- **Livestock:** Average cattle and sheep holdings fell sharply among reporting households (**−57%** and **−51%**); goats were more resilient (**−24%**, with **27** households gaining goats). These herd dynamics are **drought-driven** rather than programme outcomes.
+- **Self-reported wellbeing:** **85%** reported **reduced stress**, **64%** **improved capacity to meet expenses**, and **41%** **improved savings** relative to baseline.
+- **Programme perception:** **95%** agreed livestock conditions had improved. On the **baseline** survey (**before donation**), the mean **programme value** score was **8.2/10** and **NPS** was **81.25** (82.5% promoters minus 1.25% detractors; **n=160**).
+
+<div className="text-black opacity-80 font-serif" style={{ display: 'inline' }}><a href="/final-results-dashboard2.html" target="_blank" rel="noopener noreferrer">Open the results dashboard</a> for full tables, charts, and methodology notes.</div>
+
+## 🌖 Conclusion
+
+The 6th DIVA Donate campaign successfully validated progressive parametric aid in a real-world setting, demonstrating that multi-window payout structures can deliver timely support while building beneficiary trust.
+
+We are deeply grateful to Ripple and our other partners and donors for enabling this experimentation, and to the pastoralist communities whose participation makes learning and improvement possible.
+
+## 🍀 About DIVA Donate
+
+DIVA Donate is an innovative platform that leverages blockchain technology to enable parametric conditional donations for pre-disaster  preparedness and relief. It is a joint initiative between two entities united around the mission of empowering vulnerable communities affected by climate change through anticipatory support that activates before disasters strike:
+1. [**Fortune Credit**](https://fortunecredit.co.ke/): a microfinance institution in Kenya which provides credit, insurance & other financial services to 50k+ customers including small-holder farmers & pastoralists, and
+2. [**DIVA Technologies AG**](https://www.divaprotocol.io/): developer of DIVA Protocol, a smart contract-based system for creating and managing custom derivative contracts peer-to-peer.
+
+## 🔗 Links
+
+* DIVA Donate: [Website](https://www.divadonate.xyz/) | [Twitter](https://twitter.com/DIVADonate_xyz)
+* DIVA Protocol: [Website](https://www.divaprotocol.io/) | [Github](https://github.com/divaprotocol/diva-protocol-v1) | [Docs](https://docs.divaprotocol.io/) | [Twitter](https://twitter.com/divaprotocol_io) | [Discord](https://discord.gg/8fAvUspmv3)
+* Fortune Connect: [Website](https://fortunecredit.co.ke/) | [Twitter](https://twitter.com/fortuneconnectk)
+
