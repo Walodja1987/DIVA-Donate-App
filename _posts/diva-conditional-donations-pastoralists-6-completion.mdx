@@ -176,7 +176,7 @@ The final NDVI reading on 31 December was **0.49**. Under a **single payout mode
 
 ## 💸 Payout execution
 
-The campaign demonstrated improved speed in payout execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1–5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023, and **>95%** reduction in time for the delivery of the donation funds from release to beneficiary compared to traditional means (baseline: **168 hours**).
+The campaign demonstrated improved speed in payout execution compared to the pilot with Mercy Corps Ventures in Q4 2023. Excluding the period of data disruption during Window 3 (see [Key Learnings](#key-learnings) section for details), it took on average just **5–40 minutes** to report the NDVI outcome once the reporting window opened and another **1–5.5 hours** until funds were disbursed to pastoralists via M-Pesa. This represents a further improvement compared to the **14.5 hours** recorded during the campaign with Mercy Corps Ventures in Q4 2023, and **>95%** reduction in time for the delivery of the donation funds from release to beneficiary compared to traditional means (baseline: 168 hours).
 
 This efficiency gain was largely driven by the multi-window design, which allowed the team to perform and refine the disbursement process multiple times, leading to operational improvements over the course of the season.
 
@@ -187,17 +187,12 @@ The following diagram illustrates the complete flow of Ripple's RLUSD stablecoin
 
 <img src="/Images/posts/user-flow.png" alt="RLUSD Fund Flow: Donor to Pastoralist" style={{maxWidth: "100%", height: "auto"}} />
 
-**RLUSD deposits:** Donors deposit RLUSD into the DIVA Protocol escrow contract, where funds are held securely until the outcome is determined.
-
-**Oracle reports outcome:** The Oracle observes the campaign (NDVI measurements) and reports the outcome to the DIVA Protocol once the reporting window opens.
-
-**DIVA Protocol determines payout:** Based on the reported outcome, the blockchain protocol automatically determines whether funds should be released. If the NDVI threshold is breached, funds are made available for the custodian (Fortune Credit) to claim; otherwise, unreleased funds can be claimed back by the Donor.
-
-**Custodian claims and off-ramps:** The custodian claims any released RLUSD funds and converts them from digital assets to traditional currency through an off-ramp process.
-
-**Distribution via M-Pesa:** The custodian distributes the converted funds to pastoralists via M-Pesa, Kenya's mobile money platform.
-
-**Pastoralists withdraw:** Beneficiaries receive funds in their M-Pesa accounts and can withdraw them as needed.
+1. **RLUSD deposits:** Donors deposit RLUSD into the DIVA Protocol escrow contract, where funds are held securely until the outcome is determined.
+2. **Oracle reports outcome:** The Oracle observes the campaign (NDVI measurements) and reports the outcome to the DIVA Protocol once the reporting window opens.
+3. **DIVA Protocol determines payout:** Based on the reported outcome, the blockchain protocol automatically determines whether funds should be released. If the NDVI threshold is breached, funds are made available for the custodian (Fortune Credit) to claim; otherwise, unreleased funds can be claimed back by the Donor.
+4. **Custodian claims and off-ramps:** The custodian claims any released RLUSD funds and converts them from digital assets to traditional currency through an off-ramp process.
+5. **Distribution via M-Pesa:** The custodian distributes the converted funds to pastoralists via M-Pesa, Kenya's mobile money platform.
+6. **Pastoralists withdraw:** Beneficiaries receive funds in their M-Pesa accounts and can withdraw them as needed.
 
 This flow demonstrates how RLUSD serves as the digital asset layer that enables transparent, automated, and efficient conditional donations, with the off-ramp to M-Pesa ensuring accessibility for recipients who may not have direct access to blockchain infrastructure.
 

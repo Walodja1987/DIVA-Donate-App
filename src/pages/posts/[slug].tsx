@@ -43,9 +43,14 @@ const components = {
 		</p>
 	),
 	ul: (props) => (
-		<ul {...props} className="text-black opacity-80 font-serif">
+		<ul {...props} className="text-black/80 font-serif">
 			{props.children}
 		</ul>
+	),
+	ol: (props) => (
+		<ol {...props} className="text-black/80 font-serif">
+			{props.children}
+		</ol>
 	),
 	a: (props) => (
 		<a {...props} className="text-black font-serif">
@@ -53,7 +58,7 @@ const components = {
 		</a>
 	),
 	li: (props) => (
-		<li {...props} className="text-black font-serif">
+		<li {...props} className="font-serif text-inherit">
 			{props.children}
 		</li>
 	),
@@ -92,7 +97,7 @@ const PostPage = ({ source, post }: PostPageProps) => {
 	return (
 		<Layout>
 			<Head>
-				<title>Diva Donate - {post.title}</title>
+				<title>{`Diva Donate - ${post.title}`}</title>
 				<meta name="description" content={post.description} />
 				<meta name="twitter:description" content={post.description} />
 				<meta name="twitter:card" content="summary_large_image" />
